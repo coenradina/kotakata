@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+/* Same palette and type as aastr.id */
+@theme {
+  --color-cream: #FDF6E3;
+  --color-parchment: #EEE8D5;
+  --color-ink: #0F172A;
+  --color-tosca: #0D9488;
+  --color-maroon: #881337;
+  --color-amber: #E5A93C;
+  --color-gold: #B58900;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-pixel: 'VT323', monospace;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.pixel-shadow { box-shadow: 4px 4px 0 var(--color-ink); }
+.pixel-btn { transition: transform .1s, box-shadow .1s; box-shadow: 3px 3px 0 var(--color-ink); }
+.pixel-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-ink); }
+.pixel-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-ink); }
+.pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+@keyframes card-in { from { transform: translateY(12px) rotate(-3deg); opacity: 0 } to { transform: none; opacity: 1 } }
+.card-in { animation: card-in .4s steps(6) both; }
+
+/* Blockly: match the portfolio's look */
+.blocklyToolboxDiv, .blocklyToolbox { background: var(--color-parchment) !important; border-right: 2px solid var(--color-ink); }
+.blocklyTreeLabel, .blocklyToolboxCategoryLabel { font-family: var(--font-mono) !important; font-weight: 700; }
+.blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 600 !important; }
+.blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: .96 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-in { animation: none; }
+}
