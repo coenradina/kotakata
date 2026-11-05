@@ -48,6 +48,11 @@ export const TERM_NAME: Record<CardId, string> = {
   leaf: 'Leaf',
   prediction: 'Prediction',
   decisionTree: 'Decision Tree',
+  loss: 'Loss',
+  gradient: 'Gradient',
+  learningRate: 'Learning Rate',
+  convergence: 'Convergence',
+  gradientDescent: 'Gradient Descent',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })
@@ -240,6 +245,70 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
       opt('Ia selalu benar 100%', "It's always 100% right"),
     ],
   },
+  // Level 3
+  {
+    id: 'loss-what',
+    terms: ['loss'],
+    prompt: { id: 'Loss yang makin kecil artinya…', en: 'A smaller loss means…' },
+    options: [
+      opt('Model makin jarang salah', 'The model is less wrong', true),
+      opt('Model makin lambat', 'The model is slower'),
+      opt('Datanya makin sedikit', 'There is less data'),
+    ],
+  },
+  {
+    id: 'gradient-what',
+    terms: ['gradient'],
+    prompt: { id: 'Gradient memberi tahu robot…', en: 'The gradient tells the robot…' },
+    options: [
+      opt('Ke arah mana bukit menanjak, dan seberapa curam', 'Which way the hill goes up, and how steeply', true),
+      opt('Berapa banyak energinya', 'How much energy it has'),
+      opt('Di mana benderanya', 'Where the flag is'),
+    ],
+  },
+  {
+    id: 'lr-small',
+    terms: ['learningRate'],
+    prompt: { id: 'Kalau learning rate terlalu kecil, robot akan…', en: 'If the learning rate is too small, the robot will…' },
+    options: [
+      opt('Turun sangat pelan dan bisa kehabisan energi', 'Go down very slowly and may run out of energy', true),
+      opt('Terpental keluar bukit', 'Fly off the hill'),
+      opt('Langsung sampai dalam satu langkah', 'Arrive in one step'),
+    ],
+  },
+  {
+    id: 'lr-big',
+    terms: ['learningRate'],
+    prompt: { id: 'Kalau learning rate terlalu besar, robot akan…', en: 'If the learning rate is too big, the robot will…' },
+    options: [
+      opt('Melompati lembah dan bisa terpental', 'Jump past the valley and may bounce off', true),
+      opt('Turun dengan sangat hati-hati', 'Go down very carefully'),
+      opt('Diam di tempat', 'Stay where it is'),
+    ],
+  },
+  {
+    id: 'lr-hill',
+    terms: ['learningRate'],
+    prompt: {
+      id: 'Kenapa learning rate 0.4 berhasil di bukit landai tapi gagal di bukit curam?',
+      en: 'Why does a learning rate of 0.4 work on the gentle hill but fail on the steep one?',
+    },
+    options: [
+      opt('Learning rate yang pas bergantung pada bentuk bukitnya', 'The right learning rate depends on the shape of the hill', true),
+      opt('Bukit curam tidak punya lembah', 'The steep hill has no valley'),
+      opt('Robotnya capek', 'The robot is tired'),
+    ],
+  },
+  {
+    id: 'convergence-what',
+    terms: ['convergence'],
+    prompt: { id: 'Model dikatakan sudah converge kalau…', en: 'A model has converged when…' },
+    options: [
+      opt('Langkah berikutnya tidak lagi menurunkan loss', 'More steps no longer lower the loss', true),
+      opt('Energinya habis', 'It runs out of energy'),
+      opt('Learning rate-nya diganti', 'Its learning rate changes'),
+    ],
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -293,6 +362,24 @@ const BLANKS: Omit<BlankQuestion, 'kind' | 'chips'>[] = [
       en: 'The questions in a {2} are always about a {1}, like whether something has wings.',
     },
     answers: ['Feature', 'Decision Tree'],
+  },
+  {
+    id: 'blank-descent',
+    terms: ['gradient', 'learningRate', 'gradientDescent'],
+    sentence: {
+      id: 'Di {3}, robot melihat {1} lalu melangkah turun sejauh yang diatur {2}.',
+      en: 'In {3}, the robot checks the {1} and steps downhill as far as the {2} allows.',
+    },
+    answers: ['Gradient', 'Learning Rate', 'Gradient Descent'],
+  },
+  {
+    id: 'blank-loss',
+    terms: ['loss', 'convergence'],
+    sentence: {
+      id: 'Tujuan training adalah membuat {1} sekecil mungkin, sampai model mencapai {2}.',
+      en: 'Training aims to make the {1} as small as possible, until the model reaches {2}.',
+    },
+    answers: ['Loss', 'Convergence'],
   },
   {
     id: 'blank-score',

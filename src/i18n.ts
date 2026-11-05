@@ -234,6 +234,59 @@ const dict = {
   aLeanTitle: { id: 'Hemat', en: 'Lean' },
   aLeanDesc: { id: 'Memilah ke-12 hewan dengan 2 pertanyaan saja.', en: 'Sorted all 12 critters with just 2 questions.' },
 
+  // Level 3
+  l3Title: { id: 'Bukit Loss', en: 'Hill of Loss' },
+  catHill: { id: 'Langkah', en: 'Moves' },
+  blkLr: { id: 'learning rate = %1', en: 'learning rate = %1' },
+  blkSteps: { id: 'turun %1 langkah', en: 'step downhill %1 times' },
+  s3GentleTitle: { id: 'Turun bukit', en: 'Down the hill' },
+  s3GentleMission: {
+    id: 'Bawa robot ke bendera di lembah, tempat loss paling kecil. Robot punya energi untuk 30 langkah. Tambahkan langkah sampai ia sampai.',
+    en: 'Get the robot to the flag in the valley, where loss is lowest. It has energy for 30 steps. Add steps until it gets there.',
+  },
+  s3ShortTitle: { id: 'Energi terbatas', en: 'Low on energy' },
+  s3ShortMission: {
+    id: 'Sekarang energinya cuma cukup untuk 6 langkah. Learning rate 0.1 terlalu pelan. Coba learning rate yang lebih besar.',
+    en: 'Now there is only energy for 6 steps. A learning rate of 0.1 is too slow. Try a bigger one.',
+  },
+  s3SteepTitle: { id: 'Bukit curam', en: 'Steep hill' },
+  s3SteepMission: {
+    id: 'Bukit ini jauh lebih curam, dan energinya 10 langkah. Learning rate yang tadi bagus mungkin bikin robot terpental. Cari yang pas.',
+    en: 'This hill is much steeper, with energy for 10 steps. The learning rate that worked before may send the robot bouncing. Find one that fits.',
+  },
+  s3OneTitle: { id: 'Satu lompatan', en: 'One jump' },
+  s3OneMission: {
+    id: 'Tantangan bonus: di bukit landai, mendarat di lembah dengan SATU langkah saja.',
+    en: 'Bonus challenge: on the gentle hill, land in the valley with just ONE step.',
+  },
+  logHillStart: { id: 'Loss awal: {loss}. Energi: {budget} langkah.', en: 'Starting loss: {loss}. Energy: {budget} steps.' },
+  logHillEnd: { id: 'Setelah {n} langkah, loss = {loss}.', en: 'After {n} steps, loss = {loss}.' },
+  logHillArrived: { id: 'Sampai di lembah pada langkah ke-{n}!', en: 'Reached the valley on step {n}!' },
+  warnNoLr: { id: 'Belum ada blok learning rate, jadi robot memakai 0.1.', en: 'No learning rate block yet, so the robot used 0.1.' },
+  warnTired: { id: 'Energi habis! Langkah sisanya tidak dijalankan.', en: 'Out of energy! The remaining steps did not run.' },
+  warnFlewOff: { id: 'Terpental! Lompatannya terlalu jauh sampai robot keluar bukit.', en: 'Bounced off! The jumps were so big the robot flew off the hill.' },
+  hillFlewOffNext: { id: 'Coba learning rate yang lebih kecil.', en: 'Try a smaller learning rate.' },
+  hillNotThere: { id: 'Robot belum sampai di lembah.', en: "The robot hasn't reached the valley yet." },
+  hillOneFail: { id: 'Belum sampai dalam satu langkah. Learning rate mana yang pas?', en: 'Not there in one step. Which learning rate fits exactly?' },
+  hint_hillAddSteps: { id: 'Robot butuh langkah. Seret blok ini ke bawah blok learning rate.', en: 'The robot needs steps. Drag this block below the learning rate.' },
+  hint_hillAddLr: { id: 'Atur learning rate dulu, sebelum blok langkah.', en: 'Set a learning rate first, above the steps.' },
+  hint_hillMoreSteps: { id: 'Hampir! Tambah jumlah langkahnya di sini.', en: 'Almost! Add more steps here.' },
+  hint_hillTooSmall: { id: 'Langkahnya terlalu kecil untuk energi segini. Coba learning rate yang lebih besar.', en: 'Those steps are too small for this much energy. Try a bigger learning rate.' },
+  hint_hillTooBig: { id: 'Terlalu besar! Robotnya terpental. Coba learning rate yang lebih kecil.', en: 'Too big! The robot flew off. Try a smaller learning rate.' },
+  hint_hillBounce: { id: 'Robot memantul bolak-balik melewati lembah. Kecilkan learning rate-nya.', en: 'The robot keeps bouncing over the valley. Make the learning rate smaller.' },
+  hint_hillOneStep: { id: 'Satu langkah, tepat sasaran: ada satu learning rate yang pas di bukit ini.', en: 'One step, dead on: one learning rate fits this hill exactly.' },
+  aFirstStepTitle: { id: 'Langkah pertama', en: 'First step' },
+  aFirstStepDesc: { id: 'Robot mulai menuruni bukit.', en: 'The robot started down the hill.' },
+  aValleyTitle: { id: 'Sampai lembah', en: 'Valley reached' },
+  aValleyDesc: { id: 'Mencapai titik loss terendah.', en: 'Reached the lowest loss.' },
+  aBouncedTitle: { id: 'Terpental', en: 'Bounced off' },
+  aBouncedDesc: { id: 'Mencoba learning rate yang terlalu besar. Eksperimen itu bagus!', en: 'Tried a learning rate that was too big. Experimenting is good!' },
+  aSteepTitle: { id: 'Pendaki tebing', en: 'Cliff climber' },
+  aSteepDesc: { id: 'Menuruni bukit curam tanpa terpental.', en: 'Got down the steep hill without bouncing off.' },
+  aOneJumpTitle: { id: 'Satu lompatan', en: 'One jump' },
+  aOneJumpDesc: { id: 'Mendarat di lembah dalam satu langkah.', en: 'Landed in the valley in one step.' },
+  winBodyHill: { id: 'Robot menuruni kedua bukit sampai ke lembah.', en: 'The robot made it down both hills to the valley.' },
+
   // Level 2
   l2Title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' },
   l2Mission: {
@@ -339,6 +392,11 @@ export type CardId =
   | 'leaf'
   | 'prediction'
   | 'decisionTree'
+  | 'loss'
+  | 'gradient'
+  | 'learningRate'
+  | 'convergence'
+  | 'gradientDescent'
 
 export interface TermCard {
   id: CardId
@@ -493,6 +551,74 @@ export const LEVEL2_CARDS: TermCard[] = [
     moment: {
       id: 'Split dan leaf yang kamu susun bersama-sama membentuk decision tree. Enaknya, kamu bisa membaca persis kenapa tiap hewan masuk ke kandangnya. Tidak semua model AI semudah ini dibaca.',
       en: "Together, your splits and leaves make a decision tree. The nice part: you can read exactly why each critter went where it did. Not every AI model is this easy to read.",
+    },
+  },
+]
+
+export const LEVEL3_CARDS: TermCard[] = [
+  {
+    id: 'loss',
+    term: 'Loss',
+    icon: '⛰️',
+    body: {
+      id: 'Angka yang menunjukkan seberapa salah sebuah model. Makin kecil, makin baik.',
+      en: 'A number that says how wrong a model is. Smaller is better.',
+    },
+    moment: {
+      id: 'Tinggi bukit ini adalah loss: seberapa salah model saat ini. Sekarang loss-nya {loss}. Tujuan training adalah turun ke lembah, tempat loss paling kecil.',
+      en: "The height of this hill is the loss: how wrong the model is right now. It's {loss} at the moment. Training is about getting down to the valley, where loss is smallest.",
+    },
+  },
+  {
+    id: 'gradient',
+    term: 'Gradient',
+    icon: '↗️',
+    body: {
+      id: 'Arah dan kecuraman kemiringan loss di titik saat ini.',
+      en: 'The direction and steepness of the loss slope at the current point.',
+    },
+    moment: {
+      id: 'Panah ini adalah gradient: ia menunjuk ke arah bukit menanjak, dan panjangnya menunjukkan seberapa curam. Robot melangkah ke arah sebaliknya supaya turun.',
+      en: 'This arrow is the gradient: it points the way the hill goes up, and its length shows how steep it is. The robot steps the opposite way to go down.',
+    },
+  },
+  {
+    id: 'learningRate',
+    term: 'Learning Rate',
+    icon: '👟',
+    body: {
+      id: 'Seberapa besar langkah sebuah model setiap kali belajar.',
+      en: 'How big a step a model takes each time it learns.',
+    },
+    moment: {
+      id: 'Jauhnya lompatan ini ditentukan learning rate ({lr}). Terlalu kecil: lambat. Terlalu besar: bisa terpental melewati lembah. Ingat robot di Level 1? Ia bergeser setengah jalan tiap ronde, itu learning rate 0.5.',
+      en: 'How far this jump goes is set by the learning rate ({lr}). Too small and it crawls. Too big and it can overshoot the valley. Remember the Level 1 robot moving halfway each round? That was a learning rate of 0.5.',
+    },
+  },
+  {
+    id: 'convergence',
+    term: 'Convergence',
+    icon: '🏁',
+    body: {
+      id: 'Saat langkah-langkah training akhirnya mendarat dan berhenti di titik terbaik.',
+      en: 'When training steps finally settle at the best point.',
+    },
+    moment: {
+      id: 'Robot sudah converge: ia sampai di lembah, dan langkah berikutnya tidak membuat loss lebih kecil lagi. Di sinilah training bisa berhenti.',
+      en: "The robot has converged: it reached the valley, and more steps won't lower the loss any further. This is where training can stop.",
+    },
+  },
+  {
+    id: 'gradientDescent',
+    term: 'Gradient Descent',
+    icon: '⛷️',
+    body: {
+      id: 'Cara melatih model: lihat kemiringan, melangkah turun, lalu ulangi sampai loss sekecil mungkin.',
+      en: 'A way to train a model: look at the slope, step downhill, and repeat until the loss is as small as it gets.',
+    },
+    moment: {
+      id: 'Yang kamu lakukan dari tadi namanya gradient descent: lihat gradient, melangkah turun, ulangi. Banyak model AI, termasuk model bahasa yang besar, dilatih dengan cara ini, hanya saja bukitnya punya jutaan bahkan miliaran arah.',
+      en: "What you've been doing is called gradient descent: check the gradient, step downhill, repeat. Many AI models, large language models included, are trained this way, just on hills with millions or even billions of directions.",
     },
   },
 ]

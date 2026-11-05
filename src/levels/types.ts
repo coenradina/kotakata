@@ -4,7 +4,7 @@ import type { Hint } from '../hints'
 import type { CardId, Key, Lang, TermCard } from '../i18n'
 import type { RunContext } from '../quiz/questions'
 
-export type LevelId = 'train' | 'tree'
+export type LevelId = 'train' | 'tree' | 'hill'
 
 /** What running a level's program produced, in a shape the app understands. */
 export interface LevelRun {
@@ -71,6 +71,6 @@ export interface Level<P = unknown> {
   run: (program: P, seed: number, stageId: string) => LevelRun
   hint: (program: P | null, result: LevelRun | null, stageId: string) => Hint | null
   createScene: () => LevelScene
-  /** What the scene's live preview should show for the current blocks. */
-  previewData?: (program: P | null) => unknown
+  /** What the scene's live preview should show for the current blocks and stage. */
+  previewData?: (program: P | null, stageId: string) => unknown
 }

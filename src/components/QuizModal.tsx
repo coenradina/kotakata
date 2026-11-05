@@ -25,6 +25,11 @@ const CHIP_COLOUR: Record<string, string> = {
   Leaf: 'bg-maroon',
   Prediction: 'bg-maroon',
   'Decision Tree': 'bg-gold',
+  Loss: 'bg-tosca',
+  Gradient: 'bg-tosca',
+  'Learning Rate': 'bg-maroon',
+  Convergence: 'bg-maroon',
+  'Gradient Descent': 'bg-gold',
 }
 
 export default function QuizModal({ question, lang, maxed, onAnswer, onClose }: Props) {

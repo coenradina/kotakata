@@ -84,3 +84,37 @@ describe('Level 2 stages', () => {
     expect(passes(wordy, 'lean')).toBe(false)
   })
 })
+
+import { runHill, type Step as HillStep } from './hill/model'
+import { HILL_STAGES, STAGE_SETUP, type HillRun } from './hill/stages'
+
+describe('Level 3 stages', () => {
+  const lr = (value: number): HillStep => ({ kind: 'lr', value, id: 'lr' })
+  const steps = (n: number): HillStep => ({ kind: 'steps', n, id: 's' })
+  const hillRun = (p: HillStep[], stageId: string): HillRun => {
+    const { hill, budget } = STAGE_SETUP[stageId]
+    const raw = runHill(p, hill, budget)
+    return { raw, events: [raw], accuracy: null, passed: false, context: null }
+  }
+  const check = (p: HillStep[], ranOn: string, stageId: string) => HILL_STAGES.find((s) => s.id === stageId)!.check(p, hillRun(p, ranOn))
+
+  it('a strong gentle-hill run also clears the low-energy stage, but not the steep hill', () => {
+    const good = [lr(0.4), steps(5)]
+    expect(check(good, 'gentle', 'gentle')).toBe(true)
+    expect(check(good, 'gentle', 'short')).toBe(true)
+    expect(check(good, 'gentle', 'steep')).toBe(false)
+  })
+
+  it('the slow learning rate clears stage 1 but not stage 2', () => {
+    const slow = [lr(0.1), steps(20)]
+    expect(check(slow, 'gentle', 'gentle')).toBe(true)
+    expect(check(slow, 'short', 'short')).toBe(false)
+  })
+
+  it('the steep hill needs a smaller learning rate, and the bonus needs exactly 0.5', () => {
+    expect(check([lr(0.4), steps(10)], 'steep', 'steep')).toBe(false)
+    expect(check([lr(0.1), steps(10)], 'steep', 'steep')).toBe(true)
+    expect(check([lr(0.5), steps(1)], 'one', 'one')).toBe(true)
+    expect(check([lr(0.5), steps(1)], 'gentle', 'one')).toBe(true)
+  })
+})

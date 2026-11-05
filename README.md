@@ -8,7 +8,7 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 
 1. **Latih Robot / Train the Robot.** Classification: dataset, label, training, testing, accuracy. *(playable)*
 2. **Taman Decision Tree / Decision Tree Garden.** Features, splits, leaves, predictions, decision trees. Unlocks after Level 1. *(playable)*
-3. **Bukit Loss / Hill of Loss.** Gradient descent. *(planned)*
+3. **Bukit Loss / Hill of Loss.** Loss, gradients, learning rates, convergence, gradient descent. *(playable)*
 4. **Kedai Token / Token Tavern.** How LLMs pick the next token. *(planned)*
 
 ## Stages and badges
@@ -16,6 +16,7 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 Each level is split into small stages, each adding one new idea, plus an optional bonus:
 
 - **Level 1:** collect apples *and* bananas → train the robot → test on 10+ fruits at 90% → bonus: 100% on 20+.
+- **Level 3:** down the gentle hill with 30 steps of energy → only 6 steps, so the learning rate must grow → a steep hill, where that learning rate bounces → bonus: one perfect jump.
 - **Level 2:** one question for bees and frogs → birds arrive, so the tree needs a second question → bonus: all 12 with at most 2 questions and no colour.
 
 Finishing a stage opens the next one. A strong program can clear several stages in one run. Badges (5 per level) reward small wins like a balanced dataset or a first working split. Stages and badges live in each level's `stages.ts`.
@@ -27,6 +28,10 @@ The robot is a real nearest-centroid classifier (`src/levels/train/model.ts`). E
 ## How Level 2 works
 
 Twelve critters (birds, bees and frogs) walk through the player's decision tree (`src/levels/tree/model.ts`). Each question block is a yes/no split on a feature: wings, size or colour. Each pen is a leaf. Colour is a trap on purpose: some birds are yellow like bees and one frog is brown, so only wings and size sort everyone correctly. The stage previews the tree live while the player edits it.
+
+## How Level 3 works
+
+The robot does real gradient descent on a hill shaped like loss = a·x² (`src/levels/hill/model.ts`). Each step it moves by learning rate × gradient, so x becomes x·(1 − 2·a·lr). On the gentle hill (a = 1), 0.1 creeps, 0.4 lands in a few steps, 0.5 lands in one, and 1.1 flies off. On the steep hill (a = 2.5), 0.4 bounces back and forth forever, so the player has to pick a smaller rate. A gradient arrow shows the slope before every jump.
 
 ## Adding a level
 
