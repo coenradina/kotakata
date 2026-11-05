@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import BlockEditor, { type BlockEditorHandle } from './components/BlockEditor'
 import Stage, { type StageHandle } from './components/Stage'
+import HintBubble from './components/HintBubble'
 import QuizModal from './components/QuizModal'
 import TermPopup from './components/TermPopup'
 import type { Focus, Milestones } from './game/TrainScene'
 import { LEVEL1_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
+import { MAX_REPEATS, chooseHint, type Hint } from './hints'
 import { run } from './levels/train/model'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from './quiz/questions'
 
@@ -82,6 +84,9 @@ export default function App() {
   const lastRun = useRef<RunContext | null>(null)
   const quizzedLastRun = useRef(false)
   const showedNewCard = useRef(false)
+  const [hint, setHint] = useState<Hint | null>(null)
+  // The same hint shown run after run means the player is ignoring it.
+  const hintStreak = useRef<{ key: string; n: number }>({ key: '', n: 0 })
   const editor = useRef<BlockEditorHandle>(null)
   const stage = useRef<StageHandle>(null)
   const seed = useRef(1)
@@ -143,6 +148,25 @@ export default function App() {
     })
   }
 
+  /** Shows one hint for this program and result, unless it's been ignored. */
+  const offerHint = (next: Hint | null) => {
+    if (!next) {
+      hintStreak.current = { key: '', n: 0 }
+      return false
+    }
+    const streak = hintStreak.current
+    const n = streak.key === next.key ? streak.n + 1 : 1
+    hintStreak.current = { key: next.key, n }
+    if (n > MAX_REPEATS) return false
+    setHint(next)
+    return true
+  }
+
+  const locateHint = useCallback(
+    (reveal: boolean) => (hint ? (editor.current?.locate(hint.target, reveal) ?? null) : null),
+    [hint],
+  )
+
   const switchLang = (next: Lang) => {
     setLang(next)
     saveLang(next)
@@ -150,9 +174,11 @@ export default function App() {
   }
 
   const handleRun = async () => {
-    const program = editor.current?.program()
+    const program = editor.current?.program() ?? null
+    setHint(null)
     if (!program || program.length === 0) {
       setLog([{ text: t(lang, 'logEmpty'), tone: 'bad' }])
+      offerHint(chooseHint(program, null))
       return
     }
     setRunning(true)
@@ -179,8 +205,11 @@ export default function App() {
     }
     setRunning(false)
 
+    // A failed run gets one pointer at what to change. A run with a hint
+    // skips the quiz, so the player isn't handed two things at once.
+    const hinted = offerHint(chooseHint(program, result))
     // Now and then, a quick question about terms the player already knows.
-    const quizNow = shouldQuiz({
+    const quizNow = !hinted && shouldQuiz({
       foundCount: foundRef.current.size,
       showedNewCard: showedNewCard.current,
       quizzedLastRun: quizzedLastRun.current,
@@ -193,6 +222,7 @@ export default function App() {
   const handleReset = () => {
     // Closing an open card lets the paused run finish; reset then stops it.
     runToken.current++
+    setHint(null)
     openCard?.close()
     stage.current?.reset()
     setLog([])
@@ -262,7 +292,7 @@ export default function App() {
           </div>
           <div className="relative min-h-[380px] flex-1">
             <div className="absolute inset-0">
-              <BlockEditor lang={lang} ref={editor} />
+              <BlockEditor lang={lang} ref={editor} onEdit={() => setHint(null)} />
             </div>
           </div>
         </section>
@@ -317,6 +347,10 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {hint && !quiz && !running && (
+        <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
+      )}
 
       {quiz && (
         <QuizModal

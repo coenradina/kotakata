@@ -47,8 +47,17 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 .blocklyToolboxDiv, .blocklyToolbox { background: var(--color-parchment) !important; border-right: 2px solid var(--color-ink); }
 .blocklyTreeLabel, .blocklyToolboxCategoryLabel { font-family: var(--font-mono) !important; font-weight: 700; }
 .blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 600 !important; }
-.blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: .96 !important; }
+.blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: 1 !important; }
+.blocklyFlyout { border-right: 2px solid var(--color-ink); }
+/* Section headings in the "All" panel, coloured like their category */
+.kk-section .blocklyFlyoutLabelText { font-family: var(--font-mono) !important; font-weight: 700; font-size: 11px; letter-spacing: .08em; }
+.kk-section-events .blocklyFlyoutLabelText { fill: var(--color-gold) !important; }
+.kk-section-data .blocklyFlyoutLabelText { fill: var(--color-tosca) !important; }
+.kk-section-model .blocklyFlyoutLabelText { fill: var(--color-maroon) !important; }
+
+@keyframes hint-ring { 0%, 100% { opacity: 1; transform: scale(1) } 50% { opacity: .45; transform: scale(1.04) } }
+.hint-ring { animation: hint-ring 1.1s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-in { animation: none; }
+  .card-in, .hint-ring { animation: none; }
 }

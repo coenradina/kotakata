@@ -60,12 +60,43 @@ const dict = {
   quizBlankLabel: { id: 'Tempat kosong {n}', en: 'Gap {n}' },
   quizEmpty: { id: 'kosong', en: 'empty' },
   starsLabel: { id: '{n} dari 3 bintang', en: '{n} of 3 stars' },
+  hintTitle: { id: 'PETUNJUK', en: 'HINT' },
+  hintClose: { id: 'Tutup petunjuk', en: 'Close hint' },
+  hint_start: { id: 'Mulai dari sini: seret blok ini ke area kerja.', en: 'Start here: drag this block onto the workspace.' },
+  hint_addData: {
+    id: 'Robot butuh data. Seret blok ini ke bawah "saat ▶ ditekan".',
+    en: 'The robot needs data. Drag this block under "when ▶ clicked".',
+  },
+  hint_dataFirst: {
+    id: 'Training butuh data. Taruh blok kumpulkan di atas blok training.',
+    en: 'Training needs data. Put a collect block above the train block.',
+  },
+  hint_addTest: {
+    id: 'Tambahkan testing di paling bawah supaya kelihatan seberapa pintar robotnya.',
+    en: 'Add a test at the bottom to see how smart the robot is.',
+  },
+  hint_addTrain: {
+    id: 'Robot belum di-training. Seret blok ini ke atas blok testing.',
+    en: "The robot hasn't been trained. Drag this block above the test block.",
+  },
+  hint_addBanana: { id: 'Robot belum pernah lihat pisang. Tambahkan contoh pisang.', en: "The robot has never seen a banana. Add some banana examples." },
+  hint_addApple: { id: 'Robot belum pernah lihat apel. Tambahkan contoh apel.', en: "The robot has never seen an apple. Add some apple examples." },
+  hint_testMore: {
+    id: 'Ubah angka ini jadi minimal 10 supaya hasilnya bisa dipercaya.',
+    en: 'Change this to at least 10 so the result can be trusted.',
+  },
+  hint_moreRounds: { id: 'Robot masih bingung. Coba tambah ronde training di sini.', en: 'The robot is still confused. Try more training rounds here.' },
+  hint_moreData: {
+    id: 'Coba tambah contoh di dataset, untuk apel dan juga pisang.',
+    en: 'Try adding more examples to the dataset, for apples and bananas.',
+  },
   smallScreen: {
     id: 'Kotakata paling enak dimainkan di laptop atau tablet.',
     en: 'Kotakata plays best on a laptop or tablet.',
   },
 
   // Blockly categories
+  catAll: { id: 'Semua', en: 'All' },
   catEvents: { id: 'Mulai', en: 'Start' },
   catData: { id: 'Data', en: 'Data' },
   catModel: { id: 'Model', en: 'Model' },

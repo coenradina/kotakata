@@ -2,13 +2,26 @@ import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import * as Blockly from 'blockly/core'
 import { STARTER, defineBlocks, readProgram, theme, toolbox } from '../blocks/blockly'
 import type { Lang } from '../i18n'
+import type { HintTarget } from '../hints'
 import type { Step } from '../levels/train/model'
 
 export interface BlockEditorHandle {
   program: () => Step[] | null
+  /**
+   * Where a hint target is on screen, or null if it isn't showing. With
+   * `reveal`, switches the panel to "All" first so palette blocks are visible.
+   */
+  locate: (target: HintTarget, reveal?: boolean) => DOMRect | null
 }
 
 const STORAGE_KEY = 'kotakata.level1.blocks'
+// Events that mean the player changed their program.
+const EDIT_EVENTS = new Set<string>([
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_DELETE,
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_MOVE,
+])
 
 function loadSaved(): object {
   try {
@@ -20,11 +33,41 @@ function loadSaved(): object {
   return STARTER
 }
 
-export default function BlockEditor({ lang, ref }: { lang: Lang; ref: Ref<BlockEditorHandle> }) {
+interface Props {
+  lang: Lang
+  ref: Ref<BlockEditorHandle>
+  /** Called when the player changes their blocks. */
+  onEdit?: () => void
+}
+
+function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: boolean): DOMRect | null {
+  if (target.where === 'palette') {
+    const box = workspace.getToolbox()
+    // The block may be filtered out of view; "All" always shows it.
+    if (reveal && box && box.getSelectedItem() !== box.getToolboxItems()[0]) box.selectItemByPosition(0)
+    const blocks = box?.getFlyout()?.getWorkspace().getTopBlocks(false) ?? []
+    const block = blocks.find((b) => b.type === target.type && (!target.label || b.getFieldValue('LABEL') === target.label))
+    return block?.getSvgRoot().getBoundingClientRect() ?? null
+  }
+  const block = workspace.getAllBlocks(false).find((b) => b.type === target.type && b.isEnabled())
+  const field = block?.getField(target.field)
+  return field?.getSvgRoot()?.getBoundingClientRect() ?? null
+}
+
+export default function BlockEditor({ lang, ref, onEdit }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const ws = useRef<Blockly.WorkspaceSvg | null>(null)
+  const onEditRef = useRef(onEdit)
+  onEditRef.current = onEdit
 
-  useImperativeHandle(ref, () => ({ program: () => (ws.current ? readProgram(ws.current) : null) }), [])
+  useImperativeHandle(
+    ref,
+    () => ({
+      program: () => (ws.current ? readProgram(ws.current) : null),
+      locate: (target, reveal = false) => (ws.current ? locateIn(ws.current, target, reveal) : null),
+    }),
+    [],
+  )
 
   useEffect(() => {
     if (!host.current) return
@@ -52,6 +95,19 @@ export default function BlockEditor({ lang, ref }: { lang: Lang; ref: Ref<BlockE
       Blockly.serialization.workspaces.load(STARTER, workspace)
     }
     ws.current = workspace
+
+    // Keep the block panel open, starting on "All". Clicking the selected
+    // category again goes back to "All" instead of closing the panel.
+    const box = workspace.getToolbox()
+    const flyout = box?.getFlyout()
+    if (flyout instanceof Blockly.Flyout) flyout.setAutoClose(false)
+    box?.selectItemByPosition(0)
+    const keepOpen = (e: Blockly.Events.Abstract) => {
+      if (e.type === Blockly.Events.TOOLBOX_ITEM_SELECT && !(e as Blockly.Events.ToolboxItemSelect).newItem) {
+        box?.selectItemByPosition(0)
+      }
+    }
+    workspace.addChangeListener(keepOpen)
     // Start with every block in view: zoom out if the editor is narrow, but
     // never zoom in past the normal size.
     requestAnimationFrame(() => {
@@ -65,6 +121,7 @@ export default function BlockEditor({ lang, ref }: { lang: Lang; ref: Ref<BlockE
 
     const save = (e: Blockly.Events.Abstract) => {
       if (e.isUiEvent) return
+      if (EDIT_EVENTS.has(e.type)) onEditRef.current?.()
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(Blockly.serialization.workspaces.save(workspace)))
       } catch {
@@ -78,6 +135,7 @@ export default function BlockEditor({ lang, ref }: { lang: Lang; ref: Ref<BlockE
     return () => {
       resize.disconnect()
       workspace.removeChangeListener(save)
+      workspace.removeChangeListener(keepOpen)
     }
   }, [lang])
 

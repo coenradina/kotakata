@@ -90,29 +90,45 @@ export function defineBlocks(lang: Lang) {
   ])
 }
 
+const EVENT_BLOCKS = [{ kind: 'block', type: 'kk_when_run' }]
+const DATA_BLOCKS = [
+  { kind: 'block', type: 'kk_collect', fields: { COUNT: 3, LABEL: 'apple' } },
+  { kind: 'block', type: 'kk_collect', fields: { COUNT: 3, LABEL: 'banana' } },
+]
+const MODEL_BLOCKS = [
+  { kind: 'block', type: 'kk_train' },
+  { kind: 'block', type: 'kk_test' },
+]
+
+/**
+ * "All" comes first and shows every block, in sections. The other
+ * categories filter the panel down to one kind of block.
+ */
 export function toolbox(lang: Lang): Blockly.utils.toolbox.ToolboxDefinition {
+  const section = (key: 'catEvents' | 'catData' | 'catModel', style: string) => ({
+    kind: 'label',
+    text: t(lang, key).toUpperCase(),
+    'web-class': `kk-section kk-section-${style}`,
+  })
   return {
     kind: 'categoryToolbox',
     contents: [
-      { kind: 'category', name: t(lang, 'catEvents'), categorystyle: 'events', contents: [{ kind: 'block', type: 'kk_when_run' }] },
       {
         kind: 'category',
-        name: t(lang, 'catData'),
-        categorystyle: 'data',
+        name: t(lang, 'catAll'),
+        colour: '#0F172A',
         contents: [
-          { kind: 'block', type: 'kk_collect', fields: { COUNT: 3, LABEL: 'apple' } },
-          { kind: 'block', type: 'kk_collect', fields: { COUNT: 3, LABEL: 'banana' } },
+          section('catEvents', 'events'),
+          ...EVENT_BLOCKS,
+          section('catData', 'data'),
+          ...DATA_BLOCKS,
+          section('catModel', 'model'),
+          ...MODEL_BLOCKS,
         ],
       },
-      {
-        kind: 'category',
-        name: t(lang, 'catModel'),
-        categorystyle: 'model',
-        contents: [
-          { kind: 'block', type: 'kk_train' },
-          { kind: 'block', type: 'kk_test' },
-        ],
-      },
+      { kind: 'category', name: t(lang, 'catEvents'), categorystyle: 'events', contents: EVENT_BLOCKS },
+      { kind: 'category', name: t(lang, 'catData'), categorystyle: 'data', contents: DATA_BLOCKS },
+      { kind: 'category', name: t(lang, 'catModel'), categorystyle: 'model', contents: MODEL_BLOCKS },
     ],
   }
 }
