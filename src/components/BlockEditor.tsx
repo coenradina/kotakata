@@ -52,8 +52,16 @@ export default function BlockEditor({ lang, ref }: { lang: Lang; ref: Ref<BlockE
       Blockly.serialization.workspaces.load(STARTER, workspace)
     }
     ws.current = workspace
-    // Start with the player's blocks in view, not hidden behind the toolbox.
-    requestAnimationFrame(() => workspace.scrollCenter())
+    // Start with every block in view: zoom out if the editor is narrow, but
+    // never zoom in past the normal size.
+    requestAnimationFrame(() => {
+      Blockly.svgResize(workspace)
+      workspace.zoomToFit()
+      if (workspace.scale > 0.9) {
+        workspace.setScale(0.9)
+        workspace.scrollCenter()
+      }
+    })
 
     const save = (e: Blockly.Events.Abstract) => {
       if (e.isUiEvent) return

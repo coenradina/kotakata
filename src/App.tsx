@@ -32,9 +32,13 @@ export default function App() {
   const editor = useRef<BlockEditorHandle>(null)
   const stage = useRef<StageHandle>(null)
   const seed = useRef(1)
-  const logEnd = useRef<HTMLLIElement>(null)
+  const logBox = useRef<HTMLUListElement>(null)
 
-  useEffect(() => logEnd.current?.scrollIntoView({ block: 'nearest' }), [log])
+  // Keep the newest log line in view. Scroll only the log box, not the page.
+  useEffect(() => {
+    const box = logBox.current
+    if (box) box.scrollTop = box.scrollHeight
+  }, [log])
 
   const switchLang = (next: Lang) => {
     setLang(next)
@@ -113,7 +117,7 @@ export default function App() {
 
       <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center text-xs font-semibold md:hidden">{t(lang, 'smallScreen')}</p>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[180px_minmax(0,1fr)_minmax(0,1.05fr)]">
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[170px_minmax(0,1.15fr)_minmax(0,1fr)]">
         {/* Level list */}
         <nav aria-label={t(lang, 'levels')} className="space-y-2">
           <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink/70">{t(lang, 'levels')}</h2>
@@ -173,13 +177,12 @@ export default function App() {
             </div>
             <div className="rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
               <h2 className="text-[11px] font-bold uppercase tracking-wider text-amber">{t(lang, 'log')}</h2>
-              <ul className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs leading-relaxed">
+              <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs leading-relaxed">
                 {log.map((line, i) => (
                   <li key={i} className={line.tone === 'good' ? 'text-emerald-300' : line.tone === 'bad' ? 'text-rose-300' : ''}>
                     › {line.text}
                   </li>
                 ))}
-                <li ref={logEnd} aria-hidden="true" />
               </ul>
             </div>
           </div>
