@@ -9,6 +9,8 @@ interface Props {
   maxed: (id: CardId) => boolean
   /** Called once with whether the answer was right; the modal then shows feedback. */
   onAnswer: (correct: boolean) => void
+  /** The term's plain definition, shown after a wrong answer. */
+  explain: string
   onClose: () => void
 }
 
@@ -37,7 +39,7 @@ const CHIP_COLOUR: Record<string, string> = {
   LLM: 'bg-gold',
 }
 
-export default function QuizModal({ question, lang, maxed, onAnswer, onClose }: Props) {
+export default function QuizModal({ question, lang, maxed, onAnswer, explain, onClose }: Props) {
   const [result, setResult] = useState<boolean | null>(null)
   // Read before answering, so earning the third star doesn't say "already full".
   const [allMaxed] = useState(() => question.terms.every(maxed))
@@ -64,7 +66,7 @@ export default function QuizModal({ question, lang, maxed, onAnswer, onClose }: 
   const termNames = question.terms.map((id) => TERM_NAME[id]).join(', ')
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={dialog}
         role="dialog"
@@ -92,11 +94,19 @@ export default function QuizModal({ question, lang, maxed, onAnswer, onClose }: 
 
           {result !== null && (
             <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/10 pt-3" aria-live="polite">
-              <p className={`font-sans text-sm font-semibold ${result ? 'text-tosca' : 'text-maroon'}`}>
-                {result
-                  ? t(lang, allMaxed ? 'quizMaxed' : 'quizCorrect', { terms: termNames })
-                  : t(lang, 'quizWrong', { answer: correctAnswer(question, lang) })}
-              </p>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className={`font-sans text-sm font-semibold ${result ? 'text-tosca' : 'text-maroon'}`}>
+                  {result
+                    ? t(lang, allMaxed ? 'quizMaxed' : 'quizCorrect', { terms: termNames })
+                    : t(lang, 'quizWrong', { answer: correctAnswer(question, lang) })}
+                </p>
+                {!result && explain && (
+                  <p className="font-sans text-xs leading-snug text-ink/80">
+                    <span className="font-mono font-bold">{termNames}: </span>
+                    {explain}
+                  </p>
+                )}
+              </div>
               <button data-autofocus autoFocus onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 text-xs font-bold text-white">
                 {t(lang, 'quizNext')}
               </button>

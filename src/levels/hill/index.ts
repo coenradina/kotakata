@@ -9,7 +9,7 @@ import { HILL_ACHIEVEMENTS, HILL_STAGES, STAGE_SETUP, type HillRun } from './sta
 export const hillLevel: Level<Step[]> = {
   id: 'hill',
   title: { id: 'Bukit Loss', en: 'Hill of Loss' },
-  topic: 'Gradient descent',
+  topic: { id: 'Menuruni bukit (Gradient descent)', en: 'Gradient descent' },
   fileKey: 'l3Title',
   cards: LEVEL3_CARDS,
   winCard: 'gradientDescent',

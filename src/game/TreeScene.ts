@@ -284,7 +284,7 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
         if (id !== this.runId) return
         const correct = e.walks.filter((w) => w.correct).length
         const lost = e.walks.filter((w) => w.pen === null).length
-        this.status.setText(`${correct}/${e.walks.length} ✓`)
+        this.status.setText(`${correct}/${e.walks.length} ${correct === e.walks.length ? '✓' : '✗'}`)
         if (lost) log(t(this.lang, 'logLost', { n: lost }), 'bad')
         log(t(this.lang, 'logSorted', { correct, total: e.walks.length }), correct === e.walks.length ? 'good' : 'bad')
         await this.milestone('prediction', 'left', { x: W - 150, y: 6, w: 144, h: 40 }, id, { correct, total: e.walks.length })
@@ -301,7 +301,7 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
       this.speed = i < 2 ? 1 : 2.6
       this.status.setText(`${i + 1}/${walks.length}`)
       const big = w.creature.big
-      const sprite = this.add.image(GATE.x, GATE.y, textureFor(w.creature)).setScale(big ? 3.4 : 2.4)
+      const sprite = this.add.image(GATE.x, GATE.y, textureFor(w.creature)).setScale(big ? 4.2 : 3)
       this.critters.add(sprite)
       await this.tween({ targets: sprite, scale: { from: 0, to: sprite.scale }, duration: 200, ease: 'Back.out' })
 

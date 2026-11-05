@@ -35,11 +35,11 @@ const dict = {
   running: { id: 'BERJALAN...', en: 'RUNNING...' },
   stop: { id: '■ STOP', en: '■ STOP' },
   clear: { id: '↺ BERSIHKAN', en: '↺ CLEAR' },
-  clearTitle: { id: 'Bersihkan stage dan log. Blokmu tetap aman.', en: 'Clear the stage and log. Your blocks stay.' },
+  clearTitle: { id: 'Bersihkan layar dan log. Blokmu tetap aman.', en: 'Clear the stage and log. Your blocks stay.' },
   startOver: { id: '⟲ Main dari awal', en: '⟲ Start over' },
   startOverConfirm: {
-    id: 'Mulai lagi dari nol? Blok, kartu istilah, dan bintangmu akan dihapus, dan semua penjelasan akan muncul lagi.',
-    en: 'Start again from zero? Your blocks, term cards and stars will be cleared, and every explanation will show again.',
+    id: 'Mulai lagi dari nol? Blok, progres level, kartu istilah, bintang, dan lencanamu akan dihapus, dan semua penjelasan akan muncul lagi.',
+    en: 'Start again from zero? Your blocks, level progress, term cards, stars and badges will be cleared, and every explanation will show again.',
   },
   startOverYes: { id: 'Ya, mulai lagi', en: 'Yes, start over' },
   cancel: { id: 'Batal', en: 'Cancel' },
@@ -150,12 +150,51 @@ const dict = {
   catData: { id: 'Data', en: 'Data' },
   catModel: { id: 'Model', en: 'Model' },
 
-  levelLocked: { id: 'Selesaikan level sebelumnya dulu', en: 'Finish the level before this one' },
+  levelLocked: { id: 'Selesaikan level sebelumnya dulu', en: 'Finish the previous level first' },
   levelUnlocked: { id: 'Level {n} terbuka! Pilih di daftar level.', en: 'Level {n} unlocked! Pick it from the level list.' },
   catAsk: { id: 'Pertanyaan', en: 'Questions' },
   catPens: { id: 'Kandang', en: 'Pens' },
 
   // Stages and badges
+  demoLoop: {
+    id: 'Tahap baru! Lihat dulu: penyair yang cuma ingat 1 kata. Program contoh sedang diputar, perhatikan ceritanya.',
+    en: 'New stage! First, watch a bard that only remembers 1 word. A sample program is playing; watch the story.',
+  },
+  demoCrawl: {
+    id: 'Tahap baru! Lihat dulu: learning rate 0,1 dengan energi 6 langkah. Program contoh sedang diputar.',
+    en: 'New stage! First, watch a learning rate of 0.1 with 6 steps of energy. A sample program is playing.',
+  },
+  bonusToo: { id: 'Wah, sekalian dapat bonus ⭐!', en: 'Nice, you got the bonus ⭐ too!' },
+  logStopped: { id: 'Program dihentikan.', en: 'Program stopped.' },
+  logNoStart: {
+    id: 'Blok "saat ▶ ditekan" tidak ada. Seret dari kategori Mulai, lalu pasang blok lain di bawahnya.',
+    en: 'The "when ▶ clicked" block is missing. Drag it in from Start, then attach blocks under it.',
+  },
+  logLoose: {
+    id: 'Ada blok yang belum menempel ke program, jadi tidak ikut dijalankan.',
+    en: "Some blocks aren't attached to the program, so they didn't run.",
+  },
+  hint_loose: {
+    id: 'Blok ini belum menempel. Seret sampai menempel di bawah blok lain.',
+    en: "This block isn't attached. Drag it until it snaps under another block.",
+  },
+  termLook: { id: '▲ Lihat bagian yang berkedip di atas', en: '▲ Look at the blinking box above' },
+  cardsButton: { id: '📚 Kartu istilah ({n})', en: '📚 Term cards ({n})' },
+  starsHelp: {
+    id: 'Isi bintang di tiap kartu dengan menjawab kuis 🎲 dengan benar.',
+    en: 'Fill the stars on each card by answering quizzes 🎲 correctly.',
+  },
+  newBadges: { id: '{n} lencana baru', en: '{n} new badges' },
+  lcTitle: { id: 'Level {n} selesai!', en: 'Level {n} complete!' },
+  lcCards: { id: 'Istilah yang kamu kumpulkan', en: 'Terms you collected' },
+  lcNext: { id: 'Level berikutnya ▶', en: 'Next level ▶' },
+  lcBonus: { id: 'Coba tantangan bonus ⭐', en: 'Try the bonus ⭐' },
+  finTitle: { id: 'Semua level selesai! 🎉', en: 'Every level complete! 🎉' },
+  finBody: {
+    id: 'Ini semua istilah AI yang sudah kamu temui. Coba jelaskan satu ke temanmu!',
+    en: "Here's every AI term you met. Try explaining one to a friend!",
+  },
+  close: { id: 'Tutup', en: 'Close' },
   stageLabel: { id: 'Tahap {n}', en: 'Stage {n}' },
   bonusLabel: { id: 'Bonus', en: 'Bonus' },
   stageDone: { id: 'Tahap selesai: {title}!', en: 'Stage complete: {title}!' },
@@ -168,22 +207,22 @@ const dict = {
 
   s1CollectTitle: { id: 'Kumpulkan data', en: 'Collect data' },
   s1CollectMission: {
-    id: 'Robot butuh contoh untuk belajar. Kumpulkan contoh apel DAN pisang di bawah "saat ▶ ditekan", lalu tekan ▶.',
-    en: 'The robot needs examples to learn from. Collect apple AND banana examples under "when ▶ clicked", then press ▶.',
+    id: 'Robot butuh contoh untuk belajar. Kumpulkan contoh apel DAN pisang di bawah "saat ▶ ditekan", lalu tekan ▶ JALANKAN.',
+    en: 'The robot needs examples to learn from. Collect apple AND banana examples under "when ▶ clicked", then press ▶ RUN.',
   },
   s1TrainTitle: { id: 'Latih robotnya', en: 'Train the robot' },
   s1TrainMission: {
-    id: 'Datanya sudah ada. Tambahkan blok training di bawah blok kumpulkan, lalu lihat penanda di Otak Robot bergerak.',
-    en: 'You have data. Add a train block below the collect blocks, then watch the markers move in the Robot Brain.',
+    id: 'Datanya sudah ada. Tambahkan blok training di bawah blok kumpulkan, lalu lihat dua penanda muncul dan bergerak di Otak Robot.',
+    en: 'You have data. Add a train block below the collect blocks, then watch two markers appear and move in the Robot Brain.',
   },
   s1TestTitle: { id: 'Uji dan capai 90%', en: 'Test it, reach 90%' },
   s1TestMission: {
-    id: 'Sekarang uji robotnya dengan minimal 10 buah baru. Targetnya accuracy 90%.',
+    id: 'Sekarang uji robotnya dengan minimal 10 buah baru. Targetnya 90% tebakan benar (accuracy).',
     en: 'Now test the robot on at least 10 new fruits. Aim for 90% accuracy.',
   },
   s1PerfectTitle: { id: 'Sempurna', en: 'Perfect score' },
   s1PerfectMission: {
-    id: 'Tantangan bonus: capai accuracy 100% saat testing dengan 20 buah atau lebih.',
+    id: 'Tantangan bonus: 100% tebakan benar saat testing dengan 20 buah atau lebih.',
     en: 'Bonus challenge: reach 100% accuracy while testing on 20 or more fruits.',
   },
   s2PairTitle: { id: 'Satu pertanyaan', en: 'One question' },
@@ -239,10 +278,10 @@ const dict = {
   catTokSettings: { id: 'Pengaturan', en: 'Settings' },
   catTokWrite: { id: 'Tulis', en: 'Write' },
   blkTokStart: { id: 'mulai dengan %1', en: 'start with %1' },
-  blkTokTemp: { id: 'temperature = %1', en: 'temperature = %1' },
-  blkTokContext: { id: 'ingat %1 kata terakhir', en: 'remember the last %1 words' },
-  blkTokWrite: { id: 'tulis %1 token', en: 'write %1 tokens' },
-  tok_the: { id: 'sang', en: 'the' },
+  blkTokTemp: { id: 'tingkat kejutan (temperature) = %1', en: 'temperature = %1' },
+  blkTokContext: { id: 'ingat %1 kata terakhir (context)', en: 'remember the last %1 words (context)' },
+  blkTokWrite: { id: 'tulis %1 token (kata)', en: 'write %1 token(s)' },
+  tok_the: { id: 'si', en: 'the' },
   tok_cat: { id: 'kucing', en: 'cat' },
   tok_dog: { id: 'anjing', en: 'dog' },
   tok_bard: { id: 'penyair', en: 'bard' },
@@ -251,12 +290,10 @@ const dict = {
   tok_sings: { id: 'bernyanyi', en: 'sings' },
   tok_milk: { id: 'susu', en: 'milk' },
   tok_by: { id: 'dekat', en: 'by' },
-  tok_fire: { id: 'perapian', en: 'fire' },
-  tok_door: { id: 'pintu', en: 'door' },
   tok_end: { id: '.', en: '.' },
   s4FirstTitle: { id: 'Token pertama', en: 'First tokens' },
   s4FirstMission: {
-    id: 'Penyair kedai bercerita satu token demi satu token. Minta ia menulis minimal 4 token, lalu lihat bar probabilitas di setiap langkah.',
+    id: 'Penyair kedai bercerita satu token (kata) demi satu token. Minta ia menulis minimal 4 token, lalu lihat bar probability di setiap langkah.',
     en: 'The tavern bard tells stories one token at a time. Ask for at least 4 tokens, and watch the probability bars at each step.',
   },
   s4SurpriseTitle: { id: 'Bumbu kejutan', en: 'A little surprise' },
@@ -266,8 +303,8 @@ const dict = {
   },
   s4ContextTitle: { id: 'Ingatan lebih panjang', en: 'A longer memory' },
   s4ContextMission: {
-    id: 'Pemilik kedai minta cerita yang pasti selesai sampai titik, dengan temperature 0. Kalau penyair cuma ingat 1 kata, ia bisa terjebak mengulang.',
-    en: 'The innkeeper wants a story that always reaches the full stop, at temperature 0. If the bard only remembers 1 word, it can get stuck in a loop.',
+    id: 'Pemilik kedai meminta cerita yang pasti berakhir dengan titik. Pakai temperature 0, lalu bantu penyair menyelesaikan kalimatnya. Kalau ia cuma ingat 1 kata, ia bisa terjebak mengulang.',
+    en: 'Set temperature to 0 and get the bard to finish the sentence with a full stop. If it only remembers 1 word, it can get stuck in a loop.',
   },
   s4CreativeTitle: { id: 'Penyair sejati', en: 'True bard' },
   s4CreativeMission: {
@@ -293,6 +330,22 @@ const dict = {
   },
   tokNotFinished: { id: 'Ceritanya belum sampai titik.', en: "The story hasn't reached the full stop yet." },
   tokNeedWarm: { id: 'Bonus ini butuh temperature 1 atau lebih.', en: 'This bonus needs a temperature of 1 or more.' },
+  tokTempBelow: {
+    id: 'Blok temperature ada di bawah blok tulis, jadi belum dipakai. Pindahkan ke atas blok tulis.',
+    en: "The temperature block is below the write block, so it wasn't used yet. Move it above the write block.",
+  },
+  tokContextBelow: {
+    id: 'Blok ingatan (context) ada di bawah blok tulis, jadi belum dipakai. Pindahkan ke atas blok tulis.',
+    en: "The memory (context) block is below the write block, so it wasn't used yet. Move it above the write block.",
+  },
+  hint_tokOrder: {
+    id: 'Blok ini ada di bawah blok tulis, jadi belum dipakai. Seret ke atas blok tulis.',
+    en: "This block is below the write block, so it isn't used yet. Drag it above the write block.",
+  },
+  warnUnusedSetting: {
+    id: 'Ada blok pengaturan di bawah blok tulis. Pengaturan itu belum dipakai.',
+    en: "A settings block sits below the write block, so it wasn't used.",
+  },
   hint_tokAddWrite: { id: 'Penyair butuh perintah menulis. Seret blok ini ke bawah blok mulai.', en: 'The bard needs a write block. Drag this below the start block.' },
   hint_tokMoreTokens: { id: 'Tambah jumlah token di sini.', en: 'Ask for more tokens here.' },
   hint_tokAddTemp: { id: 'Tambahkan temperature di atas blok tulis supaya ada kejutan.', en: 'Add a temperature above the write block for some surprise.' },
@@ -316,11 +369,11 @@ const dict = {
   // Level 3
   l3Title: { id: 'Bukit Loss', en: 'Hill of Loss' },
   catHill: { id: 'Langkah', en: 'Moves' },
-  blkLr: { id: 'learning rate = %1', en: 'learning rate = %1' },
+  blkLr: { id: 'panjang lompatan (learning rate) = %1', en: 'learning rate = %1' },
   blkSteps: { id: 'turun %1 langkah', en: 'step downhill %1 times' },
   s3GentleTitle: { id: 'Turun bukit', en: 'Down the hill' },
   s3GentleMission: {
-    id: 'Bawa robot ke bendera di lembah, tempat loss paling kecil. Robot punya energi untuk 30 langkah. Tambahkan langkah sampai ia sampai.',
+    id: 'Bawa robot ke bendera di lembah, tempat loss paling kecil. Robot punya energi untuk 30 langkah. Tambahkan langkah sampai robot tiba di bendera.',
     en: 'Get the robot to the flag in the valley, where loss is lowest. It has energy for 30 steps. Add steps until it gets there.',
   },
   s3ShortTitle: { id: 'Energi terbatas', en: 'Low on energy' },
@@ -342,7 +395,15 @@ const dict = {
   logHillEnd: { id: 'Setelah {n} langkah, loss = {loss}.', en: 'After {n} steps, loss = {loss}.' },
   logHillArrived: { id: 'Sampai di lembah pada langkah ke-{n}!', en: 'Reached the valley on step {n}!' },
   warnNoLr: { id: 'Belum ada blok learning rate, jadi robot memakai 0.1.', en: 'No learning rate block yet, so the robot used 0.1.' },
-  warnTired: { id: 'Energi habis! Langkah sisanya tidak dijalankan.', en: 'Out of energy! The remaining steps did not run.' },
+  warnTired: { id: 'Energi habis sebelum robot sampai di lembah.', en: 'The robot ran out of energy before reaching the valley.' },
+  logTiredArrived: { id: 'Robot sudah sampai, jadi sisa langkahnya tidak dipakai.', en: 'The robot is already there, so the extra steps were not used.' },
+  logHillGoal: { id: 'Target: loss di bawah {goal} (di dalam zona bendera).', en: 'Goal: loss below {goal} (inside the flag zone).' },
+  logHillBounce: {
+    id: 'Robot memantul bolak-balik melewati lembah: lompatannya terlalu jauh.',
+    en: 'The robot keeps bouncing over the valley: its jumps are too long.',
+  },
+  hudGoal: { id: 'TARGET < {goal}', en: 'GOAL < {goal}' },
+  hudFlewOff: { id: 'terpental di sini!', en: 'flew off here!' },
   warnFlewOff: { id: 'Terpental! Lompatannya terlalu jauh sampai robot keluar bukit.', en: 'Bounced off! The jumps were so big the robot flew off the hill.' },
   hillFlewOffNext: { id: 'Coba learning rate yang lebih kecil.', en: 'Try a smaller learning rate.' },
   hillNotThere: { id: 'Robot belum sampai di lembah.', en: "The robot hasn't reached the valley yet." },
@@ -402,15 +463,15 @@ const dict = {
   l1Title: { id: 'Latih Robot', en: 'Train the Robot' },
   l1Short: { id: 'Classification', en: 'Classification' },
   l1Mission: {
-    id: 'Ajari robot memilah apel dan pisang. Kumpulkan data berlabel, latih (training), lalu uji (testing) dengan minimal 10 buah. Targetnya accuracy 90%.',
+    id: 'Ajari robot memilah apel dan pisang. Kumpulkan data berlabel, latih (training), lalu uji (testing) dengan minimal 10 buah. Targetnya 90% tebakan benar (accuracy).',
     en: 'Teach the robot to sort apples from bananas. Collect labelled data, train it, then test it on at least 10 fruits. Aim for 90% accuracy.',
   },
   blkWhenRun: { id: 'saat ▶ ditekan', en: 'when ▶ clicked' },
-  blkCollect: { id: 'kumpulkan %1 contoh berlabel %2', en: 'collect %1 examples labelled %2' },
+  blkCollect: { id: 'kumpulkan %1 contoh %2', en: 'collect %1 examples of %2' },
   blkTrain: { id: 'training selama %1 ronde', en: 'train for %1 rounds' },
   blkTest: { id: 'testing dengan %1 buah baru', en: 'test on %1 new fruits' },
-  apple: { id: '🍎 apple', en: '🍎 apple' },
-  banana: { id: '🍌 banana', en: '🍌 banana' },
+  apple: { id: '🍎 apel', en: '🍎 apple' },
+  banana: { id: '🍌 pisang', en: '🍌 banana' },
 
   logStart: { id: 'Program dimulai.', en: 'Program started.' },
   logEmpty: {
@@ -418,6 +479,10 @@ const dict = {
     en: 'No blocks under "when ▶ clicked" yet. Drag some in from the toolbox.',
   },
   logCollect: { id: 'Mengumpulkan {n} contoh {label}.', en: 'Collected {n} {label} examples.' },
+  logMarkersSwapped: {
+    id: 'Penanda di Otak Robot belum sampai di tempatnya. Latih beberapa ronde lagi.',
+    en: "The markers in the Robot Brain haven't reached their spots yet. Train a few more rounds.",
+  },
   logTrain: { id: 'Training ronde {r}/{total}…', en: 'Training round {r}/{total}…' },
   logTest: { id: 'Testing: {correct}/{total} benar. Accuracy {acc}%.', en: 'Testing: {correct}/{total} right. Accuracy {acc}%.' },
   warnTestBeforeTrain: {
@@ -452,6 +517,12 @@ const dict = {
 } satisfies Record<string, Record<Lang, string>>
 
 export type Key = keyof typeof dict
+
+/** Decimal numbers the way each language writes them: 0,1 in Indonesian, 0.1 in English. */
+export function num(lang: Lang, n: number | string) {
+  const s = String(n)
+  return lang === 'id' ? s.replace('.', ',') : s
+}
 
 export function t(lang: Lang, key: Key, vars: Record<string, string | number> = {}) {
   return dict[key][lang].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`))
@@ -500,7 +571,7 @@ export const LEVEL1_CARDS: TermCard[] = [
       en: 'The collection of examples an AI learns from. More variety is better.',
     },
     moment: {
-      id: 'Ini dataset-mu: {n} contoh yang akan dipelajari robot. Tiap titik di Otak Robot adalah satu buah, diletakkan menurut warna dan bentuknya.',
+      id: 'Ini dataset-mu: {n} contoh yang akan dipelajari robot. Tiap titik di Otak Robot adalah satu buah, diletakkan menurut warna kulit dan bentuk buahnya.',
       en: 'This is your dataset: {n} examples the robot will learn from. Each dot in the Robot Brain is one fruit, placed by its colour and shape.',
     },
   },
@@ -509,11 +580,11 @@ export const LEVEL1_CARDS: TermCard[] = [
     term: 'Label',
     icon: '🏷️',
     body: {
-      id: 'Jawaban yang benar untuk tiap contoh, misalnya "apple" atau "banana".',
+      id: 'Jawaban yang benar untuk tiap contoh, misalnya "apel" atau "pisang".',
       en: 'The correct answer attached to each example, like "apple" or "banana".',
     },
     moment: {
-      id: 'Warna tiap titik adalah label-nya: jawaban benar yang kamu berikan. Merah = apple, kuning = banana. Tanpa label, robot tidak tahu apa yang harus dipelajari.',
+      id: 'Warna titiknya adalah label: jawaban benar yang kamu berikan. Titik merah = apel, titik kuning = pisang. Tanpa label, robot tidak tahu apa yang harus dipelajari.',
       en: "Each dot's colour is its label: the right answer you gave it. Red = apple, yellow = banana. Without labels, the robot wouldn't know what to learn.",
     },
   },
@@ -526,8 +597,8 @@ export const LEVEL1_CARDS: TermCard[] = [
       en: 'The AI adjusting itself, round after round, until its guesses match the labels.',
     },
     moment: {
-      id: 'Dua penanda ini adalah tebakan robot tentang "apel itu seperti apa" dan "pisang itu seperti apa". Awalnya tertukar! Tiap ronde training, penanda bergeser ke tengah contohnya. Warna latar menunjukkan apa yang akan ditebak robot di tiap area.',
-      en: 'These two markers are the robot\'s idea of "what an apple looks like" and "what a banana looks like". They start swapped! Each training round moves them towards the middle of their examples. The shading shows what the robot would guess in each area.',
+      id: 'Dua penanda ini adalah tebakan robot tentang "apel itu seperti apa" dan "pisang itu seperti apa". Awalnya tertukar! Tiap ronde training, penanda bergeser setengah jalan ke tengah contohnya. Warna latar menunjukkan apa yang akan ditebak robot di tiap area.',
+      en: 'These two markers are the robot\'s idea of "what an apple looks like" and "what a banana looks like". They start swapped! Each training round moves them halfway towards the middle of their examples. The shading shows what the robot would guess in each area.',
     },
   },
   {
@@ -688,8 +759,8 @@ export const LEVEL3_CARDS: TermCard[] = [
       en: 'When training steps finally settle at the best point.',
     },
     moment: {
-      id: 'Robot sudah converge: ia sampai di lembah, dan langkah berikutnya tidak membuat loss lebih kecil lagi. Di sinilah training bisa berhenti.',
-      en: "The robot has converged: it reached the valley, and more steps won't lower the loss any further. This is where training can stop.",
+      id: 'Robot sudah converge: ia sampai di lembah, dan langkah berikutnya hampir tidak mengubah loss lagi. Di sinilah training bisa berhenti.',
+      en: 'The robot has converged: it reached the valley, and more steps barely change the loss any more. This is where training can stop.',
     },
   },
   {
@@ -730,8 +801,8 @@ export const LEVEL4_CARDS: TermCard[] = [
       en: 'How likely something is, from 0% to 100%.',
     },
     moment: {
-      id: 'Bar ini menunjukkan probability tiap token berikutnya. Penyair menghitungnya dari cerita-cerita yang pernah ia dengar: "{word}" paling sering muncul setelah kata ini.',
-      en: 'These bars show the probability of each next token. The bard works them out from the stories it has heard: "{word}" came next most often.',
+      id: 'Bar ini menunjukkan probability tiap token berikutnya. Garis tipis abu-abu adalah peluang aslinya, dihitung dari cerita yang pernah didengar penyair: "{word}" muncul {raw}% dari semua kemungkinan. Bar berwarna adalah peluang setelah temperature diterapkan.',
+      en: 'These bars show the probability of each next token. The thin grey line is the raw chance, counted from the stories the bard has heard: "{word}" came next {raw}% of the time. The coloured bar is the chance after temperature is applied.',
     },
   },
   {
@@ -743,8 +814,8 @@ export const LEVEL4_CARDS: TermCard[] = [
       en: 'The earlier text a model looks at when it picks the next token.',
     },
     moment: {
-      id: 'Garis di bawah gulungan menunjukkan context: kata-kata yang diingat penyair saat memilih token berikutnya. Makin panjang context-nya, makin kecil kemungkinan ia tersesat atau mengulang.',
-      en: 'The line under the scroll shows the context: the words the bard keeps in mind when picking the next token. The longer the context, the less likely it is to lose track or repeat itself.',
+      id: 'Garis tosca di bawah gulungan menunjukkan context: kata-kata yang diingat penyair saat memilih token berikutnya. Makin panjang context-nya, makin kecil kemungkinan ia tersesat atau mengulang.',
+      en: 'The teal line under the scroll shows the context: the words the bard keeps in mind when picking the next token. The longer the context, the less likely it is to lose track or repeat itself.',
     },
   },
   {
@@ -756,8 +827,8 @@ export const LEVEL4_CARDS: TermCard[] = [
       en: 'A setting for how randomly a model picks tokens. 0 always picks the most likely one.',
     },
     moment: {
-      id: 'Temperature {t} membuat bar-bar ini lebih rata, jadi token yang jarang pun punya peluang terpilih. Hasilnya lebih kreatif, tapi kalau terlalu panas, ceritanya bisa ngawur.',
-      en: 'A temperature of {t} evens out these bars, so even rare tokens get a chance. The result is more creative, but too hot and the story can go off the rails.',
+      id: 'Temperature {t} membuat bar-bar ini lebih rata, jadi token yang jarang pun kadang terpilih. Bandingkan dengan garis abu-abu aslinya. Hasilnya lebih kreatif, tapi kalau terlalu panas, ceritanya bisa kacau.',
+      en: 'A temperature of {t} makes these bars more equal, so less likely words sometimes win. Compare them with the grey raw lines. The result is more creative, but too hot and the story can go off the rails.',
     },
   },
   {

@@ -9,7 +9,7 @@ import { runTree } from './model'
 export const treeLevel: Level<TreeProgram> = {
   id: 'tree',
   title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' },
-  topic: 'Decision trees',
+  topic: { id: 'Pohon pertanyaan (Decision tree)', en: 'Decision trees' },
   fileKey: 'l2Title',
   cards: LEVEL2_CARDS,
   winKey: 'winBodyTree',

@@ -1,6 +1,6 @@
 import type * as Blockly from 'blockly/core'
 import { buildToolbox, defineJsonBlocks, findHat, WHEN_RUN_GROUP } from '../../blocks/common'
-import { t, type Key, type Lang } from '../../i18n'
+import { num, t, type Key, type Lang } from '../../i18n'
 import { CONTEXTS, START_TOKENS, TEMPERATURES, type Step, type Token } from './model'
 
 /** The word for a token in the player's language. */
@@ -21,7 +21,7 @@ export function defineTavernBlocks(lang: Lang) {
     {
       type: 'kk_tok_temp',
       message0: t(lang, 'blkTokTemp'),
-      args0: [{ type: 'field_dropdown', name: 'T', options: TEMPERATURES.map((v) => [String(v), String(v)]) }],
+      args0: [{ type: 'field_dropdown', name: 'T', options: TEMPERATURES.map((v) => [num(lang, v), String(v)]) }],
       previousStatement: null,
       nextStatement: null,
       style: 'data',

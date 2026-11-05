@@ -9,7 +9,7 @@ import { TAVERN_ACHIEVEMENTS, TAVERN_STAGES, type TavernRun } from './stages'
 export const tavernLevel: Level<Step[]> = {
   id: 'tavern',
   title: { id: 'Kedai Token', en: 'Token Tavern' },
-  topic: 'LLMs',
+  topic: { id: 'Penyair AI (LLM)', en: 'How LLMs write' },
   fileKey: 'l4Title',
   cards: LEVEL4_CARDS,
   winCard: 'llm',

@@ -29,6 +29,11 @@ export interface StageDef<P> {
   check: (program: P, run: LevelRun) => boolean
   /** What the log says when it didn't. Can use {acc}. */
   failKey: (program: P, run: LevelRun) => Key | null
+  /**
+   * Blocks to load and run once when the player reaches this stage, so they
+   * see the problem the stage is about before fixing it.
+   */
+  demo?: { blocks: object; messageKey: Key }
 }
 
 /** A small badge for something nice the player did. */
@@ -47,7 +52,8 @@ export interface AchievementDef<P> {
 export interface Level<P = unknown> {
   id: LevelId
   title: Record<Lang, string>
-  topic: string
+  /** Short topic label; the technical term stays in brackets in Indonesian. */
+  topic: Record<Lang, string>
   /** Name of the blocks file in the editor header. */
   fileKey: Key
   cards: TermCard[]

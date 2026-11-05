@@ -14,9 +14,24 @@ describe('token tavern', () => {
     expect(candidates.reduce((a, c) => a + c.p, 0)).toBeCloseTo(1)
   })
 
-  it('puts everything on the top token at temperature 0', () => {
+  it('puts everything on the top token at temperature 0, but keeps the raw odds', () => {
     const { candidates } = nextProbabilities(['the'], 1, 0)
-    expect(candidates[0]).toEqual({ token: 'cat', p: 1 })
+    expect(candidates[0]).toMatchObject({ token: 'cat', p: 1 })
+    expect(candidates[0].raw).toBeCloseTo(3 / 8)
+  })
+
+  it('notices settings placed after the last write block', () => {
+    const r = runTavern([start('the'), write(4), temp(1)], 1)
+    expect(r.unused).toEqual([{ kind: 'temp', id: 't' }])
+    expect(r.temperatures.every((t) => t === 0)).toBe(true)
+  })
+
+  it('does not count a sentence with no verb as finished', () => {
+    // "si penyair ." has a full stop but no verb
+    const r = runTavern([start('bard'), temp(0), ctx(2), write(3)], 1)
+    expect(r.story).toEqual(['bard', 'end'])
+    expect(r.finished).toBe(false)
+    expect(runTavern([start('the'), temp(0), ctx(2), write(10)], 1).finished).toBe(true)
   })
 
   it('flattens the odds at a high temperature', () => {
@@ -34,7 +49,7 @@ describe('token tavern', () => {
 
   it('finishes the sentence with a two-word memory', () => {
     const r = runTavern([start('the'), temp(0), ctx(2), write(8)], 1)
-    expect(r.story).toEqual(['the', 'cat', 'sleeps', 'by', 'the', 'fire', 'end'])
+    expect(r.story).toEqual(['the', 'cat', 'sleeps', 'by', 'the', 'bard', 'end'])
     expect(r.finished).toBe(true)
     expect(r.looped).toBe(false)
   })
@@ -54,5 +69,6 @@ describe('token tavern', () => {
   it('stops at the full stop even when more tokens were asked for', () => {
     const r = runTavern([start('the'), temp(0), ctx(2), write(20)], 1)
     expect(r.picks).toHaveLength(6)
+    expect(r.story.at(-1)).toBe('end')
   })
 })

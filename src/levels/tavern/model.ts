@@ -11,16 +11,21 @@
 // sentences have the same shape in both languages, so the model behaves
 // identically in Indonesian and English.
 
-export type Token = 'the' | 'cat' | 'dog' | 'bard' | 'sleeps' | 'drinks' | 'sings' | 'milk' | 'by' | 'fire' | 'door' | 'end'
+export type Token = 'the' | 'cat' | 'dog' | 'bard' | 'sleeps' | 'drinks' | 'sings' | 'milk' | 'by' | 'end'
 
-/** The bard's training stories. `end` is the full stop. */
+/**
+ * The bard's training stories. `end` is the full stop. Every noun is a
+ * creature, so Indonesian can say "si kucing", "si penyair" naturally.
+ */
 export const CORPUS: Token[][] = [
-  ['the', 'cat', 'sleeps', 'by', 'the', 'fire', 'end'],
+  ['the', 'cat', 'sleeps', 'by', 'the', 'bard', 'end'],
   ['the', 'cat', 'drinks', 'milk', 'end'],
-  ['the', 'dog', 'sleeps', 'by', 'the', 'door', 'end'],
-  ['the', 'bard', 'sings', 'by', 'the', 'fire', 'end'],
+  ['the', 'dog', 'sleeps', 'by', 'the', 'bard', 'end'],
+  ['the', 'bard', 'sings', 'by', 'the', 'dog', 'end'],
   ['the', 'cat', 'sings', 'end'],
 ]
+
+const VERBS: Token[] = ['sleeps', 'drinks', 'sings']
 
 export const START_TOKENS: Token[] = ['the', 'cat', 'dog', 'bard']
 export const TEMPERATURES = [0, 0.5, 1, 2]
@@ -48,7 +53,10 @@ const TABLE = learn()
 
 export interface Candidate {
   token: Token
+  /** Probability after temperature. */
   p: number
+  /** Probability straight from the counts (temperature 1). */
+  raw: number
 }
 
 /**
@@ -62,8 +70,9 @@ export function nextProbabilities(history: Token[], context: number, temperature
     used = history.slice(-1)
     counts = TABLE.get(used.join(' '))
   }
-  if (!counts) return { candidates: [{ token: 'end', p: 1 }], usedContext: used }
+  if (!counts) return { candidates: [{ token: 'end', p: 1, raw: 1 }], usedContext: used }
   const entries = [...counts.entries()]
+  const countTotal = entries.reduce((a, [, c]) => a + c, 0)
   let weights: number[]
   if (temperature === 0) {
     // Greedy: all the probability on the most common next token (first seen wins ties)
@@ -73,7 +82,9 @@ export function nextProbabilities(history: Token[], context: number, temperature
     weights = entries.map(([, c]) => Math.pow(c, 1 / temperature))
   }
   const total = weights.reduce((a, b) => a + b, 0)
-  const candidates = entries.map(([token], i) => ({ token, p: weights[i] / total })).sort((a, b) => b.p - a.p)
+  const candidates = entries
+    .map(([token, c], i) => ({ token, p: weights[i] / total, raw: c / countTotal }))
+    .sort((a, b) => b.p - a.p || b.raw - a.raw)
   return { candidates, usedContext: used }
 }
 
@@ -108,9 +119,12 @@ export interface TavernResult {
   picks: Pick[]
   /** The whole story: the start token, then every pick. */
   story: Token[]
+  /** Reached the full stop with a proper sentence (it has a verb). */
   finished: boolean
   /** Some three-token stretch appears twice: the bard went in a loop. */
   looped: boolean
+  /** Temperature or memory blocks with no write after them, so they never applied. */
+  unused: { kind: 'temp' | 'context'; id: string }[]
   temperatures: number[]
   contexts: number[]
 }
@@ -155,7 +169,12 @@ export function runTavern(program: Step[], seed: number): TavernResult {
 
   const grams = story.slice(0, -2).map((_, i) => story.slice(i, i + 3).join(' '))
   const looped = grams.some((g, i) => grams.indexOf(g) !== i)
-  return { start, picks, story, finished: story.at(-1) === 'end', looped, temperatures, contexts }
+  const lastWrite = program.map((s) => s.kind).lastIndexOf('write')
+  const unused = program
+    .filter((s, i): s is Extract<Step, { kind: 'temp' | 'context' }> => (s.kind === 'temp' || s.kind === 'context') && i > lastWrite)
+    .map((s) => ({ kind: s.kind, id: s.id }))
+  const finished = story.at(-1) === 'end' && story.some((tk) => VERBS.includes(tk))
+  return { start, picks, story, finished, looped, unused, temperatures, contexts }
 }
 
 /** The story temperature 0 would tell with the same start, context and length. */

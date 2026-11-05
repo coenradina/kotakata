@@ -15,15 +15,58 @@ export interface BlockEditorHandle {
   locate: (target: HintTarget, reveal?: boolean) => DOMRect | null
   /** Replaces the player's blocks with the starter program. */
   resetToStarter: () => void
+  /** Replaces the player's blocks with these (used for stage demos). */
+  loadBlocks: (state: object) => void
+  /** Ids of blocks lying loose in the workspace, not attached to the program. */
+  looseBlocks: () => string[]
 }
 
-/** Shows every block: zooms out if the editor is narrow, never past normal size. */
-function fitToView(workspace: Blockly.WorkspaceSvg) {
+/** One block size everywhere: a bit smaller on narrow screens. */
+const blockScale = () => (window.innerWidth < 1200 ? 0.6 : 0.74)
+
+/**
+ * The block panel draws its blocks smaller than the workspace does, so it
+ * stays narrow and leaves room for the player's program.
+ */
+class CompactFlyout extends Blockly.VerticalFlyout {
+  override getFlyoutScale() {
+    return window.innerWidth < 1200 ? 0.5 : 0.62
+  }
+}
+Blockly.registry.register(Blockly.registry.Type.FLYOUTS_VERTICAL_TOOLBOX, 'kkCompactFlyout', CompactFlyout, true)
+
+/**
+ * Puts the program at the top left of the visible area, to the right of the
+ * block panel (which floats over the workspace and would otherwise hide it).
+ */
+/** Places the program now, and again once the block panel has finished laying out. */
+function schedulePlace(workspace: Blockly.WorkspaceSvg) {
+  requestAnimationFrame(() => placeProgram(workspace))
+  window.setTimeout(() => placeProgram(workspace), 250)
+}
+
+function placeProgram(workspace: Blockly.WorkspaceSvg) {
   Blockly.svgResize(workspace)
-  workspace.zoomToFit()
-  if (workspace.scale > 0.9) {
-    workspace.setScale(0.9)
-    workspace.scrollCenter()
+  workspace.setScale(blockScale())
+  const tops = workspace.getTopBlocks(false)
+  if (!tops.length) return
+  // Measure what's actually on screen: the panel's right edge and the program's top-left.
+  const root = workspace.getParentSvg()
+  const flyout = root.parentElement?.querySelector('.blocklyFlyout')?.getBoundingClientRect()
+  const area = root.getBoundingClientRect()
+  const rects = tops.map((b) => b.getSvgRoot().getBoundingClientRect())
+  const left = Math.min(...rects.map((r) => r.left))
+  const top = Math.min(...rects.map((r) => r.top))
+  const margin = 18
+  const targetLeft = (flyout && flyout.width > 0 ? flyout.right : area.left) + margin
+  const dx = (targetLeft - left) / workspace.scale
+  const dy = (area.top + margin - top) / workspace.scale
+  if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return
+  Blockly.Events.disable()
+  try {
+    for (const b of tops) b.moveBy(dx, dy)
+  } finally {
+    Blockly.Events.enable()
   }
 }
 
@@ -54,6 +97,7 @@ interface Props {
 }
 
 function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: boolean): DOMRect | null {
+  if (target.where === 'block') return workspace.getBlockById(target.blockId)?.getSvgRoot().getBoundingClientRect() ?? null
   if (target.where === 'palette') {
     const box = workspace.getToolbox()
     // The block may be filtered out of view; "All" always shows it.
@@ -92,7 +136,23 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
         workspace.clear()
         Blockly.serialization.workspaces.load(levelRef.current.starter, workspace)
         workspace.getToolbox()?.selectItemByPosition(0)
-        requestAnimationFrame(() => fitToView(workspace))
+        schedulePlace(workspace)
+      },
+      loadBlocks: (state) => {
+        const workspace = ws.current
+        if (!workspace) return
+        workspace.clear()
+        Blockly.serialization.workspaces.load(state, workspace)
+        schedulePlace(workspace)
+      },
+      looseBlocks: () => {
+        const workspace = ws.current
+        if (!workspace) return []
+        // Any enabled top-level block other than the start block is loose
+        return workspace
+          .getTopBlocks(false)
+          .filter((b) => b.type !== 'kk_when_run' && b.isEnabled() && !b.isInFlyout)
+          .map((b) => b.id)
       },
     }),
     [],
@@ -117,8 +177,9 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
       media: `${import.meta.env.BASE_URL}blockly-media/`,
       trashcan: true,
       grid: { spacing: 24, length: 2, colour: 'rgba(15,23,42,0.08)', snap: true },
-      zoom: { controls: true, wheel: true, startScale: 0.9, maxScale: 1.6, minScale: 0.5 },
+      zoom: { controls: true, wheel: true, startScale: blockScale(), maxScale: 1.6, minScale: 0.5 },
       move: { scrollbars: true, drag: true, wheel: false },
+      plugins: { flyoutsVerticalToolbox: 'kkCompactFlyout' },
     })
     try {
       Blockly.serialization.workspaces.load(state, workspace)
@@ -139,7 +200,7 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
       }
     }
     workspace.addChangeListener(keepOpen)
-    requestAnimationFrame(() => fitToView(workspace))
+    schedulePlace(workspace)
 
     const save = (e: Blockly.Events.Abstract) => {
       if (e.isUiEvent) return

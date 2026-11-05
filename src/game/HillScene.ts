@@ -1,8 +1,8 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
-import { t, type CardId, type Lang } from '../i18n'
-import { EDGE, GOAL, START_X, loss, type HillId, type HillResult, type Move } from '../levels/hill/model'
+import { num, t, type CardId, type Lang } from '../i18n'
+import { EDGE, GOAL, HILLS, START_X, loss, overshot, type HillId, type HillResult, type Move } from '../levels/hill/model'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
@@ -19,7 +19,7 @@ const ROBOT_H = 17 * ROBOT_SCALE
 
 const toPx = (x: number) => X_LEFT + ((x + EDGE) / (2 * EDGE)) * (X_RIGHT - X_LEFT)
 const lossToY = (l: number) => GROUND_BOTTOM - (Math.min(l, MAX_LOSS) / MAX_LOSS) * (GROUND_BOTTOM - GROUND_TOP)
-const fmt = (n: number) => (n < 0.01 ? n.toFixed(3) : n.toFixed(2))
+const fmtEn = (n: number) => (n < 0.01 ? n.toFixed(3) : n.toFixed(2))
 
 /**
  * The hill of loss: a curve whose height is the loss, a flag in the valley,
@@ -37,6 +37,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
   private energy!: Phaser.GameObjects.Graphics
   private energyText!: Phaser.GameObjects.Text
   private chart!: Phaser.GameObjects.Graphics
+  private goalText!: Phaser.GameObjects.Text
   private fx!: Phaser.GameObjects.Container
   private focusBox?: Phaser.GameObjects.Graphics
   private milestones: Milestones = NO_MILESTONES
@@ -48,6 +49,15 @@ export class HillScene extends Phaser.Scene implements LevelScene {
   constructor() {
     super('hill')
     this.readyPromise = new Promise((r) => (this.resolveReady = r))
+  }
+
+  private fmt(n: number) {
+    return num(this.lang, fmtEn(n))
+  }
+
+  /** Loss at the edge of the flag zone: below this counts as in the valley. */
+  private goalLoss() {
+    return HILLS[this.hill].a * GOAL * GOAL
   }
 
   private groundY(x: number) {
@@ -79,6 +89,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.energyText = this.add.text(W - 16, 12, '', { ...FONT, fontSize: '20px' }).setOrigin(1, 0).setDepth(12)
     this.energy = this.add.graphics().setDepth(12)
     this.chart = this.add.graphics().setDepth(12)
+    this.goalText = this.add.text(16, 56, '', { ...FONT, fontSize: '18px', color: '#0D9488' }).setDepth(12)
 
     this.drawHill()
     this.placeRobot(START_X)
@@ -89,7 +100,10 @@ export class HillScene extends Phaser.Scene implements LevelScene {
 
   setLang(lang: Lang) {
     this.lang = lang
-    if (this.energyText) this.showEnergy(this.budget)
+    if (this.energyText) {
+      this.showEnergy(this.budget)
+      this.showLoss(loss(this.hill, START_X))
+    }
   }
 
   /** Shows the stage's hill and energy before anything runs. */
@@ -130,7 +144,8 @@ export class HillScene extends Phaser.Scene implements LevelScene {
   }
 
   private showLoss(l: number) {
-    this.hud.setText(`LOSS ${fmt(l)}`)
+    this.hud.setText(`LOSS ${this.fmt(l)}`)
+    this.goalText.setText(t(this.lang, 'hudGoal', { goal: this.fmt(this.goalLoss()) }))
     this.lossBar.clear()
     const w = 150
     const frac = Math.min(1, l / MAX_LOSS)
@@ -212,16 +227,16 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     const g = this.add.graphics()
     this.fx.add(g)
     const dir = Math.sign(m.grad) || 1
-    const len = Math.min(110, 18 + Math.abs(m.grad) * 9)
+    const len = Math.min(120, 30 + Math.abs(m.grad) * 9)
     const x1 = this.robot.x
     const y1 = this.robot.y - 30
     const slopePx = (this.groundY(m.from + dir * 0.3) - this.groundY(m.from)) / (toPx(m.from + dir * 0.3) - toPx(m.from))
     const angle = Math.atan2(slopePx * dir, dir)
     const x2 = x1 + Math.cos(angle) * len
     const y2 = y1 + Math.sin(angle) * len
-    g.lineStyle(5, INK).lineBetween(x1, y1, x2, y2)
-    g.lineStyle(3, 0xe5a93c).lineBetween(x1, y1, x2, y2)
-    const head = 10
+    g.lineStyle(10, INK).lineBetween(x1, y1, x2, y2)
+    g.lineStyle(6, 0xe5a93c).lineBetween(x1, y1, x2, y2)
+    const head = 16
     g.fillStyle(0xe5a93c)
     g.fillTriangle(
       x2 + Math.cos(angle) * 4,
@@ -260,9 +275,9 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.milestones = milestones
 
     const startLoss = loss(this.hill, START_X)
-    log(t(this.lang, 'logHillStart', { loss: fmt(startLoss), budget: this.budget }))
+    log(t(this.lang, 'logHillStart', { loss: this.fmt(startLoss), budget: this.budget }))
     if (result.noLr) log(t(this.lang, 'warnNoLr'), 'bad')
-    await this.milestone('loss', 'right', { x: 8, y: 6, w: 176, h: 52 }, id, { loss: fmt(startLoss) })
+    await this.milestone('loss', 'right', { x: 8, y: 6, w: 176, h: 72 }, id, { loss: this.fmt(startLoss) })
 
     const history = [startLoss]
     let arrivedLogged = false
@@ -303,6 +318,11 @@ export class HillScene extends Phaser.Scene implements LevelScene {
       if (off) {
         this.cameras.main.shake(260, 0.006)
         log(t(this.lang, 'warnFlewOff'), 'bad')
+        // Mark where it left the hill, and show the energy it used
+        const edgeX = Math.max(X_LEFT + 30, Math.min(X_RIGHT - 30, toX))
+        const mark = this.add.text(edgeX, GROUND_TOP - 20, `💥 ${t(this.lang, 'hudFlewOff')}`, { ...FONT, fontSize: '20px', color: '#881337' }).setOrigin(0.5)
+        this.fx.add(mark)
+        this.showEnergy(this.budget - (i + 1))
         break
       }
       history.push(m.lossAfter)
@@ -320,13 +340,17 @@ export class HillScene extends Phaser.Scene implements LevelScene {
       await this.wait(70)
     }
     if (id !== this.runId) return
-    if (result.tired) {
+    const arrived = Math.abs(result.finalX) < GOAL && !result.flewOff
+    if (result.tired && arrived) log(t(this.lang, 'logTiredArrived'))
+    else if (result.tired) {
       const zzz = this.add.text(this.robot.x + 18, this.robot.y - 50, 'zzz', { ...FONT, fontSize: '24px' })
       this.fx.add(zzz)
       this.tweens.add({ targets: zzz, y: zzz.y - 14, alpha: 0.3, duration: 900, yoyo: true, repeat: 2 })
       log(t(this.lang, 'warnTired'), 'bad')
     }
-    if (!result.flewOff) log(t(this.lang, 'logHillEnd', { n: result.moves.length, loss: fmt(loss(this.hill, result.finalX)) }))
+    if (!result.flewOff) log(t(this.lang, 'logHillEnd', { n: result.moves.length, loss: this.fmt(loss(this.hill, result.finalX)) }))
+    if (!arrived && !result.flewOff && overshot(result)) log(t(this.lang, 'logHillBounce'), 'bad')
+    if (!arrived) log(t(this.lang, 'logHillGoal', { goal: this.fmt(this.goalLoss()) }))
   }
 
   private sparkleAt(x: number, y: number, tint = 0x22c55e) {

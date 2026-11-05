@@ -81,8 +81,8 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
     id: 'dataset-more',
     terms: ['dataset'],
     prompt: {
-      id: 'Robotmu cuma dapat 3 contoh apel. Apa yang paling membantu dataset-nya?',
-      en: 'Your robot only got 3 apple examples. What would help its dataset most?',
+      id: 'Misalnya robot cuma dapat 3 contoh apel. Apa yang paling membantu dataset-nya?',
+      en: 'Say a robot only got 3 apple examples. What would help its dataset most?',
     },
     options: [
       opt('Tambah contoh yang beragam, termasuk pisang', 'Add more varied examples, including bananas', true),
@@ -95,7 +95,7 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
     terms: ['label'],
     prompt: { id: 'Di Otak Robot, label tiap titik ditunjukkan oleh…', en: "In the Robot Brain, each dot's label is shown by its…" },
     options: [
-      opt('Warnanya: merah = apple, kuning = banana', 'Colour: red = apple, yellow = banana', true),
+      opt('Warnanya: merah = apel, kuning = pisang', 'Colour: red = apple, yellow = banana', true),
       opt('Ukurannya', 'Size'),
       opt('Urutan munculnya', 'Order it appeared in'),
     ],
@@ -185,7 +185,7 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
     prompt: { id: 'Robotmu melakukan classification karena ia…', en: 'Your robot does classification because it…' },
     options: [
       opt('Memasukkan tiap buah ke satu kelompok', 'Puts each fruit into one group', true),
-      opt('Bergerak di conveyor belt', 'Moves along a conveyor belt'),
+      opt('Bergerak di ban berjalan', 'Moves along a conveyor belt'),
       opt('Punya antena', 'Has an antenna'),
     ],
   },

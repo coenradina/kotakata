@@ -9,6 +9,11 @@ const write = (n: number): Step => ({ kind: 'write', n, id: 'w' })
 const hintFor = (p: Step[], stage: string) => chooseTavernHint(p, runTavern(p, 1), stage)?.key ?? null
 
 describe('tavern hints', () => {
+  it('points at a setting placed below the write block', () => {
+    const h = chooseTavernHint([start, write(4), temp(2)], runTavern([start, write(4), temp(2)], 1), 'surprise')
+    expect(h).toMatchObject({ key: 'tokOrder', target: { where: 'field', field: 'T', blockId: 't' } })
+  })
+
   it('asks for a write block, then more tokens', () => {
     expect(chooseTavernHint(null, null)?.key).toBe('start')
     expect(hintFor([start], 'first')).toBe('tokAddWrite')

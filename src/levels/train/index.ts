@@ -15,7 +15,7 @@ function toLevelRun(result: RunResult): TrainRun {
 export const trainLevel: Level<Step[]> = {
   id: 'train',
   title: { id: 'Latih Robot', en: 'Train the Robot' },
-  topic: 'Classification',
+  topic: { id: 'Memilah (Classification)', en: 'Classification' },
   fileKey: 'l1Title',
   cards: LEVEL1_CARDS,
   winKey: 'winBody',

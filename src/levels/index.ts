@@ -14,7 +14,7 @@ import type { Level, LevelId } from './types'
 export const LEVELS: Level[] = [trainLevel as Level, treeLevel as Level, hillLevel as Level, tavernLevel as Level]
 
 /** Shown in the level list as "coming soon". */
-export const UPCOMING: { title: Record<Lang, string>; topic: string }[] = []
+export const UPCOMING: { title: Record<Lang, string>; topic: Record<Lang, string> }[] = []
 
 export function levelById(id: LevelId): Level {
   return LEVELS.find((l) => l.id === id) ?? LEVELS[0]

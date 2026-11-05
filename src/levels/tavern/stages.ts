@@ -6,6 +6,29 @@ const raw = (r: LevelRun) => (r as TavernRun).raw
 
 const different = (p: Step[], r: TavernResult) => r.story.join(' ') !== boringStory(p).join(' ')
 const warm = (r: TavernResult) => r.temperatures.some((t) => t > 0)
+const unused = (r: TavernResult, kind: 'temp' | 'context') => r.unused.some((u) => u.kind === kind)
+
+/** A one-word memory at temperature 0, so the bard visibly loops. */
+const LOOP_DEMO = {
+  blocks: {
+    languageVersion: 0,
+    blocks: [
+      {
+        type: 'kk_when_run',
+        x: 24,
+        y: 24,
+        next: {
+          block: {
+            type: 'kk_tok_start',
+            fields: { TOKEN: 'the' },
+            next: { block: { type: 'kk_tok_temp', fields: { T: '0' }, next: { block: { type: 'kk_tok_write', fields: { N: 10 } } } } },
+          },
+        },
+      },
+    ],
+  },
+  messageKey: 'demoLoop' as const,
+}
 
 export const TAVERN_STAGES: StageDef<Step[]>[] = [
   {
@@ -20,14 +43,16 @@ export const TAVERN_STAGES: StageDef<Step[]>[] = [
     titleKey: 's4SurpriseTitle',
     missionKey: 's4SurpriseMission',
     check: (p, r) => warm(raw(r)) && different(p, raw(r)),
-    failKey: (_p, r) => (warm(raw(r)) ? 'tokSameChance' : 'tokSameBoring'),
+    failKey: (_p, r) => (unused(raw(r), 'temp') ? 'tokTempBelow' : warm(raw(r)) ? 'tokSameChance' : 'tokSameBoring'),
   },
   {
     id: 'context',
     titleKey: 's4ContextTitle',
     missionKey: 's4ContextMission',
     check: (_p, r) => raw(r).finished && raw(r).temperatures.every((t) => t === 0),
-    failKey: (_p, r) => (warm(raw(r)) ? 'tokNeedCold' : raw(r).looped ? 'tokLoop' : 'tokNotFinished'),
+    failKey: (_p, r) =>
+      unused(raw(r), 'context') ? 'tokContextBelow' : warm(raw(r)) ? 'tokNeedCold' : raw(r).looped ? 'tokLoop' : 'tokNotFinished',
+    demo: LOOP_DEMO,
   },
   {
     id: 'creative',

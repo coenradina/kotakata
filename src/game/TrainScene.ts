@@ -262,7 +262,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
         await this.wait(500)
       } else if (e.kind === 'collect') {
         await this.playCollect(e.examples, id)
-        log(t(this.lang, 'logCollect', { n: e.examples.length, label: e.examples[0]?.label ?? '' }))
+        log(t(this.lang, 'logCollect', { n: e.examples.length, label: e.examples[0] ? t(this.lang, e.examples[0].label) : '' }))
       } else if (e.kind === 'train') {
         await this.playTrain(e.history, log, id)
       } else {
@@ -366,6 +366,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
     const acc = Math.round(accuracy * 100)
     this.status.setText(`ACCURACY ${acc}%`)
     log(t(this.lang, 'logTest', { correct, total: results.length, acc }), accuracy >= 0.9 ? 'good' : 'bad')
+    if (accuracy < 0.6 && (this.markers.apple || this.markers.banana)) log(t(this.lang, 'logMarkersSwapped'), 'bad')
     // Only explain accuracy once the robot has actually been trained, so the
     // first example the player sees is a meaningful number.
     if (this.markers.apple || this.markers.banana) {

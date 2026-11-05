@@ -1,6 +1,6 @@
 import type * as Blockly from 'blockly/core'
 import { buildToolbox, defineJsonBlocks, findHat, WHEN_RUN_GROUP } from '../../blocks/common'
-import { t, type Lang } from '../../i18n'
+import { num, t, type Lang } from '../../i18n'
 import { LEARNING_RATES, type Step } from './model'
 
 export function defineHillBlocks(lang: Lang) {
@@ -8,7 +8,7 @@ export function defineHillBlocks(lang: Lang) {
     {
       type: 'kk_lr',
       message0: t(lang, 'blkLr'),
-      args0: [{ type: 'field_dropdown', name: 'LR', options: LEARNING_RATES.map((v) => [String(v), String(v)]) }],
+      args0: [{ type: 'field_dropdown', name: 'LR', options: LEARNING_RATES.map((v) => [num(lang, v), String(v)]) }],
       previousStatement: null,
       nextStatement: null,
       style: 'data',

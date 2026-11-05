@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
-import { t, type CardId, type Lang } from '../i18n'
+import { num, t, type CardId, type Lang } from '../i18n'
 import type { Pick, TavernResult, Token } from '../levels/tavern/model'
 import { tokenWord } from '../levels/tavern/blocks'
 
@@ -23,6 +23,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
   private chips!: Phaser.GameObjects.Container
   private bars!: Phaser.GameObjects.Container
   private memory!: Phaser.GameObjects.Graphics
+  private memoryLabel!: Phaser.GameObjects.Text
   private thermo!: Phaser.GameObjects.Graphics
   private thermoText!: Phaser.GameObjects.Text
   private barsTitle!: Phaser.GameObjects.Text
@@ -60,6 +61,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     g.lineStyle(2, INK).strokeRect(BARS.x - 12, BARS.y - 30, W - BARS.x - 4, 5 * BARS.rowH + 40)
 
     this.memory = this.add.graphics()
+    this.memoryLabel = this.add.text(0, 0, '', { ...FONT, fontSize: '16px', color: '#0D9488' }).setOrigin(0.5, 0)
     this.chips = this.add.container(0, 0)
     this.bars = this.add.container(0, 0)
     this.thermo = this.add.graphics()
@@ -88,7 +90,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     g.lineStyle(3, INK).strokeRect(THERMO.x - 7, THERMO.top, 14, h)
     g.fillStyle(0xdc2626).fillCircle(THERMO.x, THERMO.bottom + 8, 11)
     g.lineStyle(3, INK).strokeCircle(THERMO.x, THERMO.bottom + 8, 11)
-    this.thermoText.setText(`T=${temp}`)
+    this.thermoText.setText(`T=${num(this.lang, temp)}`)
   }
 
   /** Lays the story out as chips on the scroll, wrapping to a second line. */
@@ -123,8 +125,9 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     const sameLine = mem.filter((m) => m.y === mem[mem.length - 1].y)
     const x1 = sameLine[0].x - sameLine[0].w / 2
     const x2 = sameLine[sameLine.length - 1].x + sameLine[sameLine.length - 1].w / 2
-    g.lineStyle(4, 0x0d9488).lineBetween(x1, y, x2, y)
-    g.lineBetween(x1, y, x1, y - 6).lineBetween(x2, y, x2, y - 6)
+    g.lineStyle(6, 0x0d9488).lineBetween(x1, y, x2, y)
+    g.lineBetween(x1, y, x1, y - 8).lineBetween(x2, y, x2, y - 8)
+    this.memoryLabel.setPosition((x1 + x2) / 2, y + 2).setText(this.lang === 'id' ? 'ingat' : 'memory')
   }
 
   private drawBars(pick: Pick) {
@@ -137,8 +140,10 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       back.fillStyle(0xffffff).fillRect(BARS.x + BARS.labelW, y - 10, BARS.barW, 20)
       back.lineStyle(2, INK).strokeRect(BARS.x + BARS.labelW, y - 10, BARS.barW, 20)
       const fill = this.add.rectangle(BARS.x + BARS.labelW + 1, y, 0, 18, 0x0d9488).setOrigin(0, 0.5)
+      // Thin grey line: the raw chance from the stories, before temperature
+      const rawLine = this.add.rectangle(BARS.x + BARS.labelW + 1, y + 8, (BARS.barW - 2) * c.raw, 4, 0x64748b).setOrigin(0, 0.5)
       const pct = this.add.text(BARS.x + BARS.labelW + BARS.barW + 8, y, `${Math.round(c.p * 100)}%`, { ...FONT, fontSize: '20px' }).setOrigin(0, 0.5)
-      this.bars.add([label, back, fill, pct])
+      this.bars.add([label, back, fill, rawLine, pct])
       this.tweens.add({ targets: fill, width: (BARS.barW - 2) * c.p, duration: 260 / this.speed, ease: 'Quad.out' })
       return { token: c.token, fill, y }
     })
@@ -180,6 +185,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     this.chips.removeAll(true)
     this.bars.removeAll(true)
     this.memory.clear()
+    this.memoryLabel.setText('')
     this.chipPos = []
     this.drawThermo(0)
   }
@@ -194,6 +200,10 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     this.milestones = milestones
 
     this.addChip(result.start, 'start')
+    if (result.unused.length) {
+      log(t(this.lang, 'warnUnusedSetting'), 'bad')
+      this.cameras.main.shake(160, 0.003)
+    }
     let warned = false
     for (const [i, pick] of result.picks.entries()) {
       if (id !== this.runId) return
@@ -205,10 +215,13 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       if (i === 0) {
         await this.milestone('probability', 'left', { x: BARS.x - 16, y: BARS.y - 34, w: W - BARS.x + 4, h: 5 * BARS.rowH + 48 }, id, {
           word: tokenWord(this.lang, pick.candidates[0].token),
+          raw: Math.round(pick.candidates[0].raw * 100),
         })
       }
       if (pick.temperature > 0) {
-        await this.milestone('temperature', 'right', { x: THERMO.x - 34, y: THERMO.top - 10, w: 68, h: THERMO.bottom - THERMO.top + 60 }, id, { t: pick.temperature })
+        await this.milestone('temperature', 'right', { x: THERMO.x - 34, y: THERMO.top - 10, w: W - THERMO.x + 22, h: THERMO.bottom - THERMO.top + 60 }, id, {
+          t: num(this.lang, pick.temperature),
+        })
       }
 
       // At temperature 0 the top bar wins outright; otherwise a pointer
@@ -250,8 +263,9 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       await this.wait(90)
     }
     if (id !== this.runId) return
-    this.bars.removeAll(true)
-    log(t(this.lang, 'logTokStory', { story: result.story.map((tk) => tokenWord(this.lang, tk)).join(' ') }))
+    // The last step's bars stay up, so the player can look at them after the run.
+    const words = result.story.map((tk) => tokenWord(this.lang, tk)).join(' ').replace(/ \.$/, '.')
+    log(t(this.lang, 'logTokStory', { story: words }))
     if (result.finished) log(t(this.lang, 'logTokFinished'), 'good')
   }
 

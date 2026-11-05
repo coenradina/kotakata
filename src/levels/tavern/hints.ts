@@ -5,12 +5,19 @@ const field = (type: string, name: string, blockId?: string) => ({ where: 'field
 
 /** From "nothing written" to "wrote, but not what this stage asks for". */
 export function chooseTavernHint(program: Step[] | null, result: TavernResult | null, stage = 'first'): Hint | null {
-  if (program === null) return { key: 'start', target: palette('kk_tok_start') }
+  if (program === null) return { key: 'start', target: palette('kk_when_run') }
   const writes = program.filter((s) => s.kind === 'write')
   const temp = program.filter((s) => s.kind === 'temp').at(-1)
   const ctx = program.filter((s) => s.kind === 'context').at(-1)
   if (writes.length === 0) return { key: 'tokAddWrite', target: palette('kk_tok_write') }
   if (!result) return null
+  // A setting below the last write block never applies: say so, pointing at it.
+  const misplaced = result.unused[0]
+  if (misplaced) {
+    return misplaced.kind === 'temp'
+      ? { key: 'tokOrder', target: field('kk_tok_temp', 'T', misplaced.id) }
+      : { key: 'tokOrder', target: field('kk_tok_context', 'C', misplaced.id) }
+  }
   const lastWrite = writes.at(-1)!
   const tempField = temp ? field('kk_tok_temp', 'T', temp.id) : null
   const warm = result.temperatures.some((t) => t > 0)

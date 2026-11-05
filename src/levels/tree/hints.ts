@@ -52,5 +52,7 @@ export function chooseTreeHint(
   const colour = findSplit(tree, (s) => s.q === 'green' || s.q === 'yellow' || s.q === 'brown')
   if (colour) return { key: stage === 'pair' ? 'treeColourPair' : 'treeColour', target: askField(colour.id) }
   if (wrong && tree.q === 'big') return { key: 'treeBig', target: askField(tree.id) }
-  return { key: 'treeCheck', target: askField(tree.id) }
+  // The last question a wrongly sorted critter answered is where it went astray
+  const astray = wrong?.path.at(-1)?.id ?? tree.id
+  return { key: 'treeCheck', target: askField(astray) }
 }

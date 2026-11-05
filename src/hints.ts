@@ -5,6 +5,7 @@
 export type HintTarget =
   | { where: 'palette'; type: string; fields?: Record<string, string> }
   | { where: 'field'; type: string; field: string; blockId?: string }
+  | { where: 'block'; blockId: string }
 
 export interface Hint {
   /** Also the i18n key suffix: the text is `hint_${key}`. */
