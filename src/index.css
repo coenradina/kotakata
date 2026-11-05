@@ -39,6 +39,10 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 @keyframes card-in { from { transform: translateY(12px) rotate(-3deg); opacity: 0 } to { transform: none; opacity: 1 } }
 .card-in { animation: card-in .4s steps(6) both; }
 
+/* Tailwind's base styles set svg { display: block }, which beats the
+   display="none" attribute Blockly uses to hide flyout scrollbars. */
+.injectionDiv svg[display='none'] { display: none; }
+
 /* Blockly: match the portfolio's look */
 .blocklyToolboxDiv, .blocklyToolbox { background: var(--color-parchment) !important; border-right: 2px solid var(--color-ink); }
 .blocklyTreeLabel, .blocklyToolboxCategoryLabel { font-family: var(--font-mono) !important; font-weight: 700; }
