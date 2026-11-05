@@ -116,12 +116,25 @@ export interface TreeResult {
   passed: boolean
 }
 
-/** Sends every critter through the tree once. Passing means all 12 land in the right pen. */
-export function runTree(tree: Tree, seed: number): TreeResult {
+/** Splits in the tree, and whether any of them asks about colour. */
+export function splitStats(tree: Tree | null): { splits: number; colour: boolean } {
+  if (!tree || tree.kind === 'leaf') return { splits: 0, colour: false }
+  const a = splitStats(tree.yes)
+  const b = splitStats(tree.no)
+  return { splits: 1 + a.splits + b.splits, colour: tree.q === 'green' || tree.q === 'yellow' || tree.q === 'brown' || a.colour || b.colour }
+}
+
+/**
+ * Sends every critter through the tree once. Passing means every critter
+ * lands in the right pen. `critters` limits who visits (stage 1 is bees and
+ * frogs only).
+ */
+export function runTree(tree: Tree, seed: number, critters: Critter[] = CRITTERS): TreeResult {
+  const visitors = GARDEN.filter((c) => critters.includes(c.kind))
   const events: TreeEvent[] = []
   if (pensUsed(tree).size < 2) events.push({ kind: 'warn', code: 'one-pen' })
   if (hasEmptyBranch(tree)) events.push({ kind: 'warn', code: 'empty-branch' })
-  const walks = shuffled(GARDEN, seed).map((c) => walk(tree, c))
+  const walks = shuffled(visitors, seed).map((c) => walk(tree, c))
   const accuracy = walks.filter((w) => w.correct).length / walks.length
   events.push({ kind: 'sort', walks, accuracy })
   return { events, walks, accuracy, passed: accuracy === 1 }

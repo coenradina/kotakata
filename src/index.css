@@ -55,9 +55,12 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 .kk-section-data .blocklyFlyoutLabelText { fill: var(--color-tosca) !important; }
 .kk-section-model .blocklyFlyoutLabelText { fill: var(--color-maroon) !important; }
 
+@keyframes badge-pop { 0% { transform: scale(.2) rotate(-30deg) } 60% { transform: scale(1.3) rotate(8deg) } 100% { transform: none } }
+.badge-pop { display: inline-block; animation: badge-pop .5s steps(6) both; }
+
 @keyframes hint-ring { 0%, 100% { opacity: 1; transform: scale(1) } 50% { opacity: .45; transform: scale(1.04) } }
 .hint-ring { animation: hint-ring 1.1s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-in, .hint-ring { animation: none; }
+  .card-in, .hint-ring, .badge-pop { animation: none; }
 }

@@ -8,6 +8,7 @@ import type { Milestones, PopupSide } from './game/types'
 import { LEVEL1_CARDS, LEVEL2_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
 import { MAX_REPEATS, type Hint } from './hints'
 import { LEVELS, UPCOMING, levelById, type LevelId } from './levels'
+import type { Level } from './levels/types'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from './quiz/questions'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
@@ -15,6 +16,25 @@ type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 const PROGRESS_KEY = 'kotakata.cards'
 const LEVEL_KEY = 'kotakata.level'
 const PASSED_KEY = 'kotakata.passed'
+const STAGES_KEY = 'kotakata.stages'
+const BADGES_KEY = 'kotakata.badges'
+type StagesDone = Partial<Record<LevelId, string[]>>
+
+/** The stage to play: the first main stage not done, then the bonus. */
+function currentStage(level: Level, done: string[]) {
+  return (
+    level.stages.find((s) => !s.bonus && !done.includes(s.id)) ??
+    level.stages.find((s) => s.bonus && !done.includes(s.id)) ??
+    level.stages[level.stages.length - 1]
+  )
+}
+
+interface Toast {
+  id: number
+  icon: string
+  title: string
+  body: string
+}
 const EVERY_CARD = [...LEVEL1_CARDS, ...LEVEL2_CARDS]
 const ALL_CARDS = EVERY_CARD.map((c) => c.id)
 
@@ -86,6 +106,20 @@ export default function App() {
     return saved && LEVELS.some((l) => l.id === saved) ? saved : 'train'
   })
   const level = levelById(levelId)
+  const [stagesDone, setStagesDone] = useState<StagesDone>(() => {
+    const saved = loadJson<StagesDone>(STAGES_KEY, {})
+    // Players who passed a level before stages existed have done its main stages.
+    for (const id of loadPassed(loadFound())) {
+      const lv = levelById(id)
+      if (!saved[id]?.length) saved[id] = lv.stages.filter((st) => !st.bonus).map((st) => st.id)
+    }
+    return saved
+  })
+  const done = stagesDone[levelId] ?? []
+  const stage = currentStage(level, done)
+  const [badges, setBadges] = useState<Set<string>>(() => new Set(loadJson<string[]>(BADGES_KEY, [])))
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const toastId = useRef(0)
   const [fresh, setFresh] = useState<CardId | null>(null)
   const [openCard, setOpenCard] = useState<OpenCard | null>(null)
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
@@ -99,7 +133,7 @@ export default function App() {
   // The same hint shown run after run means the player is ignoring it.
   const hintStreak = useRef<{ key: string; n: number }>({ key: '', n: 0 })
   const editor = useRef<BlockEditorHandle>(null)
-  const stage = useRef<StageHandle>(null)
+  const stageView = useRef<StageHandle>(null)
   const seed = useRef(1)
   // Bumped by Reset, so a run that was stopped doesn't report a result.
   const runToken = useRef(0)
@@ -117,6 +151,14 @@ export default function App() {
     setFound(next)
     setFresh(id)
     saveFound(next)
+  }
+
+  const stageCelebrate = () => stageView.current?.celebrate()
+
+  const pushToast = (icon: string, title: string, body: string) => {
+    const id = ++toastId.current
+    setToasts((ts) => [...ts, { id, icon, title, body }])
+    window.setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), 3800)
   }
 
   /** Shows a card over the stage and resolves once the player closes it. */
@@ -189,7 +231,7 @@ export default function App() {
     setHint(null)
     if (program === null || level.isEmpty(program)) {
       setLog([{ text: t(lang, level.id === 'tree' ? 'logTreeEmpty' : 'logEmpty'), tone: 'bad' }])
-      offerHint(level.hint(program, null))
+      offerHint(level.hint(program, null, stage.id))
       return
     }
     setRunning(true)
@@ -197,31 +239,81 @@ export default function App() {
     const token = ++runToken.current
     showedNewCard.current = false
     // A new seed each run, so every run looks a little different.
-    const result = level.run(program, seed.current++)
-    await stage.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
+    const result = level.run(program, seed.current++, stage.id)
+    await stageView.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
     if (token !== runToken.current) return
     if (result.context) lastRun.current = result.context
 
     const acc = Math.round((result.accuracy ?? 0) * 100)
-    if (result.passed) {
-      setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
-      stage.current?.celebrate()
-      if (milestones.isNew(level.winCard)) await showCard(level.winCard, 'right')
-      if (!passed.has(level.id)) {
-        const next = new Set(passed).add(level.id)
-        setPassed(next)
-        saveJson(PASSED_KEY, [...next])
-        const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
-        if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
+    const stagePassed = stage.check(program, result)
+
+    // Badges for anything nice this run did
+    const earned = level.achievements.filter((a) => !badges.has(`${level.id}:${a.id}`) && a.check(program, result, stage, stagePassed))
+
+    if (stagePassed) {
+      // Mark this stage done, and any later stage this same run also clears.
+      const nowDone = new Set(done).add(stage.id)
+      const group = level.runGroup(stage.id)
+      for (const st of level.stages) {
+        if (!nowDone.has(st.id) && level.runGroup(st.id) === group && st.check(program, result)) nowDone.add(st.id)
       }
-    } else if (result.failKey) {
-      setLog((l) => [...l, { text: t(lang, result.failKey!, { acc }), tone: 'bad' }])
+      // Badges for stages this run also cleared (like the bonus)
+      for (const st of level.stages) {
+        if (st === stage || !nowDone.has(st.id) || done.includes(st.id)) continue
+        for (const a of level.achievements) {
+          if (!earned.includes(a) && !badges.has(`${level.id}:${a.id}`) && a.check(program, result, st, true)) earned.push(a)
+        }
+      }
+      const doneList = [...nowDone]
+      setStagesDone((prev) => {
+        const next = { ...prev, [level.id]: doneList }
+        saveJson(STAGES_KEY, next)
+        return next
+      })
+      for (const st of level.stages) {
+        if (nowDone.has(st.id) && !done.includes(st.id)) setLog((l) => [...l, { text: `✓ ${t(lang, 'stageDone', { title: t(lang, st.titleKey) })}`, tone: 'good' }])
+      }
+      const mainDone = level.stages.every((st) => st.bonus || nowDone.has(st.id))
+      const wasMainDone = level.stages.every((st) => st.bonus || done.includes(st.id))
+      if (mainDone && !wasMainDone) {
+        // The whole mission is complete
+        setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
+        stageCelebrate()
+        if (milestones.isNew(level.winCard)) await showCard(level.winCard, 'right')
+        if (!passed.has(level.id)) {
+          const next = new Set(passed).add(level.id)
+          setPassed(next)
+          saveJson(PASSED_KEY, [...next])
+          const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
+          if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
+        }
+        if (level.stages.some((st) => st.bonus && !nowDone.has(st.id))) setLog((l) => [...l, { text: t(lang, 'bonusOpen'), tone: 'info' }])
+        else setLog((l) => [...l, { text: t(lang, 'allDone'), tone: 'good' }])
+      } else {
+        stageCelebrate()
+        const upcoming = currentStage(level, doneList)
+        if (!nowDone.has(upcoming.id)) setLog((l) => [...l, { text: t(lang, 'stageNext', { title: t(lang, upcoming.titleKey) }), tone: 'info' }])
+        else if (stage.bonus) setLog((l) => [...l, { text: t(lang, 'allDone'), tone: 'good' }])
+      }
+    } else {
+      const fail = stage.failKey(program, result)
+      if (fail) setLog((l) => [...l, { text: t(lang, fail, { acc }), tone: 'bad' }])
+    }
+    // Badge toasts come last, after any win card, so they aren't missed.
+    if (earned.length) {
+      const next = new Set(badges)
+      for (const a of earned) {
+        next.add(`${level.id}:${a.id}`)
+        pushToast(a.icon, t(lang, a.titleKey), t(lang, a.descKey))
+      }
+      setBadges(next)
+      saveJson(BADGES_KEY, [...next])
     }
     setRunning(false)
 
     // A failed run gets one pointer at what to change. A run with a hint
     // skips the quiz, so the player isn't handed two things at once.
-    const hinted = offerHint(level.hint(program, result))
+    const hinted = offerHint(stagePassed ? null : level.hint(program, result, stage.id))
     // Now and then, a quick question about terms the player already knows.
     const quizNow = !hinted && shouldQuiz({
       foundCount: foundRef.current.size,
@@ -247,7 +339,7 @@ export default function App() {
   /** Redraws the live preview (if the level has one) from the current blocks. */
   const refreshPreview = () => {
     if (!level.previewData) return
-    stage.current?.preview(level.previewData(editor.current?.program() ?? null))
+    stageView.current?.preview(level.previewData(editor.current?.program() ?? null))
   }
   useEffect(() => {
     refreshPreview()
@@ -261,7 +353,7 @@ export default function App() {
     handleReset()
     setQuiz(null)
     setConfirmStartOver(false)
-    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY, PASSED_KEY, LEVEL_KEY, ...LEVELS.map((l) => l.storageKey)]) {
+    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY, PASSED_KEY, LEVEL_KEY, STAGES_KEY, BADGES_KEY, ...LEVELS.map((l) => l.storageKey)]) {
       try {
         localStorage.removeItem(key)
       } catch {
@@ -277,6 +369,8 @@ export default function App() {
     quizzedLastRun.current = false
     hintStreak.current = { key: '', n: 0 }
     setPassed(new Set())
+    setStagesDone({})
+    setBadges(new Set())
     // Back to Level 1. Loading the starter blocks also saves them over the old program.
     if (levelId === 'train') editor.current?.resetToStarter()
     else setLevelId('train')
@@ -287,7 +381,7 @@ export default function App() {
     runToken.current++
     setHint(null)
     openCard?.close()
-    stage.current?.reset()
+    stageView.current?.reset()
     setLog([])
     setRunning(false)
   }
@@ -412,7 +506,7 @@ export default function App() {
         {/* Stage, mission and log */}
         <section className="flex min-w-0 flex-col gap-4">
           <div className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
-            <Stage key={level.id} lang={lang} level={level} ref={stage}>
+            <Stage key={level.id} lang={lang} level={level} ref={stageView}>
               {openCard && (
                 <TermPopup card={openCard.card} side={openCard.side} vars={openCard.vars} lang={lang} onClose={openCard.close} />
               )}
@@ -446,10 +540,7 @@ export default function App() {
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            <div className="rounded-lg border-2 border-ink bg-amber/30 p-4">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider">{t(lang, 'goal')}</h2>
-              <p className="mt-1.5 font-sans text-sm leading-relaxed">{t(lang, level.missionKey)}</p>
-            </div>
+            <StagePanel lang={lang} level={level} done={done} current={stage.id} badges={badges} />
             <div className="rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
               <h2 className="text-[11px] font-bold uppercase tracking-wider text-amber">{t(lang, 'log')}</h2>
               <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs leading-relaxed">
@@ -463,6 +554,21 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-72 flex-col gap-2" aria-live="polite">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="card-in flex items-start gap-3 rounded-lg border-2 border-ink bg-amber p-3 shadow-[4px_4px_0_#0F172A]">
+            <span className="badge-pop text-3xl leading-none" aria-hidden="true">
+              {toast.icon}
+            </span>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider">🏅 {t(lang, 'newBadge')}</div>
+              <div className="font-pixel text-xl leading-none">{toast.title}</div>
+              <p className="mt-0.5 font-sans text-xs leading-snug">{toast.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {hint && !quiz && !running && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
@@ -522,6 +628,61 @@ export default function App() {
           )}
         </ul>
       </section>
+    </div>
+  )
+}
+
+/** Mission steps for the current level, a progress bar, and the level's badges. */
+function StagePanel({ lang, level, done, current, badges }: { lang: Lang; level: Level; done: string[]; current: string; badges: Set<string> }) {
+  const main = level.stages.filter((st) => !st.bonus)
+  const mainDone = main.filter((st) => done.includes(st.id)).length
+  const stage = level.stages.find((st) => st.id === current)!
+  let n = 0
+  return (
+    <div className="rounded-lg border-2 border-ink bg-amber/30 p-4">
+      <ol className="flex flex-wrap gap-1.5" aria-label={t(lang, 'goal')}>
+        {level.stages.map((st) => {
+          const label = st.bonus ? `⭐ ${t(lang, 'bonusLabel')}` : t(lang, 'stageLabel', { n: ++n })
+          const isDone = done.includes(st.id)
+          const isCurrent = st.id === current && !isDone
+          return (
+            <li
+              key={st.id}
+              aria-current={isCurrent ? 'step' : undefined}
+              className={`rounded border-2 px-2 py-0.5 text-[10px] font-bold uppercase ${
+                isDone ? 'border-ink bg-tosca text-white' : isCurrent ? 'border-ink bg-white' : 'border-ink/30 text-ink/50'
+              }`}
+            >
+              {isDone ? '✓ ' : isCurrent ? '▸ ' : ''}
+              {label}
+            </li>
+          )
+        })}
+      </ol>
+      <div className="mt-2 h-2 overflow-hidden rounded-full border-2 border-ink bg-white" role="progressbar" aria-valuemin={0} aria-valuemax={main.length} aria-valuenow={mainDone}>
+        <div className="h-full bg-tosca transition-all duration-700" style={{ width: `${(mainDone / main.length) * 100}%` }} />
+      </div>
+      <h2 className="mt-3 font-pixel text-xl leading-none">
+        {stage.bonus ? '⭐ ' : ''}
+        {t(lang, stage.titleKey)}
+      </h2>
+      <p className="mt-1 font-sans text-sm leading-relaxed">{t(lang, stage.missionKey)}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[10px] font-bold uppercase tracking-wider">{t(lang, 'badges')}</span>
+        {level.achievements.map((a) => {
+          const got = badges.has(`${level.id}:${a.id}`)
+          return (
+            <span
+              key={a.id}
+              title={`${t(lang, a.titleKey)}: ${got ? t(lang, a.descKey) : t(lang, 'badgeLocked')}`}
+              aria-label={`${t(lang, a.titleKey)}${got ? '' : ` (${t(lang, 'badgeLocked')})`}`}
+              className={`flex h-7 w-7 items-center justify-center rounded border-2 text-base ${got ? 'border-ink bg-white' : 'border-ink/20 bg-white/40 grayscale opacity-40'}`}
+            >
+              {a.icon}
+            </span>
+          )
+        })}
+      </div>
     </div>
   )
 }

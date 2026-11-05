@@ -11,6 +11,15 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 3. **Bukit Loss / Hill of Loss.** Gradient descent. *(planned)*
 4. **Kedai Token / Token Tavern.** How LLMs pick the next token. *(planned)*
 
+## Stages and badges
+
+Each level is split into small stages, each adding one new idea, plus an optional bonus:
+
+- **Level 1:** collect apples *and* bananas → train the robot → test on 10+ fruits at 90% → bonus: 100% on 20+.
+- **Level 2:** one question for bees and frogs → birds arrive, so the tree needs a second question → bonus: all 12 with at most 2 questions and no colour.
+
+Finishing a stage opens the next one. A strong program can clear several stages in one run. Badges (5 per level) reward small wins like a balanced dataset or a first working split. Stages and badges live in each level's `stages.ts`.
+
 ## How Level 1 works
 
 The robot is a real nearest-centroid classifier (`src/levels/train/model.ts`). Each fruit has two features, colour and shape. Training moves the robot's guess for each label halfway towards the average of its examples, once per round. The robot starts with its guesses swapped, so one round of training isn't enough. That's the lesson. The plot on the right shows the data, the moving centroids, and which label the robot would pick in each region.

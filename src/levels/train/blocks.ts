@@ -64,7 +64,7 @@ export function trainToolbox(lang: Lang) {
   ])
 }
 
-/** Starter program: deliberately incomplete, so the first run teaches something. */
+/** Starter program for stage 1: apples only, so the first run asks for bananas. */
 export const TRAIN_STARTER: object = {
   blocks: {
     languageVersion: 0,
@@ -77,7 +77,6 @@ export const TRAIN_STARTER: object = {
           block: {
             type: 'kk_collect',
             fields: { COUNT: 3, LABEL: 'apple' },
-            next: { block: { type: 'kk_test', fields: { COUNT: 10 } } },
           },
         },
       },

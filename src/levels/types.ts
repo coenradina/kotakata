@@ -14,8 +14,30 @@ export interface LevelRun {
   passed: boolean
   /** Numbers for quiz questions about the player's own run. */
   context: RunContext | null
-  /** What to say in the log when the run didn't pass. */
-  failKey: Key | null
+}
+
+/**
+ * One step of a level's mission. The main stages run in order; a bonus
+ * stage opens once they're all done.
+ */
+export interface StageDef<P> {
+  id: string
+  titleKey: Key
+  missionKey: Key
+  bonus?: boolean
+  /** Did this run complete the stage? */
+  check: (program: P, run: LevelRun) => boolean
+  /** What the log says when it didn't. Can use {acc}. */
+  failKey: (program: P, run: LevelRun) => Key | null
+}
+
+/** A small badge for something nice the player did. */
+export interface AchievementDef<P> {
+  id: string
+  icon: string
+  titleKey: Key
+  descKey: Key
+  check: (program: P, run: LevelRun, stage: StageDef<P>, stagePassed: boolean) => boolean
 }
 
 /**
@@ -28,9 +50,8 @@ export interface Level<P = unknown> {
   topic: string
   /** Name of the blocks file in the editor header. */
   fileKey: Key
-  missionKey: Key
   cards: TermCard[]
-  /** The card shown when the mission is complete. */
+  /** The card shown when the last main stage is complete. */
   winCard: CardId
   /** What the log says on a win. Can use {acc}. */
   winKey: Key
@@ -40,8 +61,15 @@ export interface Level<P = unknown> {
   /** Null when there's no "when run" block at all. */
   read: (ws: Blockly.Workspace) => P | null
   isEmpty: (program: P) => boolean
-  run: (program: P, seed: number) => LevelRun
-  hint: (program: P | null, result: LevelRun | null) => Hint | null
+  stages: StageDef<P>[]
+  /**
+   * Stages with the same group are played with the same run, so one strong
+   * program can clear several of them at once (bonus included).
+   */
+  runGroup: (stageId: string) => string
+  achievements: AchievementDef<P>[]
+  run: (program: P, seed: number, stageId: string) => LevelRun
+  hint: (program: P | null, result: LevelRun | null, stageId: string) => Hint | null
   createScene: () => LevelScene
   /** What the scene's live preview should show for the current blocks. */
   previewData?: (program: P | null) => unknown

@@ -1,5 +1,5 @@
 import { palette, type Hint } from '../../hints'
-import { CRITTERS, pensUsed, type Tree, type TreeResult } from './model'
+import { CRITTERS, pensUsed, splitStats, type Critter, type Tree, type TreeResult } from './model'
 import type { TreeProgram } from './blocks'
 
 const PEN_HINT = { bird: 'treePenBird', bee: 'treePenBee', frog: 'treePenFrog' } as const
@@ -20,9 +20,22 @@ function findSplit(tree: Tree | null, test: (t: Extract<Tree, { kind: 'split' }>
 const askField = (id: string) => ({ where: 'field' as const, type: 'kk_ask', field: 'Q', blockId: id })
 
 /** From "nothing there yet" to "ran but sorted some wrong". */
-export function chooseTreeHint(program: TreeProgram | null, result: TreeResult | null): Hint | null {
+export function chooseTreeHint(
+  program: TreeProgram | null,
+  result: TreeResult | null,
+  stage = 'all',
+  visitors: Critter[] = CRITTERS,
+): Hint | null {
   if (program === null) return { key: 'start', target: palette('kk_when_run') }
-  if (result?.passed) return null
+  if (result?.passed) {
+    if (stage !== 'lean' || !program.tree) return null
+    // Bonus stage: sorted correctly, but not lean enough yet
+    const stats = splitStats(program.tree)
+    const colour = findSplit(program.tree, (s) => s.q === 'green' || s.q === 'yellow' || s.q === 'brown')
+    if (colour) return { key: 'treeColour', target: askField(colour.id) }
+    if (stats.splits > 2) return { key: 'treeLean', target: askField(program.tree.kind === 'split' ? program.tree.id : '') }
+    return null
+  }
   const tree = program.tree
   if (!tree) return { key: 'treeStart', target: palette('kk_ask', { Q: 'wings' }) }
   if (tree.kind === 'leaf') return { key: 'treeAsk', target: palette('kk_ask', { Q: 'wings' }) }
@@ -30,14 +43,14 @@ export function chooseTreeHint(program: TreeProgram | null, result: TreeResult |
   const empty = emptySplit(tree)
   if (empty) return { key: 'treeEmpty', target: askField(empty.id) }
 
-  const missing = CRITTERS.find((c) => !pensUsed(tree).has(c))
+  const missing = visitors.find((c) => !pensUsed(tree).has(c))
   if (missing) return { key: PEN_HINT[missing], target: palette('kk_pen', { PEN: missing }) }
 
   if (!result) return null
   // Point at the question that sent a critter the wrong way first.
   const wrong = result.walks.find((w) => !w.correct)
   const colour = findSplit(tree, (s) => s.q === 'green' || s.q === 'yellow' || s.q === 'brown')
-  if (colour) return { key: 'treeColour', target: askField(colour.id) }
+  if (colour) return { key: stage === 'pair' ? 'treeColourPair' : 'treeColour', target: askField(colour.id) }
   if (wrong && tree.q === 'big') return { key: 'treeBig', target: askField(tree.id) }
   return { key: 'treeCheck', target: askField(tree.id) }
 }

@@ -1,18 +1,16 @@
 import { TreeScene } from '../../game/TreeScene'
 import { LEVEL2_CARDS } from '../../i18n'
-import type { Level, LevelRun } from '../types'
+import type { Level } from '../types'
+import { STAGE_CRITTERS, TREE_ACHIEVEMENTS, TREE_STAGES, type TreeRun } from './stages'
 import { TREE_STARTER, readTreeProgram, treeToolbox, type TreeProgram } from './blocks'
 import { chooseTreeHint } from './hints'
-import { runTree, type TreeResult } from './model'
-
-type TreeRun = LevelRun & { raw: TreeResult }
+import { runTree } from './model'
 
 export const treeLevel: Level<TreeProgram> = {
   id: 'tree',
   title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' },
   topic: 'Decision trees',
   fileKey: 'l2Title',
-  missionKey: 'l2Mission',
   cards: LEVEL2_CARDS,
   winKey: 'winBodyTree',
   winCard: 'decisionTree',
@@ -21,8 +19,12 @@ export const treeLevel: Level<TreeProgram> = {
   starter: TREE_STARTER,
   read: readTreeProgram,
   isEmpty: (p) => p.tree === null,
-  run: (p, seed): TreeRun => {
-    const raw = runTree(p.tree!, seed)
+  stages: TREE_STAGES,
+  // Stage 1 has only bees and frogs; stage 2 and the bonus have everyone.
+  runGroup: (stage) => (stage === 'pair' ? 'pair' : 'all'),
+  achievements: TREE_ACHIEVEMENTS,
+  run: (p, seed, stage): TreeRun => {
+    const raw = runTree(p.tree!, seed, STAGE_CRITTERS[stage] ?? STAGE_CRITTERS.all)
     const correct = raw.walks.filter((w) => w.correct).length
     return {
       raw,
@@ -31,10 +33,9 @@ export const treeLevel: Level<TreeProgram> = {
       accuracy: raw.accuracy,
       passed: raw.passed,
       context: { correct, total: raw.walks.length },
-      failKey: raw.passed ? null : 'tryAgainTree',
     }
   },
-  hint: (p, r) => chooseTreeHint(p, r ? (r as TreeRun).raw : null),
+  hint: (p, r, stage) => chooseTreeHint(p, r ? (r as TreeRun).raw : null, stage, STAGE_CRITTERS[stage]),
   createScene: () => new TreeScene(),
   previewData: (p) => p?.tree ?? null,
 }

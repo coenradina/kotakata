@@ -122,6 +122,19 @@ const dict = {
     id: 'Lihat hewan mana yang salah kandang, lalu ubah pertanyaan atau kandangnya.',
     en: 'See which critters end up in the wrong pen, then change a question or a pen.',
   },
+  hint_addTrainAfterData: {
+    id: 'Robot belum di-training. Seret blok ini ke bawah blok kumpulkan.',
+    en: "The robot hasn't been trained. Drag this block below the collect blocks.",
+  },
+  hint_testTwenty: { id: 'Untuk bonus ini, uji dengan minimal 20 buah.', en: 'For this bonus, test on at least 20 fruits.' },
+  hint_treeLean: {
+    id: 'Bisa lebih hemat? Coba pisahkan semuanya dengan 2 pertanyaan saja.',
+    en: 'Can it be leaner? Try sorting everyone with just 2 questions.',
+  },
+  hint_treeColourPair: {
+    id: 'Warna itu menjebak: ada satu katak yang cokelat. Coba pertanyaan lain di sini.',
+    en: 'Colour is a trap here: one frog is brown. Try another question.',
+  },
   hint_moreData: {
     id: 'Coba tambah contoh di dataset, untuk apel dan juga pisang.',
     en: 'Try adding more examples to the dataset, for apples and bananas.',
@@ -141,6 +154,85 @@ const dict = {
   levelUnlocked: { id: 'Level {n} terbuka! Pilih di daftar level.', en: 'Level {n} unlocked! Pick it from the level list.' },
   catAsk: { id: 'Pertanyaan', en: 'Questions' },
   catPens: { id: 'Kandang', en: 'Pens' },
+
+  // Stages and badges
+  stageLabel: { id: 'Tahap {n}', en: 'Stage {n}' },
+  bonusLabel: { id: 'Bonus', en: 'Bonus' },
+  stageDone: { id: 'Tahap selesai: {title}!', en: 'Stage complete: {title}!' },
+  stageNext: { id: 'Tahap berikutnya: {title}', en: 'Next stage: {title}' },
+  bonusOpen: { id: 'Semua tahap selesai! Ada tantangan bonus ⭐ kalau mau.', en: 'Every stage done! There is a bonus ⭐ challenge if you want it.' },
+  allDone: { id: 'Level ini tuntas, termasuk bonusnya. Keren!', en: 'Level complete, bonus included. Nice!' },
+  newBadge: { id: 'Lencana baru', en: 'New badge' },
+  badges: { id: 'Lencana', en: 'Badges' },
+  badgeLocked: { id: 'Belum didapat', en: 'Not earned yet' },
+
+  s1CollectTitle: { id: 'Kumpulkan data', en: 'Collect data' },
+  s1CollectMission: {
+    id: 'Robot butuh contoh untuk belajar. Kumpulkan contoh apel DAN pisang di bawah "saat ▶ ditekan", lalu tekan ▶.',
+    en: 'The robot needs examples to learn from. Collect apple AND banana examples under "when ▶ clicked", then press ▶.',
+  },
+  s1TrainTitle: { id: 'Latih robotnya', en: 'Train the robot' },
+  s1TrainMission: {
+    id: 'Datanya sudah ada. Tambahkan blok training di bawah blok kumpulkan, lalu lihat penanda di Otak Robot bergerak.',
+    en: 'You have data. Add a train block below the collect blocks, then watch the markers move in the Robot Brain.',
+  },
+  s1TestTitle: { id: 'Uji dan capai 90%', en: 'Test it, reach 90%' },
+  s1TestMission: {
+    id: 'Sekarang uji robotnya dengan minimal 10 buah baru. Targetnya accuracy 90%.',
+    en: 'Now test the robot on at least 10 new fruits. Aim for 90% accuracy.',
+  },
+  s1PerfectTitle: { id: 'Sempurna', en: 'Perfect score' },
+  s1PerfectMission: {
+    id: 'Tantangan bonus: capai accuracy 100% saat testing dengan 20 buah atau lebih.',
+    en: 'Bonus challenge: reach 100% accuracy while testing on 20 or more fruits.',
+  },
+  s2PairTitle: { id: 'Satu pertanyaan', en: 'One question' },
+  s2PairMission: {
+    id: 'Yang datang baru lebah dan katak. Taruh SATU pertanyaan di bawah "saat ▶ ditekan", lalu kandang di cabang ya dan tidak. Targetnya 8 dari 8 benar.',
+    en: 'Only bees and frogs are visiting so far. Put ONE question under "when ▶ clicked", then a pen on its yes and no branches. Aim for 8 out of 8.',
+  },
+  s2AllTitle: { id: 'Burung ikut datang', en: 'Here come the birds' },
+  s2AllMission: {
+    id: 'Burung juga mau masuk! Taruh pertanyaan kedua di dalam salah satu cabang supaya burung punya kandang sendiri. Targetnya 12 dari 12.',
+    en: 'The birds want in too! Put a second question inside one of the branches so birds get their own pen. Aim for 12 out of 12.',
+  },
+  s2LeanTitle: { id: 'Pohon hemat', en: 'Lean tree' },
+  s2LeanMission: {
+    id: 'Tantangan bonus: pilah ke-12 hewan dengan paling banyak 2 pertanyaan, dan tanpa bertanya soal warna.',
+    en: 'Bonus challenge: sort all 12 critters with at most 2 questions, and no questions about colour.',
+  },
+  stageNeedBothLabels: {
+    id: 'Robot perlu contoh apel dan juga pisang.',
+    en: 'The robot needs both apple and banana examples.',
+  },
+  stageNeedTrain: { id: 'Datanya sudah ada, tapi robot belum di-training.', en: "The data is there, but the robot hasn't been trained." },
+  stageNeedTest: { id: 'Tambahkan blok testing supaya kelihatan seberapa pintar robotnya.', en: 'Add a test block to see how smart the robot is.' },
+  stagePerfectFail: { id: 'Belum 100% dengan 20 buah atau lebih. Hampir!', en: 'Not 100% on 20 or more fruits yet. Close!' },
+  stageLeanFail: {
+    id: 'Semua hewan sudah benar, tapi pohonnya belum hemat: maksimal 2 pertanyaan, tanpa warna.',
+    en: 'Everyone is sorted, but the tree is not lean yet: at most 2 questions, no colour.',
+  },
+
+  aFirstDataTitle: { id: 'Data pertama', en: 'First data' },
+  aFirstDataDesc: { id: 'Mengumpulkan contoh pertama untuk robot.', en: 'Collected the first examples for the robot.' },
+  aBalancedTitle: { id: 'Seimbang', en: 'Balanced' },
+  aBalancedDesc: { id: 'Jumlah contoh apel dan pisang sama.', en: 'Same number of apple and banana examples.' },
+  aTrainedTitle: { id: 'Robot terlatih', en: 'Trained robot' },
+  aTrainedDesc: { id: 'Melatih robot dengan dua label.', en: 'Trained the robot on both labels.' },
+  aOnTargetTitle: { id: 'Tepat sasaran', en: 'On target' },
+  aOnTargetDesc: { id: 'Mencapai accuracy 90% saat testing.', en: 'Reached 90% accuracy in testing.' },
+  aPerfectTitle: { id: 'Sempurna', en: 'Perfect' },
+  aPerfectDesc: { id: '100% benar pada 20 buah atau lebih.', en: '100% right on 20 or more fruits.' },
+  aFirstSplitTitle: { id: 'Split pertama', en: 'First split' },
+  aFirstSplitDesc: { id: 'Satu pertanyaan memisahkan lebah dan katak.', en: 'One question sorted the bees from the frogs.' },
+  aAllPensTitle: { id: 'Rumah untuk semua', en: 'A home for everyone' },
+  aAllPensDesc: { id: 'Ketiga kandang ada di pohonmu.', en: 'All three pens are in your tree.' },
+  aNestedTitle: { id: 'Pohon bertingkat', en: 'Branching out' },
+  aNestedDesc: { id: 'Menaruh pertanyaan di dalam cabang.', en: 'Put a question inside a branch.' },
+  aNoTrapTitle: { id: 'Lolos jebakan', en: 'Dodged the trap' },
+  aNoTrapDesc: { id: 'Memilah semua hewan tanpa bertanya soal warna.', en: 'Sorted every critter without asking about colour.' },
+  aLeanTitle: { id: 'Hemat', en: 'Lean' },
+  aLeanDesc: { id: 'Memilah ke-12 hewan dengan 2 pertanyaan saja.', en: 'Sorted all 12 critters with just 2 questions.' },
 
   // Level 2
   l2Title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' },

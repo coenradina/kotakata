@@ -67,31 +67,9 @@ export function treeToolbox(lang: Lang) {
   ])
 }
 
-/**
- * Starter tree: asks about colour, which looks sensible but sends every bird
- * the wrong way. The first run shows why some features split better.
- */
+/** Starter for stage 1: just the start block, so the player places the first question. */
 export const TREE_STARTER: object = {
-  blocks: {
-    languageVersion: 0,
-    blocks: [
-      {
-        type: 'kk_when_run',
-        x: 24,
-        y: 24,
-        next: {
-          block: {
-            type: 'kk_ask',
-            fields: { Q: 'yellow' },
-            inputs: {
-              YES: { block: { type: 'kk_pen', fields: { PEN: 'bee' } } },
-              NO: { block: { type: 'kk_pen', fields: { PEN: 'frog' } } },
-            },
-          },
-        },
-      },
-    ],
-  },
+  blocks: { languageVersion: 0, blocks: [{ type: 'kk_when_run', x: 24, y: 24 }] },
 }
 
 /** What's under "when run": the tree (null if nothing is attached yet). */
