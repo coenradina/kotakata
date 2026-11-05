@@ -234,6 +234,85 @@ const dict = {
   aLeanTitle: { id: 'Hemat', en: 'Lean' },
   aLeanDesc: { id: 'Memilah ke-12 hewan dengan 2 pertanyaan saja.', en: 'Sorted all 12 critters with just 2 questions.' },
 
+  // Level 4
+  l4Title: { id: 'Kedai Token', en: 'Token Tavern' },
+  catTokSettings: { id: 'Pengaturan', en: 'Settings' },
+  catTokWrite: { id: 'Tulis', en: 'Write' },
+  blkTokStart: { id: 'mulai dengan %1', en: 'start with %1' },
+  blkTokTemp: { id: 'temperature = %1', en: 'temperature = %1' },
+  blkTokContext: { id: 'ingat %1 kata terakhir', en: 'remember the last %1 words' },
+  blkTokWrite: { id: 'tulis %1 token', en: 'write %1 tokens' },
+  tok_the: { id: 'sang', en: 'the' },
+  tok_cat: { id: 'kucing', en: 'cat' },
+  tok_dog: { id: 'anjing', en: 'dog' },
+  tok_bard: { id: 'penyair', en: 'bard' },
+  tok_sleeps: { id: 'tidur', en: 'sleeps' },
+  tok_drinks: { id: 'minum', en: 'drinks' },
+  tok_sings: { id: 'bernyanyi', en: 'sings' },
+  tok_milk: { id: 'susu', en: 'milk' },
+  tok_by: { id: 'dekat', en: 'by' },
+  tok_fire: { id: 'perapian', en: 'fire' },
+  tok_door: { id: 'pintu', en: 'door' },
+  tok_end: { id: '.', en: '.' },
+  s4FirstTitle: { id: 'Token pertama', en: 'First tokens' },
+  s4FirstMission: {
+    id: 'Penyair kedai bercerita satu token demi satu token. Minta ia menulis minimal 4 token, lalu lihat bar probabilitas di setiap langkah.',
+    en: 'The tavern bard tells stories one token at a time. Ask for at least 4 tokens, and watch the probability bars at each step.',
+  },
+  s4SurpriseTitle: { id: 'Bumbu kejutan', en: 'A little surprise' },
+  s4SurpriseMission: {
+    id: 'Pengunjung bosan, ceritanya selalu sama! Atur temperature supaya penyair kadang memilih token lain, dan bikin cerita yang berbeda dari biasanya.',
+    en: 'The guests are bored: the story is always the same! Set a temperature so the bard sometimes picks other tokens, and tell a story that differs from the usual one.',
+  },
+  s4ContextTitle: { id: 'Ingatan lebih panjang', en: 'A longer memory' },
+  s4ContextMission: {
+    id: 'Pemilik kedai minta cerita yang pasti selesai sampai titik, dengan temperature 0. Kalau penyair cuma ingat 1 kata, ia bisa terjebak mengulang.',
+    en: 'The innkeeper wants a story that always reaches the full stop, at temperature 0. If the bard only remembers 1 word, it can get stuck in a loop.',
+  },
+  s4CreativeTitle: { id: 'Penyair sejati', en: 'True bard' },
+  s4CreativeMission: {
+    id: 'Tantangan bonus: dengan temperature 1 atau lebih, ceritakan kalimat yang selesai sampai titik, tidak mengulang, dan berbeda dari cerita biasa.',
+    en: 'Bonus challenge: at temperature 1 or more, tell a sentence that reaches the full stop, never loops, and differs from the usual story.',
+  },
+  logTokStory: { id: 'Cerita: {story}', en: 'Story: {story}' },
+  logTokLoop: { id: 'Penyair mengulang-ulang kata yang sama.', en: 'The bard keeps repeating itself.' },
+  logTokFinished: { id: 'Kalimatnya selesai sampai titik.', en: 'The sentence reached the full stop.' },
+  tokNeedMore: { id: 'Tulis minimal 4 token.', en: 'Write at least 4 tokens.' },
+  tokSameBoring: {
+    id: 'Ceritanya sama seperti biasa. Dengan temperature 0, penyair selalu memilih token paling mungkin.',
+    en: 'Same story as always. At temperature 0, the bard always picks the most likely token.',
+  },
+  tokSameChance: {
+    id: 'Kebetulan ceritanya sama dengan yang biasa. Itu bagian dari keacakan! Jalankan lagi.',
+    en: 'By chance it came out the usual story. That is randomness for you! Run it again.',
+  },
+  tokNeedCold: { id: 'Untuk tahap ini, pakai temperature 0 supaya ceritanya pasti.', en: 'For this stage, use temperature 0 so the story is certain.' },
+  tokLoop: {
+    id: 'Penyair terjebak mengulang. Ia cuma ingat kata terakhir, jadi tidak tahu sudah sampai mana.',
+    en: 'The bard is stuck in a loop. It only remembers the last word, so it loses track of where it is.',
+  },
+  tokNotFinished: { id: 'Ceritanya belum sampai titik.', en: "The story hasn't reached the full stop yet." },
+  tokNeedWarm: { id: 'Bonus ini butuh temperature 1 atau lebih.', en: 'This bonus needs a temperature of 1 or more.' },
+  hint_tokAddWrite: { id: 'Penyair butuh perintah menulis. Seret blok ini ke bawah blok mulai.', en: 'The bard needs a write block. Drag this below the start block.' },
+  hint_tokMoreTokens: { id: 'Tambah jumlah token di sini.', en: 'Ask for more tokens here.' },
+  hint_tokAddTemp: { id: 'Tambahkan temperature di atas blok tulis supaya ada kejutan.', en: 'Add a temperature above the write block for some surprise.' },
+  hint_tokWarmUp: { id: 'Naikkan temperature-nya supaya penyair berani memilih token lain.', en: 'Raise the temperature so the bard dares to pick other tokens.' },
+  hint_tokRunAgain: { id: 'Kebetulan sama. Jalankan lagi, keacakan bisa berbeda tiap kali.', en: 'Same by chance. Run again; randomness differs each time.' },
+  hint_tokCool: { id: 'Tahap ini butuh temperature 0.', en: 'This stage needs temperature 0.' },
+  hint_tokAddContext: { id: 'Beri penyair ingatan yang lebih panjang. Seret blok ini ke atas blok tulis.', en: 'Give the bard a longer memory. Drag this above the write block.' },
+  hint_tokContextTwo: { id: 'Ubah jadi 2 supaya penyair ingat dua kata terakhir.', en: 'Change this to 2 so the bard remembers the last two words.' },
+  aFirstWordTitle: { id: 'Kata pertama', en: 'First word' },
+  aFirstWordDesc: { id: 'Penyair menulis token pertamanya.', en: 'The bard wrote its first token.' },
+  aSurpriseTitle: { id: 'Kejutan', en: 'Surprise' },
+  aSurpriseDesc: { id: 'Cerita yang berbeda dari biasanya.', en: 'A story different from the usual one.' },
+  aHotTitle: { id: 'Kepanasan', en: 'Too hot' },
+  aHotDesc: { id: 'Mencoba temperature 2. Ceritanya jadi liar!', en: 'Tried temperature 2. Things got wild!' },
+  aMemoryTitle: { id: 'Ingatan panjang', en: 'Long memory' },
+  aMemoryDesc: { id: 'Menyelesaikan kalimat dengan context 2 kata.', en: 'Finished a sentence with a 2-word context.' },
+  aBardTitle: { id: 'Penyair sejati', en: 'True bard' },
+  aBardDesc: { id: 'Cerita kreatif yang tetap utuh.', en: 'A creative story that still holds together.' },
+  winBodyTavern: { id: 'Penyair bisa bercerita dengan rapi dan juga penuh kejutan.', en: 'The bard can tell a tidy story, and a surprising one too.' },
+
   // Level 3
   l3Title: { id: 'Bukit Loss', en: 'Hill of Loss' },
   catHill: { id: 'Langkah', en: 'Moves' },
@@ -397,6 +476,11 @@ export type CardId =
   | 'learningRate'
   | 'convergence'
   | 'gradientDescent'
+  | 'token'
+  | 'probability'
+  | 'temperature'
+  | 'context'
+  | 'llm'
 
 export interface TermCard {
   id: CardId
@@ -619,6 +703,74 @@ export const LEVEL3_CARDS: TermCard[] = [
     moment: {
       id: 'Yang kamu lakukan dari tadi namanya gradient descent: lihat gradient, melangkah turun, ulangi. Banyak model AI, termasuk model bahasa yang besar, dilatih dengan cara ini, hanya saja bukitnya punya jutaan bahkan miliaran arah.',
       en: "What you've been doing is called gradient descent: check the gradient, step downhill, repeat. Many AI models, large language models included, are trained this way, just on hills with millions or even billions of directions.",
+    },
+  },
+]
+
+export const LEVEL4_CARDS: TermCard[] = [
+  {
+    id: 'token',
+    term: 'Token',
+    icon: '🧩',
+    body: {
+      id: 'Potongan kecil teks yang dibaca dan ditulis model bahasa, biasanya satu kata atau sebagian kata.',
+      en: 'A small piece of text a language model reads and writes, usually a word or part of one.',
+    },
+    moment: {
+      id: 'Tiap kepingan di gulungan ini adalah token. Model bahasa tidak menulis satu kalimat sekaligus. Ia menulis satu token, lalu memutuskan token berikutnya.',
+      en: "Each piece on this scroll is a token. A language model doesn't write a whole sentence at once. It writes one token, then decides on the next.",
+    },
+  },
+  {
+    id: 'probability',
+    term: 'Probability',
+    icon: '📊',
+    body: {
+      id: 'Seberapa mungkin sesuatu terjadi, dari 0% sampai 100%.',
+      en: 'How likely something is, from 0% to 100%.',
+    },
+    moment: {
+      id: 'Bar ini menunjukkan probability tiap token berikutnya. Penyair menghitungnya dari cerita-cerita yang pernah ia dengar: "{word}" paling sering muncul setelah kata ini.',
+      en: 'These bars show the probability of each next token. The bard works them out from the stories it has heard: "{word}" came next most often.',
+    },
+  },
+  {
+    id: 'context',
+    term: 'Context',
+    icon: '🧠',
+    body: {
+      id: 'Bagian teks sebelumnya yang dilihat model saat memilih token berikutnya.',
+      en: 'The earlier text a model looks at when it picks the next token.',
+    },
+    moment: {
+      id: 'Garis di bawah gulungan menunjukkan context: kata-kata yang diingat penyair saat memilih token berikutnya. Makin panjang context-nya, makin kecil kemungkinan ia tersesat atau mengulang.',
+      en: 'The line under the scroll shows the context: the words the bard keeps in mind when picking the next token. The longer the context, the less likely it is to lose track or repeat itself.',
+    },
+  },
+  {
+    id: 'temperature',
+    term: 'Temperature',
+    icon: '🌡️',
+    body: {
+      id: 'Pengaturan yang menentukan seberapa acak model memilih token. 0 selalu memilih yang paling mungkin.',
+      en: 'A setting for how randomly a model picks tokens. 0 always picks the most likely one.',
+    },
+    moment: {
+      id: 'Temperature {t} membuat bar-bar ini lebih rata, jadi token yang jarang pun punya peluang terpilih. Hasilnya lebih kreatif, tapi kalau terlalu panas, ceritanya bisa ngawur.',
+      en: 'A temperature of {t} evens out these bars, so even rare tokens get a chance. The result is more creative, but too hot and the story can go off the rails.',
+    },
+  },
+  {
+    id: 'llm',
+    term: 'LLM',
+    icon: '💬',
+    body: {
+      id: 'Large Language Model: model bahasa yang sangat besar, dilatih dari teks dalam jumlah raksasa untuk menebak token berikutnya.',
+      en: 'Large Language Model: a very big language model, trained on huge amounts of text to predict the next token.',
+    },
+    moment: {
+      id: 'Penyair ini adalah model bahasa mini yang belajar dari 5 kalimat. LLM seperti chatbot AI bekerja dengan ide yang sama: menebak token berikutnya berdasarkan context. Bedanya, mereka belajar dari miliaran kalimat dan memakai context yang jauh lebih panjang.',
+      en: 'This bard is a tiny language model trained on 5 sentences. LLMs like AI chatbots run on the same idea: predict the next token from the context. The difference is that they learn from billions of sentences and use a far longer context.',
     },
   },
 ]

@@ -9,7 +9,7 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 1. **Latih Robot / Train the Robot.** Classification: dataset, label, training, testing, accuracy. *(playable)*
 2. **Taman Decision Tree / Decision Tree Garden.** Features, splits, leaves, predictions, decision trees. Unlocks after Level 1. *(playable)*
 3. **Bukit Loss / Hill of Loss.** Loss, gradients, learning rates, convergence, gradient descent. *(playable)*
-4. **Kedai Token / Token Tavern.** How LLMs pick the next token. *(planned)*
+4. **Kedai Token / Token Tavern.** Tokens, probability, temperature, context, LLMs. *(playable)*
 
 ## Stages and badges
 
@@ -17,6 +17,7 @@ Each level is split into small stages, each adding one new idea, plus an optiona
 
 - **Level 1:** collect apples *and* bananas → train the robot → test on 10+ fruits at 90% → bonus: 100% on 20+.
 - **Level 3:** down the gentle hill with 30 steps of energy → only 6 steps, so the learning rate must grow → a steep hill, where that learning rate bounces → bonus: one perfect jump.
+- **Level 4:** write 4 tokens → raise the temperature for a different story → finish a sentence at temperature 0, which needs a two-word memory → bonus: a warm story that still finishes.
 - **Level 2:** one question for bees and frogs → birds arrive, so the tree needs a second question → bonus: all 12 with at most 2 questions and no colour.
 
 Finishing a stage opens the next one. A strong program can clear several stages in one run. Badges (5 per level) reward small wins like a balanced dataset or a first working split. Stages and badges live in each level's `stages.ts`.
@@ -32,6 +33,10 @@ Twelve critters (birds, bees and frogs) walk through the player's decision tree 
 ## How Level 3 works
 
 The robot does real gradient descent on a hill shaped like loss = a·x² (`src/levels/hill/model.ts`). Each step it moves by learning rate × gradient, so x becomes x·(1 − 2·a·lr). On the gentle hill (a = 1), 0.1 creeps, 0.4 lands in a few steps, 0.5 lands in one, and 1.1 flies off. On the steep hill (a = 2.5), 0.4 bounces back and forth forever, so the player has to pick a smaller rate. A gradient arrow shows the slope before every jump.
+
+## How Level 4 works
+
+The bard is a tiny language model learned from five tavern sentences (`src/levels/tavern/model.ts`). To pick the next token it looks at its context (the last 1 or 2 tokens), counts what followed in the stories, and turns the counts into probabilities. Temperature reshapes them: 0 always takes the top token, higher values give rarer tokens a better chance. With a one-word memory at temperature 0, the bard loops ("the cat sleeps by the cat sleeps by…"); a two-word memory lets it finish the sentence. The sentences have the same shape in Indonesian and English, so the model behaves identically in both.
 
 ## Adding a level
 

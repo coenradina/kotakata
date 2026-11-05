@@ -5,7 +5,7 @@ import HintBubble from './components/HintBubble'
 import QuizModal from './components/QuizModal'
 import TermPopup from './components/TermPopup'
 import type { Milestones, PopupSide } from './game/types'
-import { LEVEL1_CARDS, LEVEL2_CARDS, LEVEL3_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
+import { LEVEL1_CARDS, LEVEL2_CARDS, LEVEL3_CARDS, LEVEL4_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
 import { MAX_REPEATS, type Hint } from './hints'
 import { LEVELS, UPCOMING, levelById, type LevelId } from './levels'
 import type { Level } from './levels/types'
@@ -35,7 +35,7 @@ interface Toast {
   title: string
   body: string
 }
-const EVERY_CARD = [...LEVEL1_CARDS, ...LEVEL2_CARDS, ...LEVEL3_CARDS]
+const EVERY_CARD = [...LEVEL1_CARDS, ...LEVEL2_CARDS, ...LEVEL3_CARDS, ...LEVEL4_CARDS]
 const ALL_CARDS = EVERY_CARD.map((c) => c.id)
 
 /** Cards found so far. The old format stored 'level1' for "all of them". */

@@ -94,7 +94,28 @@ export const SPRITES: Record<string, string[]> = {
     'kskkkkskkkkskkkk',
   ],
   spark: ['.a.', 'aya', '.a.'],
-  // Level 2 critters. Colour variants are built by swapping the body colour.
+  // Level 4: the tavern bard, with a feathered hat and a lute
+  bard: [
+    '.......a.....',
+    '......aa.....',
+    '...kkkkkkk...',
+    '..kmmmmmmmk..',
+    '.kkkkkkkkkkk.',
+    '..kssssssk...',
+    '..ksesseskk..',
+    '..ksssmssk...',
+    '...kssssk....',
+    '..kttttttk...',
+    '.kttttttttkk.',
+    'kttkttttkaaak',
+    'kttkttttkaNak',
+    '.kktttttkaaak',
+    '..kttttttkk..',
+    '..kTTkkTTk...',
+    '..kTTk.kTTk..',
+    '..kkkk.kkkk..',
+  ],
+    // Level 2 critters. Colour variants are built by swapping the body colour.
   'bird-brown': birdRows('n', 'N'),
   'bird-yellow': birdRows('y', 'Y'),
   bee: [

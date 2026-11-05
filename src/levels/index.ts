@@ -4,17 +4,17 @@ import { defineTreeBlocks } from './tree/blocks'
 import { treeLevel } from './tree'
 import { defineHillBlocks } from './hill/blocks'
 import { hillLevel } from './hill'
+import { defineTavernBlocks } from './tavern/blocks'
+import { tavernLevel } from './tavern'
 import { defineWhenRun, setBlocklyLocale } from '../blocks/common'
 import type { Lang } from '../i18n'
 import type { Level, LevelId } from './types'
 
 /** Playable levels, in order. Each one unlocks when the one before is passed. */
-export const LEVELS: Level[] = [trainLevel as Level, treeLevel as Level, hillLevel as Level]
+export const LEVELS: Level[] = [trainLevel as Level, treeLevel as Level, hillLevel as Level, tavernLevel as Level]
 
 /** Shown in the level list as "coming soon". */
-export const UPCOMING: { title: Record<Lang, string>; topic: string }[] = [
-  { title: { id: 'Kedai Token', en: 'Token Tavern' }, topic: 'LLMs' },
-]
+export const UPCOMING: { title: Record<Lang, string>; topic: string }[] = []
 
 export function levelById(id: LevelId): Level {
   return LEVELS.find((l) => l.id === id) ?? LEVELS[0]
@@ -27,6 +27,7 @@ export function defineAllBlocks(lang: Lang) {
   defineTrainBlocks(lang)
   defineTreeBlocks(lang)
   defineHillBlocks(lang)
+  defineTavernBlocks(lang)
 }
 
 export type { Level, LevelId }

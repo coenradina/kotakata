@@ -53,6 +53,11 @@ export const TERM_NAME: Record<CardId, string> = {
   learningRate: 'Learning Rate',
   convergence: 'Convergence',
   gradientDescent: 'Gradient Descent',
+  token: 'Token',
+  probability: 'Probability',
+  temperature: 'Temperature',
+  context: 'Context',
+  llm: 'LLM',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })
@@ -309,6 +314,67 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
       opt('Learning rate-nya diganti', 'Its learning rate changes'),
     ],
   },
+  // Level 4
+  {
+    id: 'token-what',
+    terms: ['token'],
+    prompt: { id: 'Bagaimana model bahasa menulis sebuah kalimat?', en: 'How does a language model write a sentence?' },
+    options: [
+      opt('Satu token demi satu token', 'One token at a time', true),
+      opt('Seluruh kalimat sekaligus', 'The whole sentence at once'),
+      opt('Dari kata terakhir ke kata pertama', 'From the last word back to the first'),
+    ],
+  },
+  {
+    id: 'probability-what',
+    terms: ['probability'],
+    prompt: { id: 'Dari mana penyair tahu probability tiap token berikutnya?', en: 'Where does the bard get the probability of each next token?' },
+    options: [
+      opt('Dari seberapa sering token itu muncul di cerita yang pernah ia dengar', 'From how often that token came next in the stories it heard', true),
+      opt('Dari urutan abjad', 'From alphabetical order'),
+      opt('Dari panjang katanya', 'From how long the word is'),
+    ],
+  },
+  {
+    id: 'temp-zero',
+    terms: ['temperature'],
+    prompt: { id: 'Dengan temperature 0, model akan…', en: 'At temperature 0, the model will…' },
+    options: [
+      opt('Selalu memilih token yang paling mungkin', 'Always pick the most likely token', true),
+      opt('Memilih token secara acak sepenuhnya', 'Pick tokens completely at random'),
+      opt('Berhenti menulis', 'Stop writing'),
+    ],
+  },
+  {
+    id: 'temp-high',
+    terms: ['temperature'],
+    prompt: { id: 'Kalau temperature-nya tinggi sekali, ceritanya cenderung…', en: 'With a very high temperature, the story tends to be…' },
+    options: [
+      opt('Lebih liar dan bisa ngawur', 'Wilder, and it may stop making sense', true),
+      opt('Selalu sama', 'Always the same'),
+      opt('Lebih pendek', 'Shorter'),
+    ],
+  },
+  {
+    id: 'context-loop',
+    terms: ['context'],
+    prompt: { id: 'Kenapa penyair yang cuma ingat 1 kata bisa mengulang terus?', en: 'Why can a bard that only remembers 1 word keep repeating itself?' },
+    options: [
+      opt('Context-nya terlalu pendek, jadi ia lupa sudah sampai mana', 'Its context is too short, so it loses track of where it is', true),
+      opt('Temperature-nya terlalu tinggi', 'Its temperature is too high'),
+      opt('Ia kehabisan token', 'It ran out of tokens'),
+    ],
+  },
+  {
+    id: 'llm-what',
+    terms: ['llm'],
+    prompt: { id: 'Apa yang sama antara penyair kedai dan chatbot AI?', en: 'What do the tavern bard and an AI chatbot have in common?' },
+    options: [
+      opt('Keduanya menebak token berikutnya berdasarkan context', 'Both predict the next token from the context', true),
+      opt('Keduanya belajar dari 5 kalimat saja', 'Both learned from just 5 sentences'),
+      opt('Keduanya selalu benar', 'Both are always right'),
+    ],
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -380,6 +446,24 @@ const BLANKS: Omit<BlankQuestion, 'kind' | 'chips'>[] = [
       en: 'Training aims to make the {1} as small as possible, until the model reaches {2}.',
     },
     answers: ['Loss', 'Convergence'],
+  },
+  {
+    id: 'blank-next',
+    terms: ['token', 'probability', 'context'],
+    sentence: {
+      id: 'Untuk memilih {1} berikutnya, model melihat {3}, lalu menghitung {2} tiap pilihan.',
+      en: 'To choose the next {1}, the model looks at the {3}, then works out the {2} of each option.',
+    },
+    answers: ['Token', 'Probability', 'Context'],
+  },
+  {
+    id: 'blank-temp',
+    terms: ['temperature', 'llm'],
+    sentence: {
+      id: '{1} mengatur seberapa acak sebuah {2} memilih kata.',
+      en: '{1} sets how randomly an {2} picks its words.',
+    },
+    answers: ['Temperature', 'LLM'],
   },
   {
     id: 'blank-score',

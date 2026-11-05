@@ -118,3 +118,40 @@ describe('Level 3 stages', () => {
     expect(check([lr(0.5), steps(1)], 'gentle', 'one')).toBe(true)
   })
 })
+
+import { runTavern, type Step as TavernStep } from './tavern/model'
+import { TAVERN_STAGES, type TavernRun } from './tavern/stages'
+
+describe('Level 4 stages', () => {
+  const start: TavernStep = { kind: 'start', token: 'the', id: 'st' }
+  const temp = (value: number): TavernStep => ({ kind: 'temp', value, id: 't' })
+  const ctx = (value: number): TavernStep => ({ kind: 'context', value, id: 'c' })
+  const write = (n: number): TavernStep => ({ kind: 'write', n, id: 'w' })
+  const tavernRun = (p: TavernStep[], seed = 1): TavernRun => {
+    const raw = runTavern(p, seed)
+    return { raw, events: [raw], accuracy: null, passed: false, context: null }
+  }
+  const check = (p: TavernStep[], stageId: string, seed = 1) => TAVERN_STAGES.find((s) => s.id === stageId)!.check(p, tavernRun(p, seed))
+
+  it('stage 1 wants at least 4 tokens', () => {
+    expect(check([start, write(1)], 'first')).toBe(false)
+    expect(check([start, write(4)], 'first')).toBe(true)
+  })
+
+  it('stage 2 wants a warm, different story, which some seeds give', () => {
+    expect(check([start, temp(0), write(6)], 'surprise')).toBe(false)
+    const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((seed) => check([start, temp(1), write(6)], 'surprise', seed))
+    expect(seeds.length).toBeGreaterThan(3)
+  })
+
+  it('stage 3 needs temperature 0 and a two-word memory to finish', () => {
+    expect(check([start, temp(0), write(10)], 'context')).toBe(false)
+    expect(check([start, temp(0), ctx(2), write(10)], 'context')).toBe(true)
+    expect(check([start, temp(1), ctx(2), write(10)], 'context')).toBe(false)
+  })
+
+  it('the bonus is reachable with a warm, two-word memory', () => {
+    const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((seed) => check([start, temp(1), ctx(2), write(10)], 'creative', seed))
+    expect(seeds.length).toBeGreaterThan(1)
+  })
+})
