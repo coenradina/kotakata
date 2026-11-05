@@ -1,18 +1,21 @@
 import { useEffect, useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import * as Phaser from 'phaser'
-import { HEIGHT, TrainScene, WIDTH, type LogFn, type Milestones } from '../game/TrainScene'
+import { STAGE_HEIGHT as HEIGHT, STAGE_WIDTH as WIDTH, type LevelScene, type LogFn, type Milestones } from '../game/types'
 import type { Lang } from '../i18n'
-import type { Event } from '../levels/train/model'
+import type { Level } from '../levels'
 
 export interface StageHandle {
-  play: (events: Event[], log: LogFn, milestones?: Milestones) => Promise<void>
+  play: (events: unknown[], log: LogFn, milestones?: Milestones) => Promise<void>
   reset: () => void
   celebrate: () => void
+  preview: (data: unknown) => void
 }
 
-export default function Stage({ lang, ref, children }: { lang: Lang; ref: Ref<StageHandle>; children?: ReactNode }) {
+/** One Phaser game per level: give this component a `key` of the level id. */
+export default function Stage({ lang, level, ref, children }: { lang: Lang; level: Level; ref: Ref<StageHandle>; children?: ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
-  const scene = useRef<TrainScene | null>(null)
+  const scene = useRef<LevelScene | null>(null)
+  const pendingPreview = useRef<{ data: unknown } | null>(null)
 
   useImperativeHandle(
     ref,
@@ -20,6 +23,10 @@ export default function Stage({ lang, ref, children }: { lang: Lang; ref: Ref<St
       play: (events, log, milestones) => scene.current?.play(events, log, milestones) ?? Promise.resolve(),
       reset: () => scene.current?.reset(),
       celebrate: () => scene.current?.celebrate(),
+      preview: (data) => {
+        if (scene.current?.preview) scene.current.preview(data)
+        else pendingPreview.current = { data }
+      },
     }),
     [],
   )
@@ -31,7 +38,7 @@ export default function Stage({ lang, ref, children }: { lang: Lang; ref: Ref<St
     // Phaser draws text on canvas, so the pixel font must be loaded first.
     document.fonts.load('24px VT323').catch(() => undefined).finally(() => {
       if (cancelled || !host.current) return
-      const s = new TrainScene()
+      const s = level.createScene()
       scene.current = s
       game = new Phaser.Game({
         type: Phaser.AUTO,
@@ -47,6 +54,7 @@ export default function Stage({ lang, ref, children }: { lang: Lang; ref: Ref<St
       })
       game.canvas?.classList.add('pixel')
       s.setLang(lang)
+      if (pendingPreview.current) s.preview?.(pendingPreview.current.data)
     })
     return () => {
       cancelled = true

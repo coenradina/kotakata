@@ -95,6 +95,33 @@ const dict = {
     en: 'Change this to at least 10 so the result can be trusted.',
   },
   hint_moreRounds: { id: 'Robot masih bingung. Coba tambah ronde training di sini.', en: 'The robot is still confused. Try more training rounds here.' },
+  hint_treeStart: {
+    id: 'Mulai dengan satu pertanyaan. Seret blok ini ke bawah "saat ▶ ditekan".',
+    en: 'Start with a question. Drag this block under "when ▶ clicked".',
+  },
+  hint_treeAsk: {
+    id: 'Satu kandang untuk semua? Tanyakan sesuatu dulu supaya hewannya terpisah.',
+    en: 'One pen for everyone? Ask a question first so the critters split up.',
+  },
+  hint_treeEmpty: {
+    id: 'Pertanyaan ini punya cabang kosong. Isi "ya" dan "tidak" dengan kandang atau pertanyaan lain.',
+    en: 'This question has an empty branch. Fill both "yes" and "no" with a pen or another question.',
+  },
+  hint_treePenBird: { id: 'Belum ada kandang burung. Tambahkan di salah satu cabang.', en: "There's no bird pen yet. Add one to a branch." },
+  hint_treePenBee: { id: 'Belum ada kandang lebah. Tambahkan di salah satu cabang.', en: "There's no bee pen yet. Add one to a branch." },
+  hint_treePenFrog: { id: 'Belum ada kandang katak. Tambahkan di salah satu cabang.', en: "There's no frog pen yet. Add one to a branch." },
+  hint_treeColour: {
+    id: 'Warna itu menjebak: ada burung yang kuning dan katak yang cokelat. Coba pertanyaan lain di sini.',
+    en: 'Colour is a trap here: some birds are yellow and one frog is brown. Try another question.',
+  },
+  hint_treeBig: {
+    id: 'Hati-hati, ada satu katak yang besar. Mungkin tanyakan soal sayap dulu?',
+    en: 'Careful, one frog is big. Maybe ask about wings first?',
+  },
+  hint_treeCheck: {
+    id: 'Lihat hewan mana yang salah kandang, lalu ubah pertanyaan atau kandangnya.',
+    en: 'See which critters end up in the wrong pen, then change a question or a pen.',
+  },
   hint_moreData: {
     id: 'Coba tambah contoh di dataset, untuk apel dan juga pisang.',
     en: 'Try adding more examples to the dataset, for apples and bananas.',
@@ -109,6 +136,43 @@ const dict = {
   catEvents: { id: 'Mulai', en: 'Start' },
   catData: { id: 'Data', en: 'Data' },
   catModel: { id: 'Model', en: 'Model' },
+
+  levelLocked: { id: 'Selesaikan level sebelumnya dulu', en: 'Finish the level before this one' },
+  levelUnlocked: { id: 'Level {n} terbuka! Pilih di daftar level.', en: 'Level {n} unlocked! Pick it from the level list.' },
+  catAsk: { id: 'Pertanyaan', en: 'Questions' },
+  catPens: { id: 'Kandang', en: 'Pens' },
+
+  // Level 2
+  l2Title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' },
+  l2Mission: {
+    id: 'Bantu burung, lebah, dan katak masuk ke kandangnya. Susun pertanyaan ya/tidak di bawah "saat ▶ ditekan", lalu taruh kandang di ujung tiap cabang. Targetnya 12 dari 12 hewan masuk kandang yang benar.',
+    en: 'Help the birds, bees and frogs into their pens. Stack yes/no questions under "when ▶ clicked", and put a pen at the end of every branch. Aim for all 12 critters in the right pen.',
+  },
+  blkAsk: { id: 'apakah %1 ? %2 ya ▸ %3 tidak ▸ %4', en: 'is it %1 ? %2 yes ▸ %3 no ▸ %4' },
+  blkPen: { id: 'masuk kandang %1', en: 'send to the %1 pen' },
+  qWings: { id: 'bersayap', en: 'winged' },
+  qBig: { id: 'besar', en: 'big' },
+  qGreen: { id: 'hijau', en: 'green' },
+  qYellow: { id: 'kuning', en: 'yellow' },
+  qBrown: { id: 'cokelat', en: 'brown' },
+  penBird: { id: '🐦 burung', en: '🐦 bird' },
+  penBee: { id: '🐝 lebah', en: '🐝 bee' },
+  penFrog: { id: '🐸 katak', en: '🐸 frog' },
+  logTreeEmpty: {
+    id: 'Belum ada pertanyaan atau kandang di bawah "saat ▶ ditekan".',
+    en: 'There are no questions or pens under "when ▶ clicked" yet.',
+  },
+  warnOnePen: { id: 'Semua hewan masuk ke satu kandang yang sama.', en: 'Every critter goes to the same pen.' },
+  warnEmptyBranch: {
+    id: 'Ada cabang yang kosong. Hewan yang lewat situ bakal tersesat.',
+    en: 'A branch is empty. Critters that go that way will get lost.',
+  },
+  logSorted: { id: 'Hasil: {correct}/{total} hewan di kandang yang benar.', en: 'Result: {correct}/{total} critters in the right pen.' },
+  logLost: { id: '{n} hewan tersesat di cabang kosong.', en: '{n} critters got lost on an empty branch.' },
+  tryAgainTree: {
+    id: 'Belum semua di kandang yang benar. Perhatikan hewan yang salah masuk, lalu ubah pertanyaannya.',
+    en: 'Not everyone is in the right pen yet. Watch which critters go wrong, then change a question.',
+  },
 
   // Level 1
   l1Title: { id: 'Latih Robot', en: 'Train the Robot' },
@@ -145,6 +209,10 @@ const dict = {
     en: 'The robot only saw one label. It will think every fruit is the same.',
   },
   winTitle: { id: 'Misi selesai!', en: 'Mission complete!' },
+  winBodyTree: {
+    id: 'Semua 12 hewan masuk ke kandang yang benar.',
+    en: 'All 12 critters are in the right pen.',
+  },
   winBody: {
     id: 'Robotmu mencapai accuracy {acc}%.',
     en: 'Your robot reached {acc}% accuracy.',
@@ -167,7 +235,18 @@ export function t(lang: Lang, key: Key, vars: Record<string, string | number> = 
 
 // Term cards. `term` is always English. `moment` is shown in the game the
 // first time the player meets the term, filled in with numbers from their run.
-export type CardId = 'dataset' | 'label' | 'training' | 'testing' | 'accuracy' | 'classification'
+export type CardId =
+  | 'dataset'
+  | 'label'
+  | 'training'
+  | 'testing'
+  | 'accuracy'
+  | 'classification'
+  | 'feature'
+  | 'split'
+  | 'leaf'
+  | 'prediction'
+  | 'decisionTree'
 
 export interface TermCard {
   id: CardId
@@ -254,6 +333,74 @@ export const LEVEL1_CARDS: TermCard[] = [
     moment: {
       id: 'Yang barusan kamu ajarkan namanya classification: memasukkan tiap benda ke satu kelompok. Filter spam email dan aplikasi pengenal tanaman juga bekerja dengan cara ini.',
       en: 'What you just taught is called classification: putting each item into one group. Email spam filters and plant-ID apps work the same way.',
+    },
+  },
+]
+
+export const LEVEL2_CARDS: TermCard[] = [
+  {
+    id: 'feature',
+    term: 'Feature',
+    icon: '🔎',
+    body: {
+      id: 'Ciri yang bisa diamati dari sesuatu, misalnya punya sayap, ukuran, atau warna.',
+      en: 'Something you can observe about an item, like having wings, its size, or its colour.',
+    },
+    moment: {
+      id: 'Robot tidak bisa "melihat" hewan seperti kita. Ia hanya tahu feature-nya: bersayap atau tidak, besar atau kecil, dan warnanya. Pertanyaan di pohonmu selalu tentang feature.',
+      en: "The garden can't \"see\" critters the way we do. It only knows their features: winged or not, big or small, and colour. Every question in your tree is about a feature.",
+    },
+  },
+  {
+    id: 'split',
+    term: 'Split',
+    icon: '🪧',
+    body: {
+      id: 'Satu pertanyaan ya/tidak yang membagi data jadi dua kelompok.',
+      en: 'One yes/no question that divides the data into two groups.',
+    },
+    moment: {
+      id: 'Papan ini adalah split: satu pertanyaan ya/tidak. Hewan yang jawabannya "ya" belok ke kiri, yang "tidak" ke kanan.',
+      en: 'This signpost is a split: one yes/no question. Critters that answer "yes" go left, and "no" go right.',
+    },
+  },
+  {
+    id: 'leaf',
+    term: 'Leaf',
+    icon: '🍃',
+    body: {
+      id: 'Ujung sebuah cabang di decision tree, tempat pohon memberi jawabannya.',
+      en: 'The end of a branch in a decision tree, where the tree gives its answer.',
+    },
+    moment: {
+      id: 'Kandang di ujung cabang ini disebut leaf. Di sini pohon berhenti bertanya dan memberi jawaban.',
+      en: 'A pen at the end of a branch is called a leaf. This is where the tree stops asking and gives its answer.',
+    },
+  },
+  {
+    id: 'prediction',
+    term: 'Prediction',
+    icon: '🔮',
+    body: {
+      id: 'Jawaban yang diberikan model untuk satu contoh, entah benar atau salah.',
+      en: 'The answer a model gives for one example, right or wrong.',
+    },
+    moment: {
+      id: 'Kandang tempat tiap hewan berakhir adalah prediction dari pohonmu. Kali ini {correct} dari {total} prediction benar.',
+      en: 'The pen each critter ends up in is your tree\'s prediction. This time, {correct} of {total} predictions were right.',
+    },
+  },
+  {
+    id: 'decisionTree',
+    term: 'Decision Tree',
+    icon: '🌳',
+    body: {
+      id: 'Model yang mengambil keputusan lewat urutan pertanyaan ya/tidak, seperti diagram alur.',
+      en: 'A model that decides through a series of yes/no questions, like a flowchart.',
+    },
+    moment: {
+      id: 'Split dan leaf yang kamu susun bersama-sama membentuk decision tree. Enaknya, kamu bisa membaca persis kenapa tiap hewan masuk ke kandangnya. Tidak semua model AI semudah ini dibaca.',
+      en: "Together, your splits and leaves make a decision tree. The nice part: you can read exactly why each critter went where it did. Not every AI model is this easy to read.",
     },
   },
 ]

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { chooseHint } from './hints'
-import { run, type Step } from './levels/train/model'
+import { chooseTrainHint as chooseHint } from './hints'
+import { run, type Step } from './model'
 
 const hintFor = (program: Step[] | null) => chooseHint(program, program ? run(program, 1) : null)?.key ?? null
 

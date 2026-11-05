@@ -20,6 +20,11 @@ const CHIP_COLOUR: Record<string, string> = {
   Testing: 'bg-maroon',
   Accuracy: 'bg-maroon',
   Classification: 'bg-gold',
+  Feature: 'bg-tosca',
+  Split: 'bg-tosca',
+  Leaf: 'bg-maroon',
+  Prediction: 'bg-maroon',
+  'Decision Tree': 'bg-gold',
 }
 
 export default function QuizModal({ question, lang, maxed, onAnswer, onClose }: Props) {

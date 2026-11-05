@@ -1,12 +1,13 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import * as Blockly from 'blockly/core'
-import { STARTER, defineBlocks, readProgram, theme, toolbox } from '../blocks/blockly'
+import { theme } from '../blocks/common'
+import { defineAllBlocks, type Level } from '../levels'
 import type { Lang } from '../i18n'
 import type { HintTarget } from '../hints'
-import type { Step } from '../levels/train/model'
 
 export interface BlockEditorHandle {
-  program: () => Step[] | null
+  /** The current level's program, read as data. Null when there's no start block. */
+  program: () => unknown | null
   /**
    * Where a hint target is on screen, or null if it isn't showing. With
    * `reveal`, switches the panel to "All" first so palette blocks are visible.
@@ -26,7 +27,6 @@ function fitToView(workspace: Blockly.WorkspaceSvg) {
   }
 }
 
-const STORAGE_KEY = 'kotakata.level1.blocks'
 // Events that mean the player changed their program.
 const EDIT_EVENTS = new Set<string>([
   Blockly.Events.BLOCK_CREATE,
@@ -35,18 +35,19 @@ const EDIT_EVENTS = new Set<string>([
   Blockly.Events.BLOCK_MOVE,
 ])
 
-function loadSaved(): object {
+function loadSaved(level: Level): object {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(level.storageKey)
     if (raw) return JSON.parse(raw)
   } catch {
     /* ignore broken or blocked storage */
   }
-  return STARTER
+  return level.starter
 }
 
 interface Props {
   lang: Lang
+  level: Level
   ref: Ref<BlockEditorHandle>
   /** Called when the player changes their blocks. */
   onEdit?: () => void
@@ -58,30 +59,38 @@ function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: b
     // The block may be filtered out of view; "All" always shows it.
     if (reveal && box && box.getSelectedItem() !== box.getToolboxItems()[0]) box.selectItemByPosition(0)
     const blocks = box?.getFlyout()?.getWorkspace().getTopBlocks(false) ?? []
-    const block = blocks.find((b) => b.type === target.type && (!target.label || b.getFieldValue('LABEL') === target.label))
+    const block = blocks.find(
+      (b) => b.type === target.type && Object.entries(target.fields ?? {}).every(([name, value]) => b.getFieldValue(name) === value),
+    )
     return block?.getSvgRoot().getBoundingClientRect() ?? null
   }
-  const block = workspace.getAllBlocks(false).find((b) => b.type === target.type && b.isEnabled())
+  const block = target.blockId
+    ? workspace.getBlockById(target.blockId)
+    : workspace.getAllBlocks(false).find((b) => b.type === target.type && b.isEnabled())
   const field = block?.getField(target.field)
   return field?.getSvgRoot()?.getBoundingClientRect() ?? null
 }
 
-export default function BlockEditor({ lang, ref, onEdit }: Props) {
+export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const ws = useRef<Blockly.WorkspaceSvg | null>(null)
   const onEditRef = useRef(onEdit)
   onEditRef.current = onEdit
+  const levelRef = useRef(level)
+  levelRef.current = level
+  // Which level the workspace currently holds, so a level switch loads fresh blocks.
+  const shownLevel = useRef<string | null>(null)
 
   useImperativeHandle(
     ref,
     () => ({
-      program: () => (ws.current ? readProgram(ws.current) : null),
+      program: () => (ws.current ? levelRef.current.read(ws.current) : null),
       locate: (target, reveal = false) => (ws.current ? locateIn(ws.current, target, reveal) : null),
       resetToStarter: () => {
         const workspace = ws.current
         if (!workspace) return
         workspace.clear()
-        Blockly.serialization.workspaces.load(STARTER, workspace)
+        Blockly.serialization.workspaces.load(levelRef.current.starter, workspace)
         workspace.getToolbox()?.selectItemByPosition(0)
         requestAnimationFrame(() => fitToView(workspace))
       },
@@ -92,13 +101,15 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
   useEffect(() => {
     if (!host.current) return
     // Changing language redefines the blocks, so rebuild the workspace and
-    // carry the player's blocks across.
-    const state = ws.current ? Blockly.serialization.workspaces.save(ws.current) : loadSaved()
+    // carry the player's blocks across. Changing level loads that level's blocks.
+    const sameLevel = shownLevel.current === level.id
+    const state = ws.current && sameLevel ? Blockly.serialization.workspaces.save(ws.current) : loadSaved(level)
     ws.current?.dispose()
-    defineBlocks(lang)
+    defineAllBlocks(lang)
+    shownLevel.current = level.id
 
     const workspace = Blockly.inject(host.current, {
-      toolbox: toolbox(lang),
+      toolbox: level.toolbox(lang),
       theme,
       renderer: 'zelos',
       sounds: false,
@@ -112,7 +123,7 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
     try {
       Blockly.serialization.workspaces.load(state, workspace)
     } catch {
-      Blockly.serialization.workspaces.load(STARTER, workspace)
+      Blockly.serialization.workspaces.load(level.starter, workspace)
     }
     ws.current = workspace
 
@@ -134,7 +145,7 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
       if (e.isUiEvent) return
       if (EDIT_EVENTS.has(e.type)) onEditRef.current?.()
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(Blockly.serialization.workspaces.save(workspace)))
+        localStorage.setItem(level.storageKey, JSON.stringify(Blockly.serialization.workspaces.save(workspace)))
       } catch {
         /* not critical */
       }
@@ -148,7 +159,7 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
       workspace.removeChangeListener(save)
       workspace.removeChangeListener(keepOpen)
     }
-  }, [lang])
+  }, [lang, level])
 
   useEffect(
     () => () => {

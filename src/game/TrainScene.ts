@@ -2,9 +2,10 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { predict, type Centroids, type Event, type Label, type Point } from '../levels/train/model'
 import { t, type CardId, type Lang } from '../i18n'
+import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
 
-export const WIDTH = 640
-export const HEIGHT = 400
+const WIDTH = STAGE_WIDTH
+const HEIGHT = STAGE_HEIGHT
 const PX = 3 // every sprite pixel becomes a 3x3 block
 const INK = 0x0f172a
 const LABEL_COLOUR: Record<Label, number> = { apple: 0xdc2626, banana: 0xeab308 }
@@ -17,23 +18,12 @@ const ROBOT = { x: 150, y: 262 }
 const BIN_X: Record<Label, number> = { apple: 322, banana: 384 }
 const BIN_Y = 344
 
-export type LogFn = (line: string, tone?: 'info' | 'good' | 'bad') => void
-
 /** Which part of the scene a term card is about. */
-export type Focus = 'plot' | 'markers' | 'belt' | 'status'
+type Focus = 'plot' | 'markers' | 'belt' | 'status'
+// The card goes on the side away from what it explains.
+const SIDE: Record<Focus, PopupSide> = { plot: 'left', markers: 'left', belt: 'right', status: 'right' }
 
-/**
- * Lets the game pause on a term the player meets for the first time.
- * `show` resolves when the player closes the card.
- */
-export interface Milestones {
-  isNew: (id: CardId) => boolean
-  show: (id: CardId, focus: Focus, vars?: Record<string, string | number>) => Promise<void>
-}
-
-const NO_MILESTONES: Milestones = { isNew: () => false, show: () => Promise.resolve() }
-
-export class TrainScene extends Phaser.Scene {
+export class TrainScene extends Phaser.Scene implements LevelScene {
   private lang: Lang = 'id'
   private robot!: Phaser.GameObjects.Image
   private belt!: Phaser.GameObjects.TileSprite
@@ -245,13 +235,14 @@ export class TrainScene extends Phaser.Scene {
     if (run !== this.runId || !this.milestones.isNew(id)) return
     this.belt.setData('moving', false)
     this.highlight(focus)
-    await this.milestones.show(id, focus, vars)
+    await this.milestones.show(id, SIDE[focus], vars)
     if (run === this.runId) this.highlight(null)
   }
 
   // --- playback --------------------------------------------------------------
 
-  async play(events: Event[], log: LogFn, milestones: Milestones = NO_MILESTONES): Promise<void> {
+  async play(rawEvents: unknown[], log: LogFn, milestones: Milestones = NO_MILESTONES): Promise<void> {
+    const events = rawEvents as Event[]
     await this.readyPromise
     this.reset()
     const id = this.runId

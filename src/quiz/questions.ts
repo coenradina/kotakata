@@ -43,6 +43,11 @@ export const TERM_NAME: Record<CardId, string> = {
   testing: 'Testing',
   accuracy: 'Accuracy',
   classification: 'Classification',
+  feature: 'Feature',
+  split: 'Split',
+  leaf: 'Leaf',
+  prediction: 'Prediction',
+  decisionTree: 'Decision Tree',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })
@@ -174,6 +179,67 @@ const CHOICES: Omit<ChoiceQuestion, 'kind'>[] = [
       opt('Punya antena', 'Has an antenna'),
     ],
   },
+  // Level 2
+  {
+    id: 'feature-what',
+    terms: ['feature'],
+    prompt: { id: 'Di Taman Decision Tree, mana yang termasuk feature?', en: 'In the Decision Tree Garden, which of these is a feature?' },
+    options: [
+      opt('Apakah hewannya bersayap', 'Whether the critter has wings', true),
+      opt('Kandang tempat hewan berakhir', 'The pen the critter ends up in'),
+      opt('Urutan hewan masuk gerbang', 'The order critters come through the gate'),
+    ],
+  },
+  {
+    id: 'feature-good',
+    terms: ['feature'],
+    prompt: { id: 'Kenapa warna kurang cocok untuk memisahkan burung dan lebah?', en: "Why isn't colour a good way to tell birds from bees?" },
+    options: [
+      opt('Ada burung yang kuning, sama seperti lebah', 'Some birds are yellow, just like bees', true),
+      opt('Warna tidak bisa ditanyakan', "Colour can't be asked about"),
+      opt('Lebah tidak punya warna', "Bees don't have a colour"),
+    ],
+  },
+  {
+    id: 'split-what',
+    terms: ['split'],
+    prompt: { id: 'Apa itu split di decision tree?', en: 'What is a split in a decision tree?' },
+    options: [
+      opt('Satu pertanyaan ya/tidak yang membagi data jadi dua', 'One yes/no question that divides the data in two', true),
+      opt('Jawaban akhir pohon', "The tree's final answer"),
+      opt('Hewan yang salah kandang', 'A critter in the wrong pen'),
+    ],
+  },
+  {
+    id: 'leaf-what',
+    terms: ['leaf'],
+    prompt: { id: 'Di Taman Decision Tree, yang mana leaf-nya?', en: 'In the Decision Tree Garden, which part is a leaf?' },
+    options: [
+      opt('Kandang di ujung cabang', 'A pen at the end of a branch', true),
+      opt('Papan pertanyaan', 'A question signpost'),
+      opt('Gerbang tempat hewan datang', 'The gate where critters arrive'),
+    ],
+  },
+  {
+    id: 'prediction-what',
+    terms: ['prediction'],
+    prompt: { id: 'Seekor katak masuk ke kandang lebah. Kandang lebah itu adalah…', en: 'A frog ends up in the bee pen. The bee pen is the tree\'s…' },
+    options: [
+      opt('Prediction pohon, yang kali ini salah', 'prediction, and this time a wrong one', true),
+      opt('Feature si katak', "frog's feature"),
+      opt('Split yang benar', 'correct split'),
+    ],
+  },
+  {
+    id: 'tree-why',
+    terms: ['decisionTree'],
+    prompt: { id: 'Apa kelebihan decision tree dibanding banyak model AI lain?', en: 'What is one strength of decision trees over many other AI models?' },
+    options: [
+      opt('Kita bisa membaca kenapa ia memberi jawaban tertentu', 'You can read why it gave a particular answer', true),
+      opt('Ia tidak butuh data sama sekali', "It doesn't need any data"),
+      opt('Ia selalu benar 100%', "It's always 100% right"),
+    ],
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -209,6 +275,24 @@ const BLANKS: Omit<BlankQuestion, 'kind' | 'chips'>[] = [
     terms: ['training'],
     sentence: { id: 'Di setiap ronde {1}, robot menggeser tebakannya.', en: 'In every {1} round, the robot moves its guesses.' },
     answers: ['Training'],
+  },
+  {
+    id: 'blank-tree',
+    terms: ['split', 'leaf'],
+    sentence: {
+      id: 'Tiap pertanyaan ya/tidak adalah {1}, dan tiap kandang di ujung cabang adalah {2}.',
+      en: 'Each yes/no question is a {1}, and each pen at the end of a branch is a {2}.',
+    },
+    answers: ['Split', 'Leaf'],
+  },
+  {
+    id: 'blank-feature',
+    terms: ['feature', 'decisionTree'],
+    sentence: {
+      id: 'Pertanyaan di {2} selalu tentang sebuah {1}, misalnya punya sayap atau tidak.',
+      en: 'The questions in a {2} are always about a {1}, like whether something has wings.',
+    },
+    answers: ['Feature', 'Decision Tree'],
   },
   {
     id: 'blank-score',

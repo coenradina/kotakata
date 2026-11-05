@@ -7,7 +7,7 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 ## Levels
 
 1. **Latih Robot / Train the Robot.** Classification: dataset, label, training, testing, accuracy. *(playable)*
-2. **Taman Decision Tree / Decision Tree Garden.** *(planned)*
+2. **Taman Decision Tree / Decision Tree Garden.** Features, splits, leaves, predictions, decision trees. Unlocks after Level 1. *(playable)*
 3. **Bukit Loss / Hill of Loss.** Gradient descent. *(planned)*
 4. **Kedai Token / Token Tavern.** How LLMs pick the next token. *(planned)*
 
@@ -15,7 +15,15 @@ Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Tec
 
 The robot is a real nearest-centroid classifier (`src/levels/train/model.ts`). Each fruit has two features, colour and shape. Training moves the robot's guess for each label halfway towards the average of its examples, once per round. The robot starts with its guesses swapped, so one round of training isn't enough. That's the lesson. The plot on the right shows the data, the moving centroids, and which label the robot would pick in each region.
 
-Blocks are read as data (`readProgram` in `src/blocks/blockly.ts`) and never turned into code that runs.
+## How Level 2 works
+
+Twelve critters (birds, bees and frogs) walk through the player's decision tree (`src/levels/tree/model.ts`). Each question block is a yes/no split on a feature: wings, size or colour. Each pen is a leaf. Colour is a trap on purpose: some birds are yellow like bees and one frog is brown, so only wings and size sort everyone correctly. The stage previews the tree live while the player edits it.
+
+## Adding a level
+
+Each level lives in `src/levels/<id>/`: a model with tests, its blocks, its hints, and an `index.ts` that implements the `Level` interface in `src/levels/types.ts`. Register it in `src/levels/index.ts`. Its Phaser scene implements `LevelScene` from `src/game/types.ts`.
+
+Blocks are always read as data (each level's `read` function) and never turned into code that runs.
 
 ## Stack
 

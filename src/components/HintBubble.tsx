@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { t, type Lang } from '../i18n'
+import { t, type Key, type Lang } from '../i18n'
 import type { Hint } from '../hints'
 
 interface Props {
@@ -58,7 +58,7 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
             ×
           </button>
         </div>
-        <p className="mt-1 font-sans text-[13px] font-semibold leading-snug">{t(lang, `hint_${hint.key}`)}</p>
+        <p className="mt-1 font-sans text-[13px] font-semibold leading-snug">{t(lang, `hint_${hint.key}` as Key)}</p>
       </div>
     </>
   )

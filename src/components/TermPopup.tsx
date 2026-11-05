@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import type { Focus } from '../game/TrainScene'
+import type { PopupSide } from '../game/types'
 import { t, type Lang, type TermCard } from '../i18n'
 
 interface Props {
   card: TermCard
-  focus: Focus
+  side: PopupSide
   vars: Record<string, string | number>
   lang: Lang
   onClose: () => void
@@ -14,14 +14,13 @@ interface Props {
  * The card shown over the stage the first time a term comes up. It sits on
  * the side away from the highlighted area so the highlight stays visible.
  */
-export default function TermPopup({ card, focus, vars, lang, onClose }: Props) {
+export default function TermPopup({ card, side: where, vars, lang, onClose }: Props) {
   const button = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     button.current?.focus({ preventScroll: true })
   }, [card.id])
 
-  // Plot and markers are on the right of the stage; belt and status on the left.
-  const side = focus === 'plot' || focus === 'markers' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'
+  const side = where === 'left' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'
   const moment = card.moment[lang].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
 
   return (

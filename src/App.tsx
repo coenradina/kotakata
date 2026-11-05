@@ -4,29 +4,25 @@ import Stage, { type StageHandle } from './components/Stage'
 import HintBubble from './components/HintBubble'
 import QuizModal from './components/QuizModal'
 import TermPopup from './components/TermPopup'
-import type { Focus, Milestones } from './game/TrainScene'
-import { LEVEL1_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
-import { MAX_REPEATS, chooseHint, type Hint } from './hints'
-import { run } from './levels/train/model'
+import type { Milestones, PopupSide } from './game/types'
+import { LEVEL1_CARDS, LEVEL2_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
+import { MAX_REPEATS, type Hint } from './hints'
+import { LEVELS, UPCOMING, levelById, type LevelId } from './levels'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from './quiz/questions'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
-const LEVELS: { id: string; title: Record<Lang, string>; topic: string; ready: boolean }[] = [
-  { id: 'train', title: { id: 'Latih Robot', en: 'Train the Robot' }, topic: 'Classification', ready: true },
-  { id: 'tree', title: { id: 'Taman Decision Tree', en: 'Decision Tree Garden' }, topic: 'Decision trees', ready: false },
-  { id: 'hill', title: { id: 'Bukit Loss', en: 'Hill of Loss' }, topic: 'Gradient descent', ready: false },
-  { id: 'tavern', title: { id: 'Kedai Token', en: 'Token Tavern' }, topic: 'LLMs', ready: false },
-]
-
 const PROGRESS_KEY = 'kotakata.cards'
-const ALL_CARDS = LEVEL1_CARDS.map((c) => c.id)
+const LEVEL_KEY = 'kotakata.level'
+const PASSED_KEY = 'kotakata.passed'
+const EVERY_CARD = [...LEVEL1_CARDS, ...LEVEL2_CARDS]
+const ALL_CARDS = EVERY_CARD.map((c) => c.id)
 
 /** Cards found so far. The old format stored 'level1' for "all of them". */
 function loadFound(): Set<CardId> {
   try {
     const raw = localStorage.getItem(PROGRESS_KEY)
-    if (raw === 'level1') return new Set(ALL_CARDS)
+    if (raw === 'level1') return new Set(LEVEL1_CARDS.map((c) => c.id))
     const ids = raw ? (JSON.parse(raw) as unknown) : []
     return new Set(Array.isArray(ids) ? ids.filter((id): id is CardId => ALL_CARDS.includes(id)) : [])
   } catch {
@@ -63,18 +59,33 @@ function saveJson(key: string, value: unknown) {
   }
 }
 
+/** Levels passed so far. Players from before levels existed passed Level 1 if they found its last card. */
+function loadPassed(found: Set<CardId>): Set<LevelId> {
+  const passed = new Set(loadJson<LevelId[]>(PASSED_KEY, []))
+  if (found.has('classification')) passed.add('train')
+  return passed
+}
+
 interface OpenCard {
   card: TermCard
-  focus: Focus
+  side: PopupSide
   vars: Record<string, string | number>
   close: () => void
 }
+
+const foundRef0 = () => loadFound()
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(initialLang)
   const [log, setLog] = useState<LogLine[]>([])
   const [running, setRunning] = useState(false)
   const [found, setFound] = useState(loadFound)
+  const [passed, setPassed] = useState(() => loadPassed(foundRef0()))
+  const [levelId, setLevelId] = useState<LevelId>(() => {
+    const saved = loadJson<LevelId | null>(LEVEL_KEY, null)
+    return saved && LEVELS.some((l) => l.id === saved) ? saved : 'train'
+  })
+  const level = levelById(levelId)
   const [fresh, setFresh] = useState<CardId | null>(null)
   const [openCard, setOpenCard] = useState<OpenCard | null>(null)
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
@@ -109,14 +120,14 @@ export default function App() {
   }
 
   /** Shows a card over the stage and resolves once the player closes it. */
-  const showCard = (id: CardId, focus: Focus, vars: Record<string, string | number> = {}) =>
+  const showCard = (id: CardId, side: PopupSide, vars: Record<string, string | number> = {}) =>
     new Promise<void>((resolve) => {
-      const card = LEVEL1_CARDS.find((c) => c.id === id)!
+      const card = EVERY_CARD.find((c) => c.id === id)!
       showedNewCard.current = true
       discover(id)
       setOpenCard({
         card,
-        focus,
+        side,
         vars,
         close: () => {
           setOpenCard(null)
@@ -176,38 +187,41 @@ export default function App() {
   const handleRun = async () => {
     const program = editor.current?.program() ?? null
     setHint(null)
-    if (!program || program.length === 0) {
-      setLog([{ text: t(lang, 'logEmpty'), tone: 'bad' }])
-      offerHint(chooseHint(program, null))
+    if (program === null || level.isEmpty(program)) {
+      setLog([{ text: t(lang, level.id === 'tree' ? 'logTreeEmpty' : 'logEmpty'), tone: 'bad' }])
+      offerHint(level.hint(program, null))
       return
     }
     setRunning(true)
     setLog([])
     const token = ++runToken.current
     showedNewCard.current = false
-    // A new seed each run, so the robot sees fresh fruit every time.
-    const result = run(program, seed.current++)
+    // A new seed each run, so every run looks a little different.
+    const result = level.run(program, seed.current++)
     await stage.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
     if (token !== runToken.current) return
-    const lastTest = [...result.events].reverse().find((e) => e.kind === 'test')
-    if (lastTest?.kind === 'test') {
-      lastRun.current = { correct: lastTest.results.filter((r) => r.correct).length, total: lastTest.results.length }
-    }
+    if (result.context) lastRun.current = result.context
 
     const acc = Math.round((result.accuracy ?? 0) * 100)
     if (result.passed) {
-      setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, 'winBody', { acc })}`, tone: 'good' }])
+      setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
       stage.current?.celebrate()
-      if (milestones.isNew('classification')) await showCard('classification', 'status')
-    } else if (result.accuracy !== null) {
-      const smallTest = !result.events.some((e) => e.kind === 'test' && e.results.length >= 10)
-      setLog((l) => [...l, { text: smallTest ? t(lang, 'tryAgainSmallTest') : t(lang, 'tryAgainLow', { acc }), tone: 'bad' }])
+      if (milestones.isNew(level.winCard)) await showCard(level.winCard, 'right')
+      if (!passed.has(level.id)) {
+        const next = new Set(passed).add(level.id)
+        setPassed(next)
+        saveJson(PASSED_KEY, [...next])
+        const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
+        if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
+      }
+    } else if (result.failKey) {
+      setLog((l) => [...l, { text: t(lang, result.failKey!, { acc }), tone: 'bad' }])
     }
     setRunning(false)
 
     // A failed run gets one pointer at what to change. A run with a hint
     // skips the quiz, so the player isn't handed two things at once.
-    const hinted = offerHint(chooseHint(program, result))
+    const hinted = offerHint(level.hint(program, result))
     // Now and then, a quick question about terms the player already knows.
     const quizNow = !hinted && shouldQuiz({
       foundCount: foundRef.current.size,
@@ -219,6 +233,27 @@ export default function App() {
     if (quizNow) window.setTimeout(openQuiz, 900)
   }
 
+  /** A level is open once the one before it is passed. */
+  const isUnlocked = (index: number) => index === 0 || passed.has(LEVELS[index - 1].id)
+
+  const switchLevel = (id: LevelId) => {
+    if (id === levelId) return
+    handleReset()
+    setHint(null)
+    setLevelId(id)
+    saveJson(LEVEL_KEY, id)
+  }
+
+  /** Redraws the live preview (if the level has one) from the current blocks. */
+  const refreshPreview = () => {
+    if (!level.previewData) return
+    stage.current?.preview(level.previewData(editor.current?.program() ?? null))
+  }
+  useEffect(() => {
+    refreshPreview()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelId, lang])
+
   const [confirmStartOver, setConfirmStartOver] = useState(false)
 
   /** Clears blocks, cards, stars and quiz history, so the level plays like the first time. */
@@ -226,7 +261,7 @@ export default function App() {
     handleReset()
     setQuiz(null)
     setConfirmStartOver(false)
-    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY]) {
+    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY, PASSED_KEY, LEVEL_KEY, ...LEVELS.map((l) => l.storageKey)]) {
       try {
         localStorage.removeItem(key)
       } catch {
@@ -241,8 +276,10 @@ export default function App() {
     lastRun.current = null
     quizzedLastRun.current = false
     hintStreak.current = { key: '', n: 0 }
-    // Loading the starter blocks also saves them over the old program.
-    editor.current?.resetToStarter()
+    setPassed(new Set())
+    // Back to Level 1. Loading the starter blocks also saves them over the old program.
+    if (levelId === 'train') editor.current?.resetToStarter()
+    else setLevelId('train')
   }
 
   const handleReset = () => {
@@ -316,16 +353,35 @@ export default function App() {
         <nav aria-label={t(lang, 'levels')} className="space-y-2">
           <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink/70">{t(lang, 'levels')}</h2>
           <ol className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-            {LEVELS.map((lv, i) => (
-              <li key={lv.id}>
-                <div
-                  aria-current={lv.ready ? 'page' : undefined}
-                  className={`rounded border-2 border-ink px-3 py-2 ${lv.ready ? 'pixel-shadow bg-tosca text-white' : 'bg-parchment text-ink/60'}`}
-                >
+            {LEVELS.map((lv, i) => {
+              const open = isUnlocked(i)
+              const current = lv.id === levelId
+              return (
+                <li key={lv.id}>
+                  <button
+                    onClick={() => open && switchLevel(lv.id)}
+                    disabled={!open || running}
+                    aria-current={current ? 'page' : undefined}
+                    title={open ? undefined : t(lang, 'levelLocked')}
+                    className={`w-full rounded border-2 border-ink px-3 py-2 text-left ${
+                      current ? 'pixel-shadow bg-tosca text-white' : open ? 'bg-white hover:bg-amber/30' : 'cursor-not-allowed bg-parchment text-ink/60'
+                    }`}
+                  >
+                    <div className="font-pixel text-lg leading-none">
+                      {i + 1}. {lv.title[lang]} {passed.has(lv.id) && '✓'}
+                    </div>
+                    <div className="mt-1 text-[10px] font-bold uppercase">{open ? lv.topic : `🔒 ${t(lang, 'levelLocked')}`}</div>
+                  </button>
+                </li>
+              )
+            })}
+            {UPCOMING.map((lv, i) => (
+              <li key={lv.topic}>
+                <div className="rounded border-2 border-ink bg-parchment px-3 py-2 text-ink/60">
                   <div className="font-pixel text-lg leading-none">
-                    {i + 1}. {lv.title[lang]}
+                    {LEVELS.length + i + 1}. {lv.title[lang]}
                   </div>
-                  <div className="mt-1 text-[10px] font-bold uppercase">{lv.ready ? lv.topic : `🔒 ${t(lang, 'comingSoon')}`}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase">🔒 {t(lang, 'comingSoon')}</div>
                 </div>
               </li>
             ))}
@@ -335,12 +391,20 @@ export default function App() {
         {/* Block editor */}
         <section className="pixel-shadow flex min-h-[420px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
           <div className="flex items-center justify-between border-b-2 border-ink bg-ink px-3 py-2 text-xs font-bold text-cream">
-            <span>▸ {t(lang, 'l1Title')}.blocks</span>
-            <span className="text-amber">{t(lang, 'l1Short')}</span>
+            <span>▸ {t(lang, level.fileKey)}.blocks</span>
+            <span className="text-amber">{level.topic}</span>
           </div>
           <div className="relative min-h-[380px] flex-1">
             <div className="absolute inset-0">
-              <BlockEditor lang={lang} ref={editor} onEdit={() => setHint(null)} />
+              <BlockEditor
+                lang={lang}
+                level={level}
+                ref={editor}
+                onEdit={() => {
+                  setHint(null)
+                  refreshPreview()
+                }}
+              />
             </div>
           </div>
         </section>
@@ -348,9 +412,9 @@ export default function App() {
         {/* Stage, mission and log */}
         <section className="flex min-w-0 flex-col gap-4">
           <div className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
-            <Stage lang={lang} ref={stage}>
+            <Stage key={level.id} lang={lang} level={level} ref={stage}>
               {openCard && (
-                <TermPopup card={openCard.card} focus={openCard.focus} vars={openCard.vars} lang={lang} onClose={openCard.close} />
+                <TermPopup card={openCard.card} side={openCard.side} vars={openCard.vars} lang={lang} onClose={openCard.close} />
               )}
             </Stage>
           </div>
@@ -384,7 +448,7 @@ export default function App() {
           <div className="grid gap-4 xl:grid-cols-2">
             <div className="rounded-lg border-2 border-ink bg-amber/30 p-4">
               <h2 className="text-[11px] font-bold uppercase tracking-wider">{t(lang, 'goal')}</h2>
-              <p className="mt-1.5 font-sans text-sm leading-relaxed">{t(lang, 'l1Mission')}</p>
+              <p className="mt-1.5 font-sans text-sm leading-relaxed">{t(lang, level.missionKey)}</p>
             </div>
             <div className="rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
               <h2 className="text-[11px] font-bold uppercase tracking-wider text-amber">{t(lang, 'log')}</h2>
@@ -419,12 +483,15 @@ export default function App() {
       <section className="border-t-2 border-ink bg-parchment px-4 py-6 sm:px-6" aria-labelledby="cards-title">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="cards-title" className="font-display text-lg font-bold">
-            {t(lang, 'cards')} <span className="font-pixel text-xl text-maroon">{found.size}/{LEVEL1_CARDS.length}</span>
+            {t(lang, 'cards')} · {level.title[lang]}{' '}
+            <span className="font-pixel text-xl text-maroon">
+              {level.cards.filter((c) => found.has(c.id)).length}/{level.cards.length}
+            </span>
           </h2>
-          {found.size < LEVEL1_CARDS.length && <p className="text-xs font-semibold text-ink/70">{t(lang, 'unlockHint')}</p>}
+          {level.cards.some((c) => !found.has(c.id)) && <p className="text-xs font-semibold text-ink/70">{t(lang, 'unlockHint')}</p>}
         </div>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {LEVEL1_CARDS.map((card) =>
+          {level.cards.map((card) =>
             found.has(card.id) ? (
               <li
                 key={card.term}
