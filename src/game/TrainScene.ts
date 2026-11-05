@@ -3,13 +3,14 @@ import { registerPixelTextures } from './pixels'
 import { predict, type Centroids, type Event, type Label, type Point } from '../levels/train/model'
 import { t, type CardId, type Lang } from '../i18n'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
+import { FONTS, css, hex } from '../theme'
 
 const WIDTH = STAGE_WIDTH
 const HEIGHT = STAGE_HEIGHT
 const PX = 3 // every sprite pixel becomes a 3x3 block
-const INK = 0x0f172a
-const LABEL_COLOUR: Record<Label, number> = { apple: 0xdc2626, banana: 0xeab308 }
-const FONT = { fontFamily: 'VT323, monospace', color: '#0F172A' }
+const INK = hex('ink')
+const LABEL_COLOUR: Record<Label, number> = { apple: hex('apple'), banana: hex('banana') }
+const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
 
 // "Robot brain": a 2D plot of the two features the robot looks at.
 const PLOT = { x: 412, y: 64, size: 208 }
@@ -49,7 +50,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
 
   create() {
     registerPixelTextures(this)
-    this.cameras.main.setBackgroundColor('#FDF6E3')
+    this.cameras.main.setBackgroundColor(css('cream'))
     this.drawBackdrop()
 
     // Width and height are in texture pixels; setScale makes it 300px wide.
@@ -74,8 +75,8 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
     this.dots = this.add.container(0, 0)
     this.bubble = this.add.container(ROBOT.x + 40, ROBOT.y - 70).setVisible(false)
     const bubbleBg = this.add.graphics()
-    bubbleBg.fillStyle(0xffffff).fillRect(-26, -22, 52, 44).lineStyle(3, INK).strokeRect(-26, -22, 52, 44)
-    bubbleBg.fillStyle(0xffffff).fillTriangle(-14, 22, -4, 22, -16, 34).lineStyle(3, INK).lineBetween(-14, 22, -16, 34)
+    bubbleBg.fillStyle(hex('white')).fillRect(-26, -22, 52, 44).lineStyle(3, INK).strokeRect(-26, -22, 52, 44)
+    bubbleBg.fillStyle(hex('white')).fillTriangle(-14, 22, -4, 22, -16, 34).lineStyle(3, INK).lineBetween(-14, 22, -16, 34)
     this.bubble.add(bubbleBg)
 
     this.status = this.add.text(20, 16, '', { ...FONT, fontSize: '26px' })
@@ -98,14 +99,14 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
     for (let x = 0; x <= WIDTH; x += 24) g.lineBetween(x, 0, x, HEIGHT)
     for (let y = 0; y <= HEIGHT; y += 24) g.lineBetween(0, y, WIDTH, y)
     // Floor
-    g.fillStyle(0xeee8d5).fillRect(0, BELT_Y + 18, 410, HEIGHT - BELT_Y)
+    g.fillStyle(hex('parchment')).fillRect(0, BELT_Y + 18, 410, HEIGHT - BELT_Y)
     g.lineStyle(3, INK).lineBetween(0, BELT_Y + 18, 410, BELT_Y + 18)
   }
 
   private drawPlotFrame() {
     const g = this.add.graphics()
     g.fillStyle(INK).fillRect(PLOT.x + 6, PLOT.y + 6, PLOT.size, PLOT.size)
-    g.fillStyle(0xffffff).fillRect(PLOT.x, PLOT.y, PLOT.size, PLOT.size)
+    g.fillStyle(hex('white')).fillRect(PLOT.x, PLOT.y, PLOT.size, PLOT.size)
     g.lineStyle(3, INK).strokeRect(PLOT.x, PLOT.y, PLOT.size, PLOT.size)
     g.setDepth(-1)
     this.regions.setDepth(0)
@@ -212,7 +213,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
           ? { x: 4, y: ROBOT.y - 50, w: 300, h: BELT_Y - ROBOT.y + 80 }
           : { x: this.status.x - pad, y: this.status.y - pad, w: this.status.width + pad * 2, h: this.status.height + pad * 2 }
     const g = this.add.graphics().setDepth(20)
-    g.lineStyle(4, 0xe5a93c)
+    g.lineStyle(4, hex('amber'))
     const dash = 12
     const edge = (x1: number, y1: number, x2: number, y2: number) => {
       const len = Math.hypot(x2 - x1, y2 - y1)
@@ -312,7 +313,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
       if (id !== this.runId) return
       this.status.setText(`TRAINING ${r}/${history.length - 1}`)
       log(t(this.lang, 'logTrain', { r, total: history.length - 1 }))
-      this.robot.setTint(0xfde68a)
+      this.robot.setTint(hex('amber-tint'))
       const moves = (Object.keys(history[r]) as Label[]).map((l) => {
         const p = this.toScreen(history[r][l]!)
         return this.tween({ targets: this.marker(l), x: p.x, y: p.y, duration: 520, ease: 'Cubic.inOut' })
@@ -354,9 +355,9 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
       }
       if (r.correct) {
         correct++
-        this.sparkle(fruit.x, BIN_Y, 0x22c55e)
+        this.sparkle(fruit.x, BIN_Y, hex('spark'))
       } else {
-        this.sparkle(fruit.x, BIN_Y, 0xef4444)
+        this.sparkle(fruit.x, BIN_Y, hex('apple'))
         this.cameras.main.shake(120, 0.003)
       }
       fruit.destroy()
@@ -376,7 +377,7 @@ export class TrainScene extends Phaser.Scene implements LevelScene {
 
   celebrate() {
     for (let i = 0; i < 6; i++) {
-      this.time.delayedCall(i * 140, () => this.sparkle(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 240), Phaser.Math.RND.pick([0x0d9488, 0xe5a93c, 0x881337])))
+      this.time.delayedCall(i * 140, () => this.sparkle(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 240), Phaser.Math.RND.pick([hex('tosca'), hex('amber'), hex('maroon')])))
     }
     this.tweens.add({ targets: this.robot, angle: { from: -8, to: 8 }, duration: 120, yoyo: true, repeat: 5 })
   }

@@ -85,7 +85,7 @@ const dict = {
     en: 'Add a test at the bottom to see how smart the robot is.',
   },
   hint_addTrain: {
-    id: 'Robot belum di-training. Seret blok ini ke atas blok testing.',
+    id: 'Robot belum di-training. Seret blok ini ke atas testing.',
     en: "The robot hasn't been trained. Drag this block above the test block.",
   },
   hint_addBanana: { id: 'Robot belum pernah lihat pisang. Tambahkan contoh pisang.', en: "The robot has never seen a banana. Add some banana examples." },
@@ -123,7 +123,7 @@ const dict = {
     en: 'See which critters end up in the wrong pen, then change a question or a pen.',
   },
   hint_addTrainAfterData: {
-    id: 'Robot belum di-training. Seret blok ini ke bawah blok kumpulkan.',
+    id: 'Robot belum di-training. Seret blok ini ke bawah kumpulkan.',
     en: "The robot hasn't been trained. Drag this block below the collect blocks.",
   },
   hint_testTwenty: { id: 'Untuk bonus ini, uji dengan minimal 20 buah.', en: 'For this bonus, test on at least 20 fruits.' },
@@ -213,7 +213,7 @@ const dict = {
   s1TrainTitle: { id: 'Latih robotnya', en: 'Train the robot' },
   s1TrainMission: {
     id: 'Datanya sudah ada. Tambahkan blok training di bawah blok kumpulkan, lalu lihat dua penanda muncul dan bergerak di Otak Robot.',
-    en: 'You have data. Add a train block below the collect blocks, then watch two markers appear and move in the Robot Brain.',
+    en: 'You have data. Add a train block below the collect blocks, then watch two markers appear and move in Robot Brain.',
   },
   s1TestTitle: { id: 'Uji dan capai 90%', en: 'Test it, reach 90%' },
   s1TestMission: {
@@ -361,7 +361,7 @@ const dict = {
   aHotTitle: { id: 'Kepanasan', en: 'Too hot' },
   aHotDesc: { id: 'Mencoba temperature 2. Ceritanya jadi liar!', en: 'Tried temperature 2. Things got wild!' },
   aMemoryTitle: { id: 'Ingatan panjang', en: 'Long memory' },
-  aMemoryDesc: { id: 'Menyelesaikan kalimat dengan context 2 kata.', en: 'Finished a sentence with a 2-word context.' },
+  aMemoryDesc: { id: 'Menyelesaikan kalimat dengan context 2 kata.', en: 'Finished a sentence with 2-word context.' },
   aBardTitle: { id: 'Penyair sejati', en: 'True bard' },
   aBardDesc: { id: 'Cerita kreatif yang tetap utuh.', en: 'A creative story that still holds together.' },
   winBodyTavern: { id: 'Penyair bisa bercerita dengan rapi dan juga penuh kejutan.', en: 'The bard can tell a tidy story, and a surprising one too.' },
@@ -610,7 +610,7 @@ export const LEVEL1_CARDS: TermCard[] = [
       en: "Checking the AI on new examples it hasn't seen before.",
     },
     moment: {
-      id: 'Buah-buah ini baru, belum pernah dilihat robot. Kalau robot cuma menghafal contoh, ia akan gagal di sini. Testing adalah cara jujur untuk tahu apakah ia benar-benar belajar.',
+      id: 'Buah-buah ini baru, belum pernah dilihat robot. Kalau robot cuma menghafal contoh, ia akan gagal di sini. Testing adalah cara jujur untuk tahu apakah benar-benar belajar.',
       en: "These fruits are new: the robot has never seen them. A robot that only memorised its examples would fail here. Testing is the honest way to find out whether it really learned.",
     },
   },
@@ -704,7 +704,7 @@ export const LEVEL2_CARDS: TermCard[] = [
       en: 'A model that decides through a series of yes/no questions, like a flowchart.',
     },
     moment: {
-      id: 'Split dan leaf yang kamu susun bersama-sama membentuk decision tree. Enaknya, kamu bisa membaca persis kenapa tiap hewan masuk ke kandangnya. Tidak semua model AI semudah ini dibaca.',
+      id: 'Split dan leaf yang kamu susun bersama-sama membentuk decision tree. Enaknya, bisa membaca persis kenapa tiap hewan masuk ke kandangnya. Tidak semua model AI semudah ini dibaca.',
       en: "Together, your splits and leaves make a decision tree. The nice part: you can read exactly why each critter went where it did. Not every AI model is this easy to read.",
     },
   },

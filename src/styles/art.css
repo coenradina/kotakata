@@ -1,0 +1,23 @@
+/* Illustration colours for Kotakata's pixel art and game scenes. These are
+   not UI colours: interface code uses tokens.css only. Canvas code reads
+   both files through src/theme.ts. */
+:root {
+  --art-apple: #dc2626;
+  --art-apple-dark: #991b1b;
+  --art-banana: #facc15;
+  --art-banana-dark: #ca8a04;
+  --art-leaf: #16a34a;
+  --art-leaf-dark: #15803d;
+  --art-wood: #92400e;
+  --art-wood-dark: #78350f;
+  --art-grass: #d9f99d;
+  --art-path: #d6b98c;
+  --art-plank: #d6c7a1;
+  --art-stone: #94a3b8;
+  --art-tosca-deep: #115e59;
+  --art-spark: #22c55e;
+  /* Blockly field colours, one step lighter than the category colour */
+  --art-block-events-2: #d4a72c;
+  --art-block-data-2: #14b8a6;
+  --art-block-model-2: #9f1239;
+}

@@ -50,6 +50,10 @@ Blocks are always read as data (each level's `read` function) and never turned i
 - [Phaser 4](https://github.com/phaserjs/phaser) (MIT) for the pixel stage. All sprites are drawn from text grids in `src/game/pixels.ts`, so there are no image assets.
 - React 19, Vite 8, Tailwind CSS v4, TypeScript.
 
+## Design system
+
+Kotakata uses the same tokens as aastr.id: `src/styles/tokens.css` for colour, type, shadows and layers, plus `src/styles/art.css` for illustration colours. Phaser scenes and the Blockly theme read both files through `src/theme.ts`. `DESIGN.md` has the rules, and `pnpm build` runs `scripts/check-design.mjs` first, which fails on anything outside them.
+
 ## Development
 
 ```bash

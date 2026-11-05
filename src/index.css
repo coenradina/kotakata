@@ -1,18 +1,7 @@
 @import 'tailwindcss';
 
-/* Same palette and type as aastr.id */
-@theme {
-  --color-cream: #FDF6E3;
-  --color-parchment: #EEE8D5;
-  --color-ink: #0F172A;
-  --color-tosca: #0D9488;
-  --color-maroon: #881337;
-  --color-amber: #E5A93C;
-  --color-gold: #B58900;
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-pixel: 'VT323', monospace;
-}
+@import './styles/tokens.css';
+@import './styles/art.css';
 
 html, body, #root { height: 100%; }
 body {
@@ -21,15 +10,15 @@ body {
   color: var(--color-ink);
   font-family: var(--font-mono);
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+    linear-gradient(var(--fx-grid-ink) 1px, transparent 1px),
+    linear-gradient(90deg, var(--fx-grid-ink) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-.pixel-shadow { box-shadow: 4px 4px 0 var(--color-ink); }
-.pixel-btn { transition: transform .1s, box-shadow .1s; box-shadow: 3px 3px 0 var(--color-ink); }
-.pixel-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-ink); }
-.pixel-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-ink); }
+.pixel-shadow { box-shadow: var(--shadow-pixel); }
+.pixel-btn { transition: transform .1s, box-shadow .1s; box-shadow: var(--shadow-pixel-sm); }
+.pixel-btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--shadow-pixel); }
+.pixel-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
 .pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
 /* Quiz options stay readable after answering: the colours carry the result. */
 .pixel-btn:disabled[data-revealed] { opacity: 1; cursor: default; }
@@ -46,11 +35,11 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 /* Blockly: match the portfolio's look */
 .blocklyToolboxDiv, .blocklyToolbox { background: var(--color-parchment) !important; border-right: 2px solid var(--color-ink); }
 .blocklyTreeLabel, .blocklyToolboxCategoryLabel { font-family: var(--font-mono) !important; font-weight: 700; }
-.blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 600 !important; }
+.blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 700 !important; }
 .blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: 1 !important; }
 .blocklyFlyout { border-right: 2px solid var(--color-ink); }
 /* Section headings in the "All" panel, coloured like their category */
-.kk-section .blocklyFlyoutLabelText { font-family: var(--font-mono) !important; font-weight: 700; font-size: 11px; letter-spacing: .08em; }
+.kk-section .blocklyFlyoutLabelText { font-family: var(--font-mono) !important; font-weight: 700; font-size: 0.6875rem; letter-spacing: 0.05em; }
 .kk-section-events .blocklyFlyoutLabelText { fill: var(--color-gold) !important; }
 .kk-section-data .blocklyFlyoutLabelText { fill: var(--color-tosca) !important; }
 .kk-section-model .blocklyFlyoutLabelText { fill: var(--color-maroon) !important; }

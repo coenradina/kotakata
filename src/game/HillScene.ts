@@ -3,11 +3,12 @@ import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { num, t, type CardId, type Lang } from '../i18n'
 import { EDGE, GOAL, HILLS, START_X, loss, overshot, type HillId, type HillResult, type Move } from '../levels/hill/model'
+import { FONTS, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
-const INK = 0x0f172a
-const FONT = { fontFamily: 'VT323, monospace', color: '#0F172A' }
+const INK = hex('ink')
+const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
 // Both hills share one height scale, so the steep one really looks steeper.
 const MAX_LOSS = 2.5 * EDGE * EDGE
 const GROUND_TOP = 108
@@ -66,7 +67,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
 
   create() {
     registerPixelTextures(this)
-    this.cameras.main.setBackgroundColor('#FDF6E3')
+    this.cameras.main.setBackgroundColor(css('cream'))
     const grid = this.add.graphics()
     grid.lineStyle(1, INK, 0.05)
     for (let x = 0; x <= W; x += 24) grid.lineBetween(x, 0, x, H)
@@ -76,7 +77,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.flag = this.add.container(toPx(0), 0)
     const pole = this.add.graphics()
     pole.fillStyle(INK).fillRect(-2, -46, 4, 46)
-    pole.fillStyle(0x881337).fillTriangle(2, -46, 2, -28, 26, -37)
+    pole.fillStyle(hex('maroon')).fillTriangle(2, -46, 2, -28, 26, -37)
     pole.lineStyle(2, INK).strokeTriangle(2, -46, 2, -28, 26, -37)
     this.flag.add(pole)
 
@@ -89,7 +90,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.energyText = this.add.text(W - 16, 12, '', { ...FONT, fontSize: '20px' }).setOrigin(1, 0).setDepth(12)
     this.energy = this.add.graphics().setDepth(12)
     this.chart = this.add.graphics().setDepth(12)
-    this.goalText = this.add.text(16, 56, '', { ...FONT, fontSize: '18px', color: '#0D9488' }).setDepth(12)
+    this.goalText = this.add.text(16, 56, '', { ...FONT, fontSize: '18px', color: css('tosca') }).setDepth(12)
 
     this.drawHill()
     this.placeRobot(START_X)
@@ -125,7 +126,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
       const x = -EDGE + (2 * EDGE * i) / 64
       pts.push(new Phaser.Math.Vector2(toPx(x), this.groundY(x)))
     }
-    g.fillStyle(0xd9f99d, 0.8)
+    g.fillStyle(hex('grass'), 0.8)
     g.beginPath()
     g.moveTo(X_LEFT, H)
     pts.forEach((p) => g.lineTo(p.x, p.y))
@@ -135,7 +136,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     g.lineStyle(5, INK)
     g.strokePoints(pts)
     // The goal zone in the valley
-    g.fillStyle(0x0d9488, 0.25).fillRect(toPx(-GOAL), lossToY(0) - 4, toPx(GOAL) - toPx(-GOAL), 8)
+    g.fillStyle(hex('tosca'), 0.25).fillRect(toPx(-GOAL), lossToY(0) - 4, toPx(GOAL) - toPx(-GOAL), 8)
     this.flag.setPosition(toPx(0), this.groundY(0))
   }
 
@@ -149,8 +150,8 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.lossBar.clear()
     const w = 150
     const frac = Math.min(1, l / MAX_LOSS)
-    this.lossBar.fillStyle(0xffffff).fillRect(16, 42, w, 10)
-    this.lossBar.fillStyle(0x881337).fillRect(16, 42, w * frac, 10)
+    this.lossBar.fillStyle(hex('white')).fillRect(16, 42, w, 10)
+    this.lossBar.fillStyle(hex('maroon')).fillRect(16, 42, w * frac, 10)
     this.lossBar.lineStyle(2, INK).strokeRect(16, 42, w, 10)
   }
 
@@ -162,7 +163,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     const filled = Math.ceil(left / per)
     for (let i = 0; i < cells; i++) {
       const x = W - 16 - (cells - i) * 10
-      this.energy.fillStyle(i < filled ? 0xe5a93c : 0xffffff).fillRect(x, 38, 8, 12)
+      this.energy.fillStyle(i < filled ? hex('amber') : hex('white')).fillRect(x, 38, 8, 12)
       this.energy.lineStyle(1, INK).strokeRect(x, 38, 8, 12)
     }
   }
@@ -175,10 +176,10 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     const y0 = 60
     const cw = 150
     const ch = 40
-    g.fillStyle(0xffffff, 0.9).fillRect(x0, y0, cw, ch)
+    g.fillStyle(hex('white'), 0.9).fillRect(x0, y0, cw, ch)
     g.lineStyle(2, INK).strokeRect(x0, y0, cw, ch)
     const max = Math.max(...history, 0.01)
-    g.lineStyle(2, 0x881337)
+    g.lineStyle(2, hex('maroon'))
     g.beginPath()
     history.forEach((l, i) => {
       const x = x0 + 4 + (i / (history.length - 1)) * (cw - 8)
@@ -206,7 +207,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     this.focusBox = undefined
     if (!rect) return
     const g = this.add.graphics().setDepth(20)
-    g.lineStyle(4, 0xe5a93c).strokeRect(rect.x, rect.y, rect.w, rect.h)
+    g.lineStyle(4, hex('amber')).strokeRect(rect.x, rect.y, rect.w, rect.h)
     this.tweens.add({ targets: g, alpha: 0.25, duration: 450, yoyo: true, repeat: -1 })
     this.focusBox = g
   }
@@ -235,9 +236,9 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     const x2 = x1 + Math.cos(angle) * len
     const y2 = y1 + Math.sin(angle) * len
     g.lineStyle(10, INK).lineBetween(x1, y1, x2, y2)
-    g.lineStyle(6, 0xe5a93c).lineBetween(x1, y1, x2, y2)
+    g.lineStyle(6, hex('amber')).lineBetween(x1, y1, x2, y2)
     const head = 16
-    g.fillStyle(0xe5a93c)
+    g.fillStyle(hex('amber'))
     g.fillTriangle(
       x2 + Math.cos(angle) * 4,
       y2 + Math.sin(angle) * 4,
@@ -320,7 +321,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
         log(t(this.lang, 'warnFlewOff'), 'bad')
         // Mark where it left the hill, and show the energy it used
         const edgeX = Math.max(X_LEFT + 30, Math.min(X_RIGHT - 30, toX))
-        const mark = this.add.text(edgeX, GROUND_TOP - 20, `💥 ${t(this.lang, 'hudFlewOff')}`, { ...FONT, fontSize: '20px', color: '#881337' }).setOrigin(0.5)
+        const mark = this.add.text(edgeX, GROUND_TOP - 20, `💥 ${t(this.lang, 'hudFlewOff')}`, { ...FONT, fontSize: '20px', color: css('maroon') }).setOrigin(0.5)
         this.fx.add(mark)
         this.showEnergy(this.budget - (i + 1))
         break
@@ -353,7 +354,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
     if (!arrived) log(t(this.lang, 'logHillGoal', { goal: this.fmt(this.goalLoss()) }))
   }
 
-  private sparkleAt(x: number, y: number, tint = 0x22c55e) {
+  private sparkleAt(x: number, y: number, tint = hex('spark')) {
     const p = this.add.particles(x, y, 'spark', { speed: { min: 50, max: 150 }, lifespan: 500, scale: { start: 3, end: 0 }, tint, emitting: false })
     p.setDepth(11)
     p.explode(12)
@@ -363,7 +364,7 @@ export class HillScene extends Phaser.Scene implements LevelScene {
   celebrate() {
     for (let i = 0; i < 6; i++) {
       this.time.delayedCall(i * 140, () =>
-        this.sparkleAt(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 260), Phaser.Math.RND.pick([0x0d9488, 0xe5a93c, 0x881337])),
+        this.sparkleAt(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 260), Phaser.Math.RND.pick([hex('tosca'), hex('amber'), hex('maroon')])),
       )
     }
     this.tweens.add({ targets: this.robot, angle: { from: -10, to: 10 }, duration: 120, yoyo: true, repeat: 5 })

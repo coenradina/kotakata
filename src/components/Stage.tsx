@@ -3,6 +3,7 @@ import * as Phaser from 'phaser'
 import { STAGE_HEIGHT as HEIGHT, STAGE_WIDTH as WIDTH, type LevelScene, type LogFn, type Milestones } from '../game/types'
 import type { Lang } from '../i18n'
 import type { Level } from '../levels'
+import { css } from '../theme'
 
 export interface StageHandle {
   play: (events: unknown[], log: LogFn, milestones?: Milestones) => Promise<void>
@@ -46,7 +47,7 @@ export default function Stage({ lang, level, ref, children }: { lang: Lang; leve
         width: WIDTH,
         height: HEIGHT,
         pixelArt: true,
-        backgroundColor: '#FDF6E3',
+        backgroundColor: css('cream'),
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         banner: false,
         audio: { noAudio: true },

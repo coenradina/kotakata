@@ -33,36 +33,36 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
   const cards = allDone ? LEVELS.flatMap((l) => l.cards) : level.cards
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="card-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border-2 border-ink bg-cream shadow-[6px_6px_0_#0F172A]">
-        <div className="bg-ink px-5 py-3">
-          <h2 id="done-title" className="font-pixel text-3xl leading-none text-amber">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="card-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border-2 border-ink bg-cream shadow-pixel-lg">
+        <div className="bg-ink px-6 py-3">
+          <h2 id="done-title" className="type-pixel-lg text-amber">
             {allDone ? t(lang, 'finTitle') : `🎉 ${t(lang, 'lcTitle', { n: index + 1 })}`}
           </h2>
-          <p className="mt-1 text-xs font-semibold text-cream/80">{allDone ? t(lang, 'finBody') : level.title[lang]}</p>
+          <p className="mt-1 type-label text-cream/80">{allDone ? t(lang, 'finBody') : level.title[lang]}</p>
         </div>
-        <div className="space-y-4 p-5">
+        <div className="space-y-4 p-6">
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-wider">{t(lang, 'lcCards')}</h3>
+            <h3 className="type-eyebrow">{t(lang, 'lcCards')}</h3>
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
               {cards.map((c) => (
                 <li key={c.id} className={`rounded border-2 border-ink bg-white px-3 py-2 ${found.has(c.id) ? '' : 'opacity-40'}`}>
-                  <div className="font-pixel text-lg leading-none text-tosca">
+                  <div className="type-pixel-sm text-tosca">
                     {c.icon} {c.term}
                   </div>
-                  <p className="mt-1 font-sans text-xs leading-snug text-ink/80">{c.body[lang]}</p>
+                  <p className="mt-1 type-caption text-ink/80">{c.body[lang]}</p>
                 </li>
               ))}
             </ul>
           </div>
           {!allDone && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[11px] font-bold uppercase tracking-wider">{t(lang, 'badges')}</span>
+              <span className="mr-1 type-eyebrow">{t(lang, 'badges')}</span>
               {level.achievements.map((a) => (
                 <span
                   key={a.id}
                   title={t(lang, a.titleKey)}
-                  className={`flex h-8 w-8 items-center justify-center rounded border-2 text-lg ${badges.has(`${level.id}:${a.id}`) ? 'border-ink bg-white' : 'border-ink/20 opacity-40 grayscale'}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded border-2 text-icon-sm ${badges.has(`${level.id}:${a.id}`) ? 'border-ink bg-white' : 'border-ink/20 opacity-40 grayscale'}`}
                 >
                   {a.icon}
                 </span>
@@ -71,16 +71,16 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
           )}
           <div className="flex flex-wrap justify-end gap-2 pt-1">
             {hasBonus && !allDone && (
-              <button onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 text-xs font-bold">
+              <button onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 type-label">
                 {t(lang, 'lcBonus')}
               </button>
             )}
             {next && !allDone ? (
-              <button ref={primary} onClick={() => onNext(next.id)} className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 text-xs font-bold text-white">
+              <button ref={primary} onClick={() => onNext(next.id)} className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 type-label text-white">
                 {t(lang, 'lcNext')}
               </button>
             ) : (
-              <button ref={primary} onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 text-xs font-bold text-white">
+              <button ref={primary} onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 type-label text-white">
                 {t(lang, 'close')}
               </button>
             )}

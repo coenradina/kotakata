@@ -4,6 +4,7 @@ import { theme } from '../blocks/common'
 import { defineAllBlocks, type Level } from '../levels'
 import type { Lang } from '../i18n'
 import type { HintTarget } from '../hints'
+import { alpha } from '../theme'
 
 export interface BlockEditorHandle {
   /** The current level's program, read as data. Null when there's no start block. */
@@ -176,7 +177,7 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
       // Self-hosted, so the CSP doesn't need to allow static.blockly.com.
       media: `${import.meta.env.BASE_URL}blockly-media/`,
       trashcan: true,
-      grid: { spacing: 24, length: 2, colour: 'rgba(15,23,42,0.08)', snap: true },
+      grid: { spacing: 24, length: 2, colour: alpha('ink', 0.08), snap: true },
       zoom: { controls: true, wheel: true, startScale: blockScale(), maxScale: 1.6, minScale: 0.5 },
       move: { scrollbars: true, drag: true, wheel: false },
       plugins: { flyoutsVerticalToolbox: 'kkCompactFlyout' },

@@ -66,26 +66,26 @@ export default function QuizModal({ question, lang, maxed, onAnswer, explain, on
   const termNames = question.terms.map((id) => TERM_NAME[id]).join(', ')
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={dialog}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quiz-title"
-        className="card-in w-full max-w-lg overflow-hidden rounded-lg border-2 border-ink bg-cream shadow-[6px_6px_0_#0F172A]"
+        className="card-in w-full max-w-lg overflow-hidden rounded-lg border-2 border-ink bg-cream shadow-pixel-lg"
       >
         <div className="flex items-center justify-between bg-ink px-4 py-2">
-          <span id="quiz-title" className="font-pixel text-2xl leading-none text-amber">
+          <span id="quiz-title" className="type-pixel text-amber">
             ? {t(lang, 'quizTitle')}
           </span>
           {result === null && (
-            <button onClick={onClose} className="text-xs font-bold text-cream/80 underline hover:text-cream">
+            <button onClick={onClose} className="type-label text-cream/80 underline hover:text-cream">
               {t(lang, 'quizSkip')}
             </button>
           )}
         </div>
 
-        <div className="space-y-4 p-4 sm:p-5">
+        <div className="space-y-4 p-4 sm:p-6">
           {question.kind === 'choice' ? (
             <Choice question={question} lang={lang} result={result} onAnswer={answer} />
           ) : (
@@ -95,19 +95,19 @@ export default function QuizModal({ question, lang, maxed, onAnswer, explain, on
           {result !== null && (
             <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/10 pt-3" aria-live="polite">
               <div className="min-w-0 flex-1 space-y-1">
-                <p className={`font-sans text-sm font-semibold ${result ? 'text-tosca' : 'text-maroon'}`}>
+                <p className={`type-body font-bold ${result ? 'text-tosca' : 'text-maroon'}`}>
                   {result
                     ? t(lang, allMaxed ? 'quizMaxed' : 'quizCorrect', { terms: termNames })
                     : t(lang, 'quizWrong', { answer: correctAnswer(question, lang) })}
                 </p>
                 {!result && explain && (
-                  <p className="font-sans text-xs leading-snug text-ink/80">
+                  <p className="type-caption text-ink/80">
                     <span className="font-mono font-bold">{termNames}: </span>
                     {explain}
                   </p>
                 )}
               </div>
-              <button data-autofocus autoFocus onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 text-xs font-bold text-white">
+              <button data-autofocus autoFocus onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 type-label text-white">
                 {t(lang, 'quizNext')}
               </button>
             </div>
@@ -127,7 +127,7 @@ function Choice({ question, lang, result, onAnswer }: { question: ChoiceQuestion
   const [picked, setPicked] = useState<number | null>(null)
   return (
     <>
-      <p className="font-sans text-base font-semibold leading-snug">{question.prompt[lang]}</p>
+      <p className="type-subheading">{question.prompt[lang]}</p>
       <ul className="space-y-2">
         {question.options.map((o, i) => {
           const reveal = result !== null
@@ -148,10 +148,10 @@ function Choice({ question, lang, result, onAnswer }: { question: ChoiceQuestion
                   setPicked(i)
                   onAnswer(o.correct)
                 }}
-                className={`pixel-btn flex w-full items-start gap-3 rounded border-2 border-ink px-3 py-2.5 text-left font-sans text-sm ${tone}`}
+                className={`pixel-btn flex w-full items-start gap-3 rounded border-2 border-ink px-3 py-3 text-left type-body ${tone}`}
               >
-                <span className="font-pixel text-xl leading-none">{String.fromCharCode(65 + i)}</span>
-                <span className="leading-snug">{o.text[lang]}</span>
+                <span className="type-pixel-sm">{String.fromCharCode(65 + i)}</span>
+                <span>{o.text[lang]}</span>
               </button>
             </li>
           )
@@ -190,8 +190,8 @@ function Blank({ question, lang, result, onAnswer }: { question: BlankQuestion; 
 
   return (
     <>
-      <p className="font-sans text-xs text-ink/70">{t(lang, 'quizBlankHint')}</p>
-      <p className="font-sans text-base font-semibold leading-[2.6]">
+      <p className="type-caption text-ink/70">{t(lang, 'quizBlankHint')}</p>
+      <p className="type-subheading">
         {parts.map((part, i) => {
           const m = part.match(/^\{(\d)\}$/)
           if (!m) return <span key={i}>{part}</span>
@@ -206,9 +206,9 @@ function Blank({ question, lang, result, onAnswer }: { question: BlankQuestion; 
               onClick={() => (selected ? place(slot, selected) : clear(slot))}
               onDragOver={(e) => e.preventDefault()}
               onDrop={onDrop(slot)}
-              className={`mx-1 inline-flex min-w-[96px] items-center justify-center rounded-full border-2 px-3 align-middle font-mono text-xs font-bold leading-7 ${
+              className={`mx-1 my-1 inline-flex h-7 min-w-[96px] items-center justify-center rounded-full border-2 px-3 align-middle type-label ${
                 chip ? `${CHIP_COLOUR[chip]} border-ink text-white` : 'border-dashed border-ink/50 bg-white text-ink/40'
-              } ${right ? 'ring-4 ring-emerald-400' : ''} ${wrong ? 'ring-4 ring-rose-400' : ''}`}
+              } ${right ? 'ring-4 ring-tosca-light' : ''} ${wrong ? 'ring-4 ring-maroon-tint' : ''}`}
             >
               {chip ?? '___'}
             </button>
@@ -217,7 +217,7 @@ function Blank({ question, lang, result, onAnswer }: { question: BlankQuestion; 
       </p>
 
       {done && result === false && (
-        <p className="font-sans text-xs text-ink/70">→ {question.answers.join(' · ')}</p>
+        <p className="type-caption text-ink/70">→ {question.answers.join(' · ')}</p>
       )}
 
       {!done && (
@@ -230,7 +230,7 @@ function Blank({ question, lang, result, onAnswer }: { question: BlankQuestion; 
               onDragStart={(e) => e.dataTransfer.setData('text/plain', chip)}
               onClick={() => tapChip(chip)}
               aria-pressed={selected === chip}
-              className={`pixel-btn cursor-grab rounded-full border-2 border-ink px-4 py-1.5 font-mono text-xs font-bold text-white ${CHIP_COLOUR[chip]} ${selected === chip ? 'ring-4 ring-amber' : ''}`}
+              className={`pixel-btn cursor-grab rounded-full border-2 border-ink px-4 py-1.5 type-label text-white ${CHIP_COLOUR[chip]} ${selected === chip ? 'ring-4 ring-amber' : ''}`}
             >
               {chip}
             </button>
@@ -243,7 +243,7 @@ function Blank({ question, lang, result, onAnswer }: { question: BlankQuestion; 
           <button
             disabled={slots.includes(null)}
             onClick={() => onAnswer(slots.every((c, i) => c === question.answers[i]))}
-            className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 text-xs font-bold text-white"
+            className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 type-label text-white"
           >
             {t(lang, 'quizCheck')}
           </button>

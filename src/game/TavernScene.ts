@@ -4,11 +4,12 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, 
 import { num, t, type CardId, type Lang } from '../i18n'
 import type { Pick, TavernResult, Token } from '../levels/tavern/model'
 import { tokenWord } from '../levels/tavern/blocks'
+import { FONTS, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
-const INK = 0x0f172a
-const FONT = { fontFamily: 'VT323, monospace', color: '#0F172A' }
+const INK = hex('ink')
+const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
 const SCROLL = { x: 16, y: 12, w: W - 32, h: 86 }
 const BARS = { x: 266, y: 128, rowH: 36, labelW: 96, barW: 170 }
 const THERMO = { x: 216, top: 140, bottom: 300 }
@@ -43,25 +44,25 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
 
   create() {
     registerPixelTextures(this)
-    this.cameras.main.setBackgroundColor('#EEE8D5')
+    this.cameras.main.setBackgroundColor(css('parchment'))
     const g = this.add.graphics()
     // Wooden wall and floor
-    g.lineStyle(2, 0xd6c7a1)
+    g.lineStyle(2, hex('plank'))
     for (let y = 120; y < FLOOR_Y; y += 30) g.lineBetween(0, y, W, y)
-    g.fillStyle(0x92400e).fillRect(0, FLOOR_Y, W, H - FLOOR_Y)
-    g.lineStyle(2, 0x78350f)
+    g.fillStyle(hex('wood')).fillRect(0, FLOOR_Y, W, H - FLOOR_Y)
+    g.lineStyle(2, hex('wood-dark'))
     for (let x = 0; x < W; x += 48) g.lineBetween(x, FLOOR_Y, x + 20, H)
     g.lineStyle(3, INK).lineBetween(0, FLOOR_Y, W, FLOOR_Y)
     // The story scroll
     g.fillStyle(INK).fillRect(SCROLL.x + 4, SCROLL.y + 4, SCROLL.w, SCROLL.h)
-    g.fillStyle(0xfdf6e3).fillRect(SCROLL.x, SCROLL.y, SCROLL.w, SCROLL.h)
+    g.fillStyle(hex('cream')).fillRect(SCROLL.x, SCROLL.y, SCROLL.w, SCROLL.h)
     g.lineStyle(3, INK).strokeRect(SCROLL.x, SCROLL.y, SCROLL.w, SCROLL.h)
     // A little table for the bars
-    g.fillStyle(0xfdf6e3, 0.85).fillRect(BARS.x - 12, BARS.y - 30, W - BARS.x - 4, 5 * BARS.rowH + 40)
+    g.fillStyle(hex('cream'), 0.85).fillRect(BARS.x - 12, BARS.y - 30, W - BARS.x - 4, 5 * BARS.rowH + 40)
     g.lineStyle(2, INK).strokeRect(BARS.x - 12, BARS.y - 30, W - BARS.x - 4, 5 * BARS.rowH + 40)
 
     this.memory = this.add.graphics()
-    this.memoryLabel = this.add.text(0, 0, '', { ...FONT, fontSize: '16px', color: '#0D9488' }).setOrigin(0.5, 0)
+    this.memoryLabel = this.add.text(0, 0, '', { ...FONT, fontSize: '16px', color: css('tosca') }).setOrigin(0.5, 0)
     this.chips = this.add.container(0, 0)
     this.bars = this.add.container(0, 0)
     this.thermo = this.add.graphics()
@@ -85,10 +86,10 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     g.clear()
     const h = THERMO.bottom - THERMO.top
     const frac = Math.min(1, temp / 2)
-    g.fillStyle(0xffffff).fillRect(THERMO.x - 7, THERMO.top, 14, h)
-    g.fillStyle(0xdc2626).fillRect(THERMO.x - 7, THERMO.bottom - h * frac, 14, h * frac)
+    g.fillStyle(hex('white')).fillRect(THERMO.x - 7, THERMO.top, 14, h)
+    g.fillStyle(hex('apple')).fillRect(THERMO.x - 7, THERMO.bottom - h * frac, 14, h * frac)
     g.lineStyle(3, INK).strokeRect(THERMO.x - 7, THERMO.top, 14, h)
-    g.fillStyle(0xdc2626).fillCircle(THERMO.x, THERMO.bottom + 8, 11)
+    g.fillStyle(hex('apple')).fillCircle(THERMO.x, THERMO.bottom + 8, 11)
     g.lineStyle(3, INK).strokeCircle(THERMO.x, THERMO.bottom + 8, 11)
     this.thermoText.setText(`T=${num(this.lang, temp)}`)
   }
@@ -96,7 +97,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
   /** Lays the story out as chips on the scroll, wrapping to a second line. */
   private addChip(token: Token, kind: 'start' | 'word' | 'end') {
     const word = tokenWord(this.lang, token)
-    const label = this.add.text(0, 0, word, { ...FONT, fontSize: '22px', color: '#FDF6E3' }).setOrigin(0.5)
+    const label = this.add.text(0, 0, word, { ...FONT, fontSize: '22px', color: css('cream') }).setOrigin(0.5)
     const w = Math.max(28, label.width + 14)
     const last = this.chipPos.at(-1)
     let x = last ? last.x + last.w / 2 + 6 + w / 2 : SCROLL.x + 12 + w / 2
@@ -106,7 +107,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       y += 36
     }
     const bg = this.add.graphics()
-    const colour = kind === 'start' ? 0xb58900 : kind === 'end' ? 0x881337 : 0x0d9488
+    const colour = kind === 'start' ? hex('gold') : kind === 'end' ? hex('maroon') : hex('tosca')
     bg.fillStyle(INK).fillRoundedRect(-w / 2 + 2, -13, w, 28, 8)
     bg.fillStyle(colour).fillRoundedRect(-w / 2, -15, w, 28, 8)
     const chip = this.add.container(x, y, [bg, label])
@@ -125,7 +126,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     const sameLine = mem.filter((m) => m.y === mem[mem.length - 1].y)
     const x1 = sameLine[0].x - sameLine[0].w / 2
     const x2 = sameLine[sameLine.length - 1].x + sameLine[sameLine.length - 1].w / 2
-    g.lineStyle(6, 0x0d9488).lineBetween(x1, y, x2, y)
+    g.lineStyle(6, hex('tosca')).lineBetween(x1, y, x2, y)
     g.lineBetween(x1, y, x1, y - 8).lineBetween(x2, y, x2, y - 8)
     this.memoryLabel.setPosition((x1 + x2) / 2, y + 2).setText(this.lang === 'id' ? 'ingat' : 'memory')
   }
@@ -137,11 +138,11 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       const y = BARS.y + i * BARS.rowH + 10
       const label = this.add.text(BARS.x, y, tokenWord(this.lang, c.token), { ...FONT, fontSize: '22px' }).setOrigin(0, 0.5)
       const back = this.add.graphics()
-      back.fillStyle(0xffffff).fillRect(BARS.x + BARS.labelW, y - 10, BARS.barW, 20)
+      back.fillStyle(hex('white')).fillRect(BARS.x + BARS.labelW, y - 10, BARS.barW, 20)
       back.lineStyle(2, INK).strokeRect(BARS.x + BARS.labelW, y - 10, BARS.barW, 20)
-      const fill = this.add.rectangle(BARS.x + BARS.labelW + 1, y, 0, 18, 0x0d9488).setOrigin(0, 0.5)
+      const fill = this.add.rectangle(BARS.x + BARS.labelW + 1, y, 0, 18, hex('tosca')).setOrigin(0, 0.5)
       // Thin grey line: the raw chance from the stories, before temperature
-      const rawLine = this.add.rectangle(BARS.x + BARS.labelW + 1, y + 8, (BARS.barW - 2) * c.raw, 4, 0x64748b).setOrigin(0, 0.5)
+      const rawLine = this.add.rectangle(BARS.x + BARS.labelW + 1, y + 8, (BARS.barW - 2) * c.raw, 4, hex('ink-muted')).setOrigin(0, 0.5)
       const pct = this.add.text(BARS.x + BARS.labelW + BARS.barW + 8, y, `${Math.round(c.p * 100)}%`, { ...FONT, fontSize: '20px' }).setOrigin(0, 0.5)
       this.bars.add([label, back, fill, rawLine, pct])
       this.tweens.add({ targets: fill, width: (BARS.barW - 2) * c.p, duration: 260 / this.speed, ease: 'Quad.out' })
@@ -166,7 +167,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
     this.focusBox = undefined
     if (!rect) return
     const g = this.add.graphics().setDepth(20)
-    g.lineStyle(4, 0xe5a93c).strokeRect(rect.x, rect.y, rect.w, rect.h)
+    g.lineStyle(4, hex('amber')).strokeRect(rect.x, rect.y, rect.w, rect.h)
     this.tweens.add({ targets: g, alpha: 0.25, duration: 450, yoyo: true, repeat: -1 })
     this.focusBox = g
   }
@@ -226,7 +227,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
 
       // At temperature 0 the top bar wins outright; otherwise a pointer
       // hops between bars like a spinner before it settles.
-      const marker = this.add.text(BARS.x - 8, rows[0].y, '▶', { ...FONT, fontSize: '22px', color: '#B58900' }).setOrigin(1, 0.5)
+      const marker = this.add.text(BARS.x - 8, rows[0].y, '▶', { ...FONT, fontSize: '22px', color: css('gold') }).setOrigin(1, 0.5)
       this.bars.add(marker)
       const chosenRow = rows.findIndex((r) => r.token === pick.chosen)
       if (pick.temperature > 0 && rows.length > 1) {
@@ -238,7 +239,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
       }
       marker.y = rows[Math.max(0, chosenRow)].y
       const won = rows[Math.max(0, chosenRow)]
-      won.fill.setFillStyle(0xe5a93c)
+      won.fill.setFillStyle(hex('amber'))
       await this.wait(240)
 
       // The chosen token flies up into the story
@@ -279,7 +280,7 @@ export class TavernScene extends Phaser.Scene implements LevelScene {
   celebrate() {
     for (let i = 0; i < 6; i++) {
       this.time.delayedCall(i * 140, () =>
-        this.sparkleAt(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 300), Phaser.Math.RND.pick([0x0d9488, 0xe5a93c, 0x881337])),
+        this.sparkleAt(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 300), Phaser.Math.RND.pick([hex('tosca'), hex('amber'), hex('maroon')])),
       )
     }
     this.tweens.add({ targets: this.bard, angle: { from: -10, to: 10 }, duration: 140, yoyo: true, repeat: 5 })

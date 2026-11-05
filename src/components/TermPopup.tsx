@@ -36,24 +36,24 @@ export default function TermPopup({ card, vars, lang, onClose }: Props) {
       role="dialog"
       aria-modal="false"
       aria-labelledby={`term-${card.id}`}
-      className="card-in relative rounded-lg border-2 border-ink bg-white shadow-[5px_5px_0_#0F172A]"
+      className="card-in relative rounded-lg border-2 border-ink bg-white shadow-pixel"
     >
       {/* Points up at the stage */}
       <span aria-hidden="true" className="absolute -top-[9px] left-10 h-4 w-4 rotate-45 border-l-2 border-t-2 border-ink bg-ink" />
-      <div className="flex items-center justify-between gap-2 rounded-t-md bg-ink px-3 py-1.5">
-        <span className="text-[10px] font-bold tracking-wider text-amber">★ {t(lang, 'newTerm')}</span>
-        <span className="text-[10px] font-semibold text-cream/80">{t(lang, 'termLook')}</span>
+      <div className="flex items-center justify-between gap-2 rounded-t-lg bg-ink px-3 py-1.5">
+        <span className="type-micro text-amber">★ {t(lang, 'newTerm')}</span>
+        <span className="type-micro text-cream/80">{t(lang, 'termLook')}</span>
       </div>
       <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1 space-y-2">
-          <h3 id={`term-${card.id}`} className="flex items-center gap-2 font-pixel text-3xl leading-none text-tosca">
-            <span className="text-2xl" aria-hidden="true">
+          <h3 id={`term-${card.id}`} className="flex items-center gap-2 type-pixel-lg text-tosca">
+            <span className="text-icon" aria-hidden="true">
               {card.icon}
             </span>
             {card.term}
           </h3>
-          <p className="font-sans text-[13px] leading-snug">{moment}</p>
-          <p className="rounded border border-ink/20 bg-parchment px-2 py-1.5 font-sans text-[12px] leading-snug text-ink/80">
+          <p className="type-body">{moment}</p>
+          <p className="rounded border border-ink/20 bg-parchment px-2 py-1.5 type-caption text-ink/80">
             <span className="font-mono font-bold">{t(lang, 'whatItMeans')}: </span>
             {card.body[lang]}
           </p>
@@ -61,7 +61,7 @@ export default function TermPopup({ card, vars, lang, onClose }: Props) {
         <button
           ref={button}
           onClick={onClose}
-          className="pixel-btn self-end whitespace-nowrap rounded border-2 border-ink bg-tosca px-4 py-2 text-xs font-bold text-white sm:self-center"
+          className="pixel-btn self-end whitespace-nowrap rounded border-2 border-ink bg-tosca px-4 py-2 type-label text-white sm:self-center"
         >
           {t(lang, 'gotIt')}
         </button>

@@ -1,26 +1,27 @@
 import type * as Phaser from 'phaser'
+import { css } from '../theme'
 
 // Sprites are drawn as text grids: one character per pixel.
 // Palette follows aastr.id (ink, tosca, maroon, amber, cream) plus fruit colours.
 const PALETTE: Record<string, string> = {
-  k: '#0F172A', // ink outline
-  t: '#0D9488', // tosca
-  T: '#115E59', // dark tosca
-  m: '#881337', // maroon
-  a: '#E5A93C', // amber
-  c: '#FDF6E3', // cream
-  p: '#EEE8D5', // parchment
-  w: '#FFFFFF',
-  e: '#1E293B', // pupils
-  s: '#94A3B8', // slate
-  r: '#DC2626', // apple red
-  R: '#991B1B',
-  y: '#FACC15', // banana yellow
-  Y: '#CA8A04',
-  g: '#16A34A', // leaf green
-  G: '#15803D',
-  n: '#92400E', // wood / brown
-  N: '#78350F',
+  k: css('ink'), // ink outline
+  t: css('tosca'), // tosca
+  T: css('tosca-deep'), // dark tosca
+  m: css('maroon'), // maroon
+  a: css('amber'), // amber
+  c: css('cream'), // cream
+  p: css('parchment'), // parchment
+  w: css('white'),
+  e: css('ink'), // pupils
+  s: css('stone'), // slate
+  r: css('apple'), // apple red
+  R: css('apple-dark'),
+  y: css('banana'), // banana yellow
+  Y: css('banana-dark'),
+  g: css('leaf'), // leaf green
+  G: css('leaf-dark'),
+  n: css('wood'), // wood / brown
+  N: css('wood-dark'),
 }
 
 export const SPRITES: Record<string, string[]> = {

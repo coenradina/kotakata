@@ -2,21 +2,22 @@ import * as Blockly from 'blockly/core'
 import * as MsgEn from 'blockly/msg/en'
 import * as MsgId from 'blockly/msg/id'
 import { t, type Key, type Lang } from '../i18n'
+import { css } from '../theme'
 
 // Block colours come from the aastr.id palette.
 const COLOURS = {
-  events: '#B58900', // gold
-  data: '#0D9488', // tosca
-  model: '#881337', // maroon
+  events: css('gold'), // gold
+  data: css('tosca'), // tosca
+  model: css('maroon'), // maroon
 }
 
 export const theme = Blockly.Theme.defineTheme('kotakata', {
   name: 'kotakata',
   base: Blockly.Themes.Classic,
   blockStyles: {
-    events: { colourPrimary: COLOURS.events, colourSecondary: '#D4A72C', colourTertiary: '#0F172A', hat: 'cap' },
-    data: { colourPrimary: COLOURS.data, colourSecondary: '#14B8A6', colourTertiary: '#0F172A' },
-    model: { colourPrimary: COLOURS.model, colourSecondary: '#9F1239', colourTertiary: '#0F172A' },
+    events: { colourPrimary: COLOURS.events, colourSecondary: css('block-events-2'), colourTertiary: css('ink'), hat: 'cap' },
+    data: { colourPrimary: COLOURS.data, colourSecondary: css('block-data-2'), colourTertiary: css('ink') },
+    model: { colourPrimary: COLOURS.model, colourSecondary: css('block-model-2'), colourTertiary: css('ink') },
   },
   categoryStyles: {
     events: { colour: COLOURS.events },
@@ -24,17 +25,17 @@ export const theme = Blockly.Theme.defineTheme('kotakata', {
     model: { colour: COLOURS.model },
   },
   componentStyles: {
-    workspaceBackgroundColour: '#FDF6E3',
-    toolboxBackgroundColour: '#EEE8D5',
-    toolboxForegroundColour: '#0F172A',
-    flyoutBackgroundColour: '#EEE8D5',
-    flyoutForegroundColour: '#0F172A',
+    workspaceBackgroundColour: css('cream'),
+    toolboxBackgroundColour: css('parchment'),
+    toolboxForegroundColour: css('ink'),
+    flyoutBackgroundColour: css('parchment'),
+    flyoutForegroundColour: css('ink'),
     flyoutOpacity: 0.96,
-    scrollbarColour: '#0F172A',
+    scrollbarColour: css('ink'),
     scrollbarOpacity: 0.3,
-    insertionMarkerColour: '#0F172A',
+    insertionMarkerColour: css('ink'),
     insertionMarkerOpacity: 0.3,
-    cursorColour: '#0D9488',
+    cursorColour: css('tosca'),
   },
   fontStyle: { family: "'JetBrains Mono', monospace", weight: '700', size: 12 },
   startHats: true,
@@ -79,7 +80,7 @@ export function buildToolbox(lang: Lang, groups: ToolboxGroup[]): Blockly.utils.
       {
         kind: 'category',
         name: t(lang, 'catAll'),
-        colour: '#0F172A',
+        colour: css('ink'),
         contents: groups.flatMap((g) => [section(g), ...g.blocks]),
       },
       ...groups.map((g) => ({ kind: 'category', name: t(lang, g.label), categorystyle: g.style, contents: g.blocks })),

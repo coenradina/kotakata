@@ -4,18 +4,19 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, 
 import { t, type CardId, type Lang } from '../i18n'
 import { depth, type Creature, type Critter, type Tree, type TreeEvent, type Walk } from '../levels/tree/model'
 import { questionText } from '../levels/tree/blocks'
+import { FONTS, css, hex } from '../theme'
 
 /** Events the tree scene plays: the tree to draw, then the level's own events. */
 export type TreeSceneEvent = { kind: 'tree'; tree: Tree | null } | TreeEvent
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
-const INK = 0x0f172a
-const PATH = 0xd6b98c
+const INK = hex('ink')
+const PATH = hex('path')
 const GATE = { x: 46, y: 46 }
 const PEN_Y = 326
 const TOP_Y = 92
-const FONT = { fontFamily: 'VT323, monospace', color: '#0F172A' }
+const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
 const PEN_ICON: Record<Critter, string> = { bird: 'bird-brown', bee: 'bee', frog: 'frog-green' }
 
 interface Placed {
@@ -59,17 +60,17 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
 
   create() {
     registerPixelTextures(this)
-    this.cameras.main.setBackgroundColor('#FDF6E3')
+    this.cameras.main.setBackgroundColor(css('cream'))
     const g = this.add.graphics()
     g.lineStyle(1, INK, 0.05)
     for (let x = 0; x <= W; x += 24) g.lineBetween(x, 0, x, H)
     for (let y = 0; y <= H; y += 24) g.lineBetween(0, y, W, y)
     // Grass along the bottom, and the gate where critters arrive
-    g.fillStyle(0xd9f99d, 0.6).fillRect(0, PEN_Y + 10, W, H - PEN_Y)
+    g.fillStyle(hex('grass'), 0.6).fillRect(0, PEN_Y + 10, W, H - PEN_Y)
     g.lineStyle(3, INK).lineBetween(0, PEN_Y + 10, W, PEN_Y + 10)
-    g.fillStyle(0x92400e).fillRect(GATE.x - 26, GATE.y - 22, 8, 40).fillRect(GATE.x + 18, GATE.y - 22, 8, 40)
+    g.fillStyle(hex('wood')).fillRect(GATE.x - 26, GATE.y - 22, 8, 40).fillRect(GATE.x + 18, GATE.y - 22, 8, 40)
     g.lineStyle(3, INK).strokeRect(GATE.x - 26, GATE.y - 22, 8, 40).strokeRect(GATE.x + 18, GATE.y - 22, 8, 40)
-    g.fillStyle(0x92400e).fillRect(GATE.x - 26, GATE.y - 26, 52, 8)
+    g.fillStyle(hex('wood')).fillRect(GATE.x - 26, GATE.y - 26, 52, 8)
     g.lineStyle(3, INK).strokeRect(GATE.x - 26, GATE.y - 26, 52, 8)
 
     this.layer = this.add.container(0, 0)
@@ -169,8 +170,8 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
             .text(lx + (yes ? -10 : 10), ly, yes ? (this.lang === 'id' ? 'ya' : 'yes') : this.lang === 'id' ? 'tidak' : 'no', {
               ...FONT,
               fontSize: '18px',
-              color: yes ? '#0D9488' : '#881337',
-              backgroundColor: '#FDF6E3',
+              color: yes ? css('tosca') : css('maroon'),
+              backgroundColor: css('cream'),
             })
             .setOrigin(yes ? 1 : 0, 0.5)
           this.layer.add(label)
@@ -183,12 +184,12 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
     // Signs and pens on top of the paths
     const drawNodes = (p: Placed) => {
       if (p.node?.kind === 'split') {
-        const label = this.add.text(p.x, p.y, `${questionText(this.lang, p.node.q)}?`, { ...FONT, fontSize: '20px', color: '#FDF6E3' }).setOrigin(0.5)
+        const label = this.add.text(p.x, p.y, `${questionText(this.lang, p.node.q)}?`, { ...FONT, fontSize: '20px', color: css('cream') }).setOrigin(0.5)
         const bw = label.width + 18
         const sign = this.add.graphics()
         sign.fillStyle(INK).fillRect(p.x - 3, p.y + 10, 6, 18)
         sign.fillStyle(INK).fillRect(p.x - bw / 2 + 3, p.y - 12 + 3, bw, 24)
-        sign.fillStyle(0x92400e).fillRect(p.x - bw / 2, p.y - 12, bw, 24)
+        sign.fillStyle(hex('wood')).fillRect(p.x - bw / 2, p.y - 12, bw, 24)
         sign.lineStyle(2, INK).strokeRect(p.x - bw / 2, p.y - 12, bw, 24)
         this.layer.add([sign, label])
         drawNodes(p.yes!)
@@ -200,7 +201,7 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
         this.layer.add([pen, icon, count])
         this.penCounts.set(p.node.id, { right: 0, wrong: 0, label: count })
       } else {
-        const hole = this.add.text(p.x, p.y - 6, '?', { ...FONT, fontSize: '34px', color: '#881337' }).setOrigin(0.5)
+        const hole = this.add.text(p.x, p.y - 6, '?', { ...FONT, fontSize: '34px', color: css('maroon') }).setOrigin(0.5)
         this.layer.add(hole)
       }
     }
@@ -241,7 +242,7 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
     this.focusBox = undefined
     if (!rect) return
     const g = this.add.graphics().setDepth(20)
-    g.lineStyle(4, 0xe5a93c).strokeRect(rect.x, rect.y, rect.w, rect.h)
+    g.lineStyle(4, hex('amber')).strokeRect(rect.x, rect.y, rect.w, rect.h)
     this.tweens.add({ targets: g, alpha: 0.25, duration: 450, yoyo: true, repeat: -1 })
     this.focusBox = g
   }
@@ -323,8 +324,8 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
           .text(sprite.x + 26, sprite.y, step.yes ? (this.lang === 'id' ? '✓ ya' : '✓ yes') : this.lang === 'id' ? '✗ tidak' : '✗ no', {
             ...FONT,
             fontSize: '18px',
-            color: '#FDF6E3',
-            backgroundColor: step.yes ? '#0D9488' : '#881337',
+            color: css('cream'),
+            backgroundColor: step.yes ? css('tosca') : css('maroon'),
             padding: { x: 4, y: 0 },
           })
           .setOrigin(0, 0.5)
@@ -346,11 +347,11 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
         await this.tween({ targets: sprite, y: end.y - 40, duration: 140, ease: 'Quad.out' })
         await this.tween({ targets: sprite, x: end.x - 22 + (n % 4) * 15, y: end.y - 2 + Math.floor(n / 4) * 6, scale: 1.5, duration: 200, ease: 'Quad.in' })
         if (w.correct) {
-          this.sparkle(sprite.x, sprite.y, 0x22c55e)
+          this.sparkle(sprite.x, sprite.y, hex('spark'))
           if (slot) slot.right++
         } else {
-          this.sparkle(sprite.x, sprite.y, 0xef4444)
-          sprite.setTint(0xfca5a5)
+          this.sparkle(sprite.x, sprite.y, hex('apple'))
+          sprite.setTint(hex('maroon-tint'))
           this.cameras.main.shake(100, 0.003)
           if (slot) slot.wrong++
         }
@@ -371,7 +372,7 @@ export class TreeScene extends Phaser.Scene implements LevelScene {
   celebrate() {
     for (let i = 0; i < 6; i++) {
       this.time.delayedCall(i * 140, () =>
-        this.sparkle(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 300), Phaser.Math.RND.pick([0x0d9488, 0xe5a93c, 0x881337])),
+        this.sparkle(Phaser.Math.Between(60, 580), Phaser.Math.Between(60, 300), Phaser.Math.RND.pick([hex('tosca'), hex('amber'), hex('maroon')])),
       )
     }
     this.tweens.add({ targets: this.critters.list, y: '-=8', duration: 140, yoyo: true, repeat: 3 })

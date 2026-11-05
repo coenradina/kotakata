@@ -42,10 +42,10 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
     <>
       <div
         aria-hidden="true"
-        className="hint-ring pointer-events-none fixed z-[800] rounded-lg border-4 border-amber"
+        className="hint-ring pointer-events-none fixed z-overlay rounded-lg border-2 border-amber"
         style={{ left: rect.left - pad, top: rect.top - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }}
       />
-      <div role="status" className="card-in fixed z-[800] w-64 rounded-lg border-2 border-ink bg-amber p-3 shadow-[4px_4px_0_#0F172A]" style={bubbleStyle}>
+      <div role="status" className="card-in fixed z-overlay w-64 rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel" style={bubbleStyle}>
         <span
           aria-hidden="true"
           className={`absolute h-3 w-3 rotate-45 border-ink bg-amber ${
@@ -53,12 +53,12 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
           }`}
         />
         <div className="flex items-start justify-between gap-2">
-          <span className="font-pixel text-lg leading-none">💡 {t(lang, 'hintTitle')}</span>
-          <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 text-lg font-bold leading-none hover:text-maroon">
+          <span className="type-pixel-sm">💡 {t(lang, 'hintTitle')}</span>
+          <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 type-subheading hover:text-maroon">
             ×
           </button>
         </div>
-        <p className="mt-1 font-sans text-[13px] font-semibold leading-snug">{t(lang, `hint_${hint.key}` as Key)}</p>
+        <p className="mt-1 type-body font-bold">{t(lang, `hint_${hint.key}` as Key)}</p>
       </div>
     </>
   )

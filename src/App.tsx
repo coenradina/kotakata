@@ -448,18 +448,18 @@ export default function App() {
   return (
     <div className="flex min-h-full flex-col">
       {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-cream/95 px-4 py-3 sm:px-6">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-cream/90 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca font-pixel text-2xl text-white">
+          <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca type-pixel text-white">
             KK
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold leading-none">Kotakata</h1>
-            <p className="mt-1 text-[11px] font-semibold text-maroon">{t(lang, 'tagline')}</p>
+            <h1 className="type-heading">Kotakata</h1>
+            <p className="mt-1 type-micro text-maroon">{t(lang, 'tagline')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded border-2 border-ink text-xs font-bold" role="group" aria-label="Language">
+          <div className="flex overflow-hidden rounded border-2 border-ink type-label" role="group" aria-label="Language">
             {(['id', 'en'] as Lang[]).map((l) => (
               <button
                 key={l}
@@ -476,36 +476,36 @@ export default function App() {
             <button
               onClick={() => setConfirmStartOver((v) => !v)}
               aria-expanded={confirmStartOver}
-              className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold hover:bg-amber/30"
+              className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30"
             >
               {t(lang, 'startOver')}
             </button>
             {confirmStartOver && (
-              <div role="alertdialog" aria-labelledby="start-over-text" className="card-in absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border-2 border-ink bg-white p-3 shadow-[4px_4px_0_#0F172A]">
-                <p id="start-over-text" className="font-sans text-xs leading-snug">{t(lang, 'startOverConfirm')}</p>
+              <div role="alertdialog" aria-labelledby="start-over-text" className="card-in absolute right-0 top-full z-modal mt-2 w-72 rounded-lg border-2 border-ink bg-white p-3 shadow-pixel">
+                <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
                 <div className="mt-3 flex justify-end gap-2">
-                  <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold">
+                  <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
                     {t(lang, 'cancel')}
                   </button>
-                  <button onClick={startOver} className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 text-xs font-bold text-white">
+                  <button onClick={startOver} className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white">
                     {t(lang, 'startOverYes')}
                   </button>
                 </div>
               </div>
             )}
           </div>
-          <a href="https://aastr.id" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold hover:bg-amber/30">
+          <a href="https://aastr.id" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30">
             {t(lang, 'back')}
           </a>
         </div>
       </header>
 
-      <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center text-xs font-semibold md:hidden">{t(lang, 'smallScreen')}</p>
+      <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center type-label md:hidden">{t(lang, 'smallScreen')}</p>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:grid-cols-[160px_minmax(0,1.45fr)_minmax(0,1fr)]">
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:grid-cols-[176px_minmax(0,1.45fr)_minmax(0,1fr)]">
         {/* Level list: a row across the top until there's room for a column */}
         <nav aria-label={t(lang, 'levels')} className="space-y-2 lg:col-span-2 xl:col-span-1">
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-ink/70">{t(lang, 'levels')}</h2>
+          <h2 className="type-eyebrow text-ink/70">{t(lang, 'levels')}</h2>
           <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-1">
             {LEVELS.map((lv, i) => {
               const open = isUnlocked(i)
@@ -525,10 +525,10 @@ export default function App() {
                           : 'bg-parchment text-ink/60'
                     }`}
                   >
-                    <div className="font-pixel text-lg leading-none">
+                    <div className="type-pixel-sm">
                       {i + 1}. {lv.title[lang]} {passed.has(lv.id) && '✓'}
                     </div>
-                    <div className="mt-1 text-[10px] font-bold uppercase">{open ? lv.topic[lang] : `🔒 ${t(lang, 'levelLocked')}`}</div>
+                    <div className="mt-1 type-eyebrow">{open ? lv.topic[lang] : `🔒 ${t(lang, 'levelLocked')}`}</div>
                   </button>
                 </li>
               )
@@ -536,10 +536,10 @@ export default function App() {
             {UPCOMING.map((lv, i) => (
               <li key={lv.title.en}>
                 <div className="rounded border-2 border-ink bg-parchment px-3 py-2 text-ink/60">
-                  <div className="font-pixel text-lg leading-none">
+                  <div className="type-pixel-sm">
                     {LEVELS.length + i + 1}. {lv.title[lang]}
                   </div>
-                  <div className="mt-1 text-[10px] font-bold uppercase">🔒 {t(lang, 'comingSoon')}</div>
+                  <div className="mt-1 type-eyebrow">🔒 {t(lang, 'comingSoon')}</div>
                 </div>
               </li>
             ))}
@@ -548,7 +548,7 @@ export default function App() {
 
         {/* Block editor */}
         <section className="pixel-shadow flex min-h-[420px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
-          <div className="flex items-center justify-between border-b-2 border-ink bg-ink px-3 py-2 text-xs font-bold text-cream">
+          <div className="flex items-center justify-between border-b-2 border-ink bg-ink px-3 py-2 type-label text-cream">
             <span className="truncate">▸ {t(lang, level.fileKey)}.blocks</span>
             <span className="ml-2 truncate text-amber" title={level.topic[lang]}>
               {level.topic[lang]}
@@ -577,19 +577,19 @@ export default function App() {
           {/* Term cards sit under the stage, so the highlighted part stays visible */}
           {openCard && <TermPopup card={openCard.card} vars={openCard.vars} lang={lang} onClose={openCard.close} />}
 
-          <div data-hint-avoid className="sticky bottom-0 z-30 -mx-1 flex items-center gap-2 bg-cream/95 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
+          <div data-hint-avoid className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
             <button
               ref={runButton}
               onClick={handleRun}
               disabled={running}
-              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-2.5 text-sm font-bold text-white"
+              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white"
             >
               {running ? t(lang, 'running') : t(lang, 'run')}
             </button>
             <button
               onClick={handleReset}
               title={running ? undefined : t(lang, 'clearTitle')}
-              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-white px-3 py-2.5 text-sm font-bold"
+              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-white px-3 py-3 type-button-lg"
             >
               {running ? t(lang, 'stop') : t(lang, 'clear')}
             </button>
@@ -597,7 +597,7 @@ export default function App() {
               <button
                 onClick={openQuiz}
                 disabled={running}
-                className="pixel-btn ml-auto whitespace-nowrap rounded border-2 border-ink bg-amber px-3 py-2.5 text-sm font-bold"
+                className="pixel-btn ml-auto whitespace-nowrap rounded border-2 border-ink bg-amber px-3 py-3 type-button-lg"
               >
                 {t(lang, 'quizMe')}
               </button>
@@ -615,10 +615,10 @@ export default function App() {
               onCards={() => cardsSection.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             />
             <div className="rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-amber">{t(lang, 'log')}</h2>
-              <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs leading-relaxed">
+              <h2 className="type-eyebrow text-amber">{t(lang, 'log')}</h2>
+              <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-mono">
                 {log.map((line, i) => (
-                  <li key={i} className={line.tone === 'good' ? 'text-emerald-300' : line.tone === 'bad' ? 'text-rose-300' : ''}>
+                  <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
                     › {line.text}
                   </li>
                 ))}
@@ -628,16 +628,16 @@ export default function App() {
         </section>
       </main>
 
-      <div className="pointer-events-none fixed right-4 top-20 z-[900] flex w-72 flex-col gap-2" aria-live="polite">
+      <div className="pointer-events-none fixed right-4 top-20 z-toast flex w-72 flex-col gap-2" aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className="card-in flex items-start gap-3 rounded-lg border-2 border-ink bg-amber p-3 shadow-[4px_4px_0_#0F172A]">
-            <span className="badge-pop text-3xl leading-none" aria-hidden="true">
+          <div key={toast.id} className="card-in flex items-start gap-3 rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel">
+            <span className="badge-pop text-icon-lg" aria-hidden="true">
               {toast.icon}
             </span>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider">🏅 {t(lang, 'newBadge')}</div>
-              <div className="font-pixel text-xl leading-none">{toast.title}</div>
-              <p className="mt-0.5 font-sans text-xs leading-snug">{toast.body}</p>
+              <div className="type-eyebrow">🏅 {t(lang, 'newBadge')}</div>
+              <div className="type-pixel-sm">{toast.title}</div>
+              <p className="mt-0.5 type-caption">{toast.body}</p>
             </div>
           </div>
         ))}
@@ -677,13 +677,13 @@ export default function App() {
       {/* Term cards */}
       <section ref={cardsSection} className="scroll-mt-4 border-t-2 border-ink bg-parchment px-4 py-6 sm:px-6" aria-labelledby="cards-title">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="cards-title" className="font-display text-lg font-bold">
+          <h2 id="cards-title" className="type-subheading">
             {t(lang, 'cards')} · {level.title[lang]}{' '}
-            <span className="font-pixel text-xl text-maroon">
+            <span className="type-pixel-sm text-maroon">
               {level.cards.filter((c) => found.has(c.id)).length}/{level.cards.length}
             </span>
           </h2>
-          <p className="text-xs font-semibold text-ink/70">
+          <p className="type-label text-ink/70">
             {level.cards.some((c) => !found.has(c.id)) ? `${t(lang, 'unlockHint')} ` : ''}
             {t(lang, 'starsHelp')}
           </p>
@@ -695,26 +695,26 @@ export default function App() {
                 key={card.term}
                 className={`pixel-shadow rounded-lg border-2 border-ink bg-white p-3 ${fresh === card.id ? 'card-in ring-4 ring-amber' : ''}`}
               >
-                <div className="text-2xl" aria-hidden="true">{card.icon}</div>
+                <div className="text-icon" aria-hidden="true">{card.icon}</div>
                 <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span className="font-pixel text-xl leading-none text-tosca">{card.term}</span>
+                  <span className="type-pixel-sm text-tosca">{card.term}</span>
                   <span
-                    className="whitespace-nowrap text-base leading-none"
+                    className="whitespace-nowrap text-icon-sm"
                     role="img"
                     aria-label={t(lang, 'starsLabel', { n: stars[card.id] ?? 0 })}
                   >
                     {Array.from({ length: MAX_STARS }, (_, i) => (
-                      <span key={i} className={i < (stars[card.id] ?? 0) ? 'text-gold' : 'text-ink/15'}>
+                      <span key={i} className={i < (stars[card.id] ?? 0) ? 'text-gold' : 'text-ink/20'}>
                         ★
                       </span>
                     ))}
                   </span>
                 </div>
-                <p className="mt-1.5 font-sans text-xs leading-snug text-ink/80">{card.body[lang]}</p>
+                <p className="mt-1.5 type-caption text-ink/80">{card.body[lang]}</p>
               </li>
             ) : (
               <li key={card.term} className="flex min-h-[120px] items-center justify-center rounded-lg border-2 border-dashed border-ink/40 bg-cream">
-                <span className="font-pixel text-lg text-ink/40">🔒 {t(lang, 'locked')}</span>
+                <span className="type-pixel-sm text-ink/40">🔒 {t(lang, 'locked')}</span>
               </li>
             ),
           )}
@@ -757,7 +757,7 @@ function StagePanel({
             <li
               key={st.id}
               aria-current={isCurrent ? 'step' : undefined}
-              className={`rounded border-2 px-2 py-0.5 text-[10px] font-bold uppercase ${
+              className={`rounded border-2 px-2 py-0.5 type-eyebrow ${
                 isDone ? 'border-ink bg-tosca text-white' : isCurrent ? 'border-ink bg-white' : 'border-ink/30 text-ink/50'
               }`}
             >
@@ -770,13 +770,13 @@ function StagePanel({
       <div className="mt-2 h-2 overflow-hidden rounded-full border-2 border-ink bg-white" role="progressbar" aria-valuemin={0} aria-valuemax={main.length} aria-valuenow={mainDone}>
         <div className="h-full bg-tosca transition-all duration-700" style={{ width: `${(mainDone / main.length) * 100}%` }} />
       </div>
-      <h2 className="mt-3 font-pixel text-xl leading-none">
+      <h2 className="mt-3 type-pixel-sm">
         {stage.bonus ? '⭐ ' : ''}
         {t(lang, stage.titleKey)}
       </h2>
-      <p className="mt-1 font-sans text-sm leading-relaxed">{t(lang, stage.missionKey)}</p>
+      <p className="mt-1 type-body">{t(lang, stage.missionKey)}</p>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[10px] font-bold uppercase tracking-wider">{t(lang, 'badges')}</span>
+        <span className="mr-1 type-eyebrow">{t(lang, 'badges')}</span>
         {level.achievements.map((a) => {
           const got = badges.has(`${level.id}:${a.id}`)
           return (
@@ -784,13 +784,13 @@ function StagePanel({
               key={a.id}
               title={`${t(lang, a.titleKey)}: ${got ? t(lang, a.descKey) : t(lang, 'badgeLocked')}`}
               aria-label={`${t(lang, a.titleKey)}${got ? '' : ` (${t(lang, 'badgeLocked')})`}`}
-              className={`flex h-7 w-7 items-center justify-center rounded border-2 text-base ${got ? 'border-ink bg-white' : 'border-ink/20 bg-white/40 grayscale opacity-40'}`}
+              className={`flex h-7 w-7 items-center justify-center rounded border-2 text-icon-sm ${got ? 'border-ink bg-white' : 'border-ink/20 bg-white/40 grayscale opacity-40'}`}
             >
               {a.icon}
             </span>
           )
         })}
-        <button onClick={onCards} className="ml-auto whitespace-nowrap text-[11px] font-bold underline hover:text-maroon">
+        <button onClick={onCards} className="ml-auto whitespace-nowrap type-micro underline hover:text-maroon">
           {t(lang, 'cardsButton', { n: cardCount })} ↓
         </button>
       </div>
