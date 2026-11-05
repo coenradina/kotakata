@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { predict, type Centroids, type Event, type Label, type Point } from '../levels/train/model'
-import { t, type Lang } from '../i18n'
+import { t, type CardId, type Lang } from '../i18n'
 
 export const WIDTH = 640
 export const HEIGHT = 400
@@ -19,6 +19,20 @@ const BIN_Y = 344
 
 export type LogFn = (line: string, tone?: 'info' | 'good' | 'bad') => void
 
+/** Which part of the scene a term card is about. */
+export type Focus = 'plot' | 'markers' | 'belt' | 'status'
+
+/**
+ * Lets the game pause on a term the player meets for the first time.
+ * `show` resolves when the player closes the card.
+ */
+export interface Milestones {
+  isNew: (id: CardId) => boolean
+  show: (id: CardId, focus: Focus, vars?: Record<string, string | number>) => Promise<void>
+}
+
+const NO_MILESTONES: Milestones = { isNew: () => false, show: () => Promise.resolve() }
+
 export class TrainScene extends Phaser.Scene {
   private lang: Lang = 'id'
   private robot!: Phaser.GameObjects.Image
@@ -30,6 +44,9 @@ export class TrainScene extends Phaser.Scene {
   private status!: Phaser.GameObjects.Text
   private axisText: Phaser.GameObjects.Text[] = []
   private speed = 1
+  private milestones: Milestones = NO_MILESTONES
+  private focusBox?: Phaser.GameObjects.Graphics
+  private datasetSize = 0
   /** Increments on every play/reset, so an outdated run stops itself. */
   private runId = 0
   readyPromise: Promise<void>
@@ -145,6 +162,7 @@ export class TrainScene extends Phaser.Scene {
 
   reset() {
     this.runId++
+    this.highlight(null)
     this.tweens.killTweensOf(this.dots.list)
     this.dots.removeAll(true)
     this.regions.clear()
@@ -191,16 +209,59 @@ export class TrainScene extends Phaser.Scene {
     this.time.delayedCall(700, () => p.destroy())
   }
 
+  /** Draws a blinking dashed box around the part of the scene a card is about. */
+  private highlight(focus: Focus | null) {
+    this.focusBox?.destroy()
+    this.focusBox = undefined
+    if (!focus) return
+    const pad = 10
+    const rect =
+      focus === 'plot' || focus === 'markers'
+        ? { x: PLOT.x - pad, y: PLOT.y - pad, w: PLOT.size + pad * 2, h: PLOT.size + pad * 2 }
+        : focus === 'belt'
+          ? { x: 4, y: ROBOT.y - 50, w: 300, h: BELT_Y - ROBOT.y + 80 }
+          : { x: this.status.x - pad, y: this.status.y - pad, w: this.status.width + pad * 2, h: this.status.height + pad * 2 }
+    const g = this.add.graphics().setDepth(20)
+    g.lineStyle(4, 0xe5a93c)
+    const dash = 12
+    const edge = (x1: number, y1: number, x2: number, y2: number) => {
+      const len = Math.hypot(x2 - x1, y2 - y1)
+      for (let d = 0; d < len; d += dash * 2) {
+        const a = d / len
+        const b = Math.min(d + dash, len) / len
+        g.lineBetween(x1 + (x2 - x1) * a, y1 + (y2 - y1) * a, x1 + (x2 - x1) * b, y1 + (y2 - y1) * b)
+      }
+    }
+    edge(rect.x, rect.y, rect.x + rect.w, rect.y)
+    edge(rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + rect.h)
+    edge(rect.x + rect.w, rect.y + rect.h, rect.x, rect.y + rect.h)
+    edge(rect.x, rect.y + rect.h, rect.x, rect.y)
+    this.tweens.add({ targets: g, alpha: 0.25, duration: 450, yoyo: true, repeat: -1 })
+    this.focusBox = g
+  }
+
+  /** Pauses on a term the player hasn't met yet, with its part of the scene highlighted. */
+  private async milestone(id: CardId, focus: Focus, run: number, vars?: Record<string, string | number>) {
+    if (run !== this.runId || !this.milestones.isNew(id)) return
+    this.belt.setData('moving', false)
+    this.highlight(focus)
+    await this.milestones.show(id, focus, vars)
+    if (run === this.runId) this.highlight(null)
+  }
+
   // --- playback --------------------------------------------------------------
 
-  async play(events: Event[], log: LogFn): Promise<void> {
+  async play(events: Event[], log: LogFn, milestones: Milestones = NO_MILESTONES): Promise<void> {
     await this.readyPromise
     this.reset()
     const id = this.runId
+    this.milestones = milestones
+    this.datasetSize = 0
     log(t(this.lang, 'logStart'))
 
-    for (const e of events) {
+    for (const [i, e] of events.entries()) {
       if (id !== this.runId) return
+      if (e.kind !== 'collect' && events[i - 1]?.kind === 'collect') await this.dataMilestones(id)
       if (e.kind === 'warn') {
         log(
           t(this.lang, e.code === 'test-before-train' ? 'warnTestBeforeTrain' : e.code === 'train-without-data' ? 'warnTrainWithoutData' : 'warnOneLabel'),
@@ -217,6 +278,7 @@ export class TrainScene extends Phaser.Scene {
         await this.playTest(e.results, e.accuracy, log, id)
       }
     }
+    if (events.at(-1)?.kind === 'collect') await this.dataMilestones(id)
     if (id === this.runId) this.belt.setData('moving', false)
   }
 
@@ -235,6 +297,14 @@ export class TrainScene extends Phaser.Scene {
       this.dots.add(dot)
     }
     this.belt.setData('moving', false)
+    this.datasetSize += examples.length
+  }
+
+  /** Explains dataset and label once all the collect blocks in a row have run. */
+  private async dataMilestones(id: number) {
+    if (this.datasetSize === 0) return
+    await this.milestone('dataset', 'plot', id, { n: this.datasetSize })
+    await this.milestone('label', 'plot', id)
   }
 
   private async playTrain(history: Centroids[], log: LogFn, id: number) {
@@ -246,6 +316,7 @@ export class TrainScene extends Phaser.Scene {
       await this.tween({ targets: this.marker(l), scale: 1, duration: 250, ease: 'Back.out' })
     }
     this.paintRegions(first)
+    await this.milestone('training', 'markers', id)
     for (let r = 1; r < history.length; r++) {
       if (id !== this.runId) return
       this.status.setText(`TRAINING ${r}/${history.length - 1}`)
@@ -265,6 +336,7 @@ export class TrainScene extends Phaser.Scene {
   private async playTest(results: { item: { label: Label; x: number; y: number }; guess: Label | null; correct: boolean }[], accuracy: number, log: LogFn, id: number) {
     this.speed = results.length > 12 ? 3 : 1.7
     let correct = 0
+    await this.milestone('testing', 'belt', id)
     for (const [i, r] of results.entries()) {
       if (id !== this.runId) return
       this.status.setText(`TESTING ${i + 1}/${results.length}`)
@@ -303,6 +375,11 @@ export class TrainScene extends Phaser.Scene {
     const acc = Math.round(accuracy * 100)
     this.status.setText(`ACCURACY ${acc}%`)
     log(t(this.lang, 'logTest', { correct, total: results.length, acc }), accuracy >= 0.9 ? 'good' : 'bad')
+    // Only explain accuracy once the robot has actually been trained, so the
+    // first example the player sees is a meaningful number.
+    if (this.markers.apple || this.markers.banana) {
+      await this.milestone('accuracy', 'status', id, { correct, total: results.length, acc })
+    }
   }
 
   celebrate() {

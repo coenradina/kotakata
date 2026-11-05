@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import BlockEditor, { type BlockEditorHandle } from './components/BlockEditor'
 import Stage, { type StageHandle } from './components/Stage'
-import { LEVEL1_CARDS, initialLang, saveLang, t, type Lang } from './i18n'
+import TermPopup from './components/TermPopup'
+import type { Focus, Milestones } from './game/TrainScene'
+import { LEVEL1_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
 import { run } from './levels/train/model'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
@@ -14,24 +16,49 @@ const LEVELS: { id: string; title: Record<Lang, string>; topic: string; ready: b
 ]
 
 const PROGRESS_KEY = 'kotakata.cards'
+const ALL_CARDS = LEVEL1_CARDS.map((c) => c.id)
 
-function loadUnlocked(): boolean {
+/** Cards found so far. The old format stored 'level1' for "all of them". */
+function loadFound(): Set<CardId> {
   try {
-    return localStorage.getItem(PROGRESS_KEY) === 'level1'
+    const raw = localStorage.getItem(PROGRESS_KEY)
+    if (raw === 'level1') return new Set(ALL_CARDS)
+    const ids = raw ? (JSON.parse(raw) as unknown) : []
+    return new Set(Array.isArray(ids) ? ids.filter((id): id is CardId => ALL_CARDS.includes(id)) : [])
   } catch {
-    return false
+    return new Set()
   }
+}
+
+function saveFound(found: Set<CardId>) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify([...found]))
+  } catch {
+    /* not critical */
+  }
+}
+
+interface OpenCard {
+  card: TermCard
+  focus: Focus
+  vars: Record<string, string | number>
+  close: () => void
 }
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(initialLang)
   const [log, setLog] = useState<LogLine[]>([])
   const [running, setRunning] = useState(false)
-  const [unlocked, setUnlocked] = useState(loadUnlocked)
-  const [justWon, setJustWon] = useState(false)
+  const [found, setFound] = useState(loadFound)
+  const [fresh, setFresh] = useState<CardId | null>(null)
+  const [openCard, setOpenCard] = useState<OpenCard | null>(null)
+  // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
+  const foundRef = useRef(found)
   const editor = useRef<BlockEditorHandle>(null)
   const stage = useRef<StageHandle>(null)
   const seed = useRef(1)
+  // Bumped by Reset, so a run that was stopped doesn't report a result.
+  const runToken = useRef(0)
   const logBox = useRef<HTMLUListElement>(null)
 
   // Keep the newest log line in view. Scroll only the log box, not the page.
@@ -39,6 +66,35 @@ export default function App() {
     const box = logBox.current
     if (box) box.scrollTop = box.scrollHeight
   }, [log])
+
+  const discover = (id: CardId) => {
+    const next = new Set(foundRef.current).add(id)
+    foundRef.current = next
+    setFound(next)
+    setFresh(id)
+    saveFound(next)
+  }
+
+  /** Shows a card over the stage and resolves once the player closes it. */
+  const showCard = (id: CardId, focus: Focus, vars: Record<string, string | number> = {}) =>
+    new Promise<void>((resolve) => {
+      const card = LEVEL1_CARDS.find((c) => c.id === id)!
+      discover(id)
+      setOpenCard({
+        card,
+        focus,
+        vars,
+        close: () => {
+          setOpenCard(null)
+          resolve()
+        },
+      })
+    })
+
+  const milestones: Milestones = {
+    isNew: (id) => !foundRef.current.has(id),
+    show: showCard,
+  }
 
   const switchLang = (next: Lang) => {
     setLang(next)
@@ -48,28 +104,23 @@ export default function App() {
 
   const handleRun = async () => {
     const program = editor.current?.program()
-    setJustWon(false)
     if (!program || program.length === 0) {
       setLog([{ text: t(lang, 'logEmpty'), tone: 'bad' }])
       return
     }
     setRunning(true)
     setLog([])
+    const token = ++runToken.current
     // A new seed each run, so the robot sees fresh fruit every time.
     const result = run(program, seed.current++)
-    await stage.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]))
+    await stage.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
+    if (token !== runToken.current) return
 
     const acc = Math.round((result.accuracy ?? 0) * 100)
     if (result.passed) {
       setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, 'winBody', { acc })}`, tone: 'good' }])
       stage.current?.celebrate()
-      setUnlocked(true)
-      setJustWon(true)
-      try {
-        localStorage.setItem(PROGRESS_KEY, 'level1')
-      } catch {
-        /* not critical */
-      }
+      if (milestones.isNew('classification')) await showCard('classification', 'status')
     } else if (result.accuracy !== null) {
       const smallTest = !result.events.some((e) => e.kind === 'test' && e.results.length >= 10)
       setLog((l) => [...l, { text: smallTest ? t(lang, 'tryAgainSmallTest') : t(lang, 'tryAgainLow', { acc }), tone: 'bad' }])
@@ -78,6 +129,9 @@ export default function App() {
   }
 
   const handleReset = () => {
+    // Closing an open card lets the paused run finish; reset then stops it.
+    runToken.current++
+    openCard?.close()
     stage.current?.reset()
     setLog([])
     setRunning(false)
@@ -154,7 +208,11 @@ export default function App() {
         {/* Stage, mission and log */}
         <section className="flex min-w-0 flex-col gap-4">
           <div className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
-            <Stage lang={lang} ref={stage} />
+            <Stage lang={lang} ref={stage}>
+              {openCard && (
+                <TermPopup card={openCard.card} focus={openCard.focus} vars={openCard.vars} lang={lang} onClose={openCard.close} />
+              )}
+            </Stage>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -193,17 +251,16 @@ export default function App() {
       <section className="border-t-2 border-ink bg-parchment px-4 py-6 sm:px-6" aria-labelledby="cards-title">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="cards-title" className="font-display text-lg font-bold">
-            {t(lang, 'cards')} <span className="font-pixel text-xl text-maroon">{unlocked ? LEVEL1_CARDS.length : 0}/{LEVEL1_CARDS.length}</span>
+            {t(lang, 'cards')} <span className="font-pixel text-xl text-maroon">{found.size}/{LEVEL1_CARDS.length}</span>
           </h2>
-          {!unlocked && <p className="text-xs font-semibold text-ink/70">{t(lang, 'unlockHint')}</p>}
+          {found.size < LEVEL1_CARDS.length && <p className="text-xs font-semibold text-ink/70">{t(lang, 'unlockHint')}</p>}
         </div>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {LEVEL1_CARDS.map((card, i) =>
-            unlocked ? (
+          {LEVEL1_CARDS.map((card) =>
+            found.has(card.id) ? (
               <li
                 key={card.term}
-                className={`pixel-shadow rounded-lg border-2 border-ink bg-white p-3 ${justWon ? 'card-in' : ''}`}
-                style={justWon ? { animationDelay: `${i * 90}ms` } : undefined}
+                className={`pixel-shadow rounded-lg border-2 border-ink bg-white p-3 ${fresh === card.id ? 'card-in ring-4 ring-amber' : ''}`}
               >
                 <div className="text-2xl" aria-hidden="true">{card.icon}</div>
                 <div className="mt-1 font-pixel text-xl leading-none text-tosca">{card.term}</div>

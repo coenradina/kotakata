@@ -38,7 +38,13 @@ const dict = {
   log: { id: 'Log', en: 'Log' },
   cards: { id: 'Kartu istilah', en: 'Term cards' },
   locked: { id: 'Terkunci', en: 'Locked' },
-  unlockHint: { id: 'Selesaikan misi untuk membuka kartu.', en: 'Finish the mission to unlock cards.' },
+  unlockHint: {
+    id: 'Kartu terbuka saat kamu menemukan istilahnya di dalam game.',
+    en: 'Cards unlock as you meet each term in the game.',
+  },
+  newTerm: { id: 'ISTILAH BARU', en: 'NEW TERM' },
+  gotIt: { id: 'Lanjut ▶', en: 'Got it ▶' },
+  whatItMeans: { id: 'Artinya', en: 'What it means' },
   smallScreen: {
     id: 'Kotakata paling enak dimainkan di laptop atau tablet.',
     en: 'Kotakata plays best on a laptop or tablet.',
@@ -85,8 +91,8 @@ const dict = {
   },
   winTitle: { id: 'Misi selesai!', en: 'Mission complete!' },
   winBody: {
-    id: 'Robotmu mencapai accuracy {acc}%. Kartu istilah baru terbuka.',
-    en: 'Your robot reached {acc}% accuracy. New term cards unlocked.',
+    id: 'Robotmu mencapai accuracy {acc}%.',
+    en: 'Your robot reached {acc}% accuracy.',
   },
   tryAgainLow: {
     id: 'Accuracy {acc}%. Belum 90%. Coba tambah data atau ronde training.',
@@ -104,60 +110,95 @@ export function t(lang: Lang, key: Key, vars: Record<string, string | number> = 
   return dict[key][lang].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`))
 }
 
-// Term cards. `term` is always English.
+// Term cards. `term` is always English. `moment` is shown in the game the
+// first time the player meets the term, filled in with numbers from their run.
+export type CardId = 'dataset' | 'label' | 'training' | 'testing' | 'accuracy' | 'classification'
+
 export interface TermCard {
+  id: CardId
   term: string
   icon: string
   body: Record<Lang, string>
+  moment: Record<Lang, string>
 }
 
 export const LEVEL1_CARDS: TermCard[] = [
   {
+    id: 'dataset',
     term: 'Dataset',
     icon: '🗃️',
     body: {
       id: 'Kumpulan contoh yang dipakai AI untuk belajar. Makin beragam, makin baik.',
       en: 'The collection of examples an AI learns from. More variety is better.',
     },
+    moment: {
+      id: 'Ini dataset-mu: {n} contoh yang akan dipelajari robot. Tiap titik di Otak Robot adalah satu buah, diletakkan menurut warna dan bentuknya.',
+      en: 'This is your dataset: {n} examples the robot will learn from. Each dot in the Robot Brain is one fruit, placed by its colour and shape.',
+    },
   },
   {
+    id: 'label',
     term: 'Label',
     icon: '🏷️',
     body: {
       id: 'Jawaban yang benar untuk tiap contoh, misalnya "apple" atau "banana".',
       en: 'The correct answer attached to each example, like "apple" or "banana".',
     },
+    moment: {
+      id: 'Warna tiap titik adalah label-nya: jawaban benar yang kamu berikan. Merah = apple, kuning = banana. Tanpa label, robot tidak tahu apa yang harus dipelajari.',
+      en: "Each dot's colour is its label: the right answer you gave it. Red = apple, yellow = banana. Without labels, the robot wouldn't know what to learn.",
+    },
   },
   {
+    id: 'training',
     term: 'Training',
     icon: '🏋️',
     body: {
       id: 'Proses AI menyesuaikan dirinya berulang kali sampai tebakannya cocok dengan label.',
       en: 'The AI adjusting itself, round after round, until its guesses match the labels.',
     },
+    moment: {
+      id: 'Dua penanda ini adalah tebakan robot tentang "apel itu seperti apa" dan "pisang itu seperti apa". Awalnya tertukar! Tiap ronde training, penanda bergeser ke tengah contohnya. Warna latar menunjukkan apa yang akan ditebak robot di tiap area.',
+      en: 'These two markers are the robot\'s idea of "what an apple looks like" and "what a banana looks like". They start swapped! Each training round moves them towards the middle of their examples. The shading shows what the robot would guess in each area.',
+    },
   },
   {
+    id: 'testing',
     term: 'Testing',
     icon: '🧪',
     body: {
       id: 'Memeriksa AI dengan contoh baru yang belum pernah ia lihat.',
       en: "Checking the AI on new examples it hasn't seen before.",
     },
+    moment: {
+      id: 'Buah-buah ini baru, belum pernah dilihat robot. Kalau robot cuma menghafal contoh, ia akan gagal di sini. Testing adalah cara jujur untuk tahu apakah ia benar-benar belajar.',
+      en: "These fruits are new: the robot has never seen them. A robot that only memorised its examples would fail here. Testing is the honest way to find out whether it really learned.",
+    },
   },
   {
+    id: 'accuracy',
     term: 'Accuracy',
     icon: '🎯',
     body: {
       id: 'Persentase tebakan yang benar saat testing. 18 dari 20 benar = 90%.',
       en: 'The share of correct guesses during testing. 18 out of 20 right = 90%.',
     },
+    moment: {
+      id: 'Robot menebak {correct} dari {total} buah dengan benar. Itu artinya accuracy-nya {acc}%. Misi ini butuh minimal 90%.',
+      en: 'The robot got {correct} out of {total} fruits right. That makes its accuracy {acc}%. This mission needs at least 90%.',
+    },
   },
   {
+    id: 'classification',
     term: 'Classification',
     icon: '🗂️',
     body: {
       id: 'Tugas AI memasukkan sesuatu ke salah satu kelompok, seperti apel atau pisang.',
       en: 'An AI task that puts each item into one group, like apple or banana.',
+    },
+    moment: {
+      id: 'Yang barusan kamu ajarkan namanya classification: memasukkan tiap benda ke satu kelompok. Filter spam email dan aplikasi pengenal tanaman juga bekerja dengan cara ini.',
+      en: 'What you just taught is called classification: putting each item into one group. Email spam filters and plant-ID apps work the same way.',
     },
   },
 ]

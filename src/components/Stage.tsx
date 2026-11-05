@@ -1,23 +1,23 @@
-import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
+import { useEffect, useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import * as Phaser from 'phaser'
-import { HEIGHT, TrainScene, WIDTH, type LogFn } from '../game/TrainScene'
+import { HEIGHT, TrainScene, WIDTH, type LogFn, type Milestones } from '../game/TrainScene'
 import type { Lang } from '../i18n'
 import type { Event } from '../levels/train/model'
 
 export interface StageHandle {
-  play: (events: Event[], log: LogFn) => Promise<void>
+  play: (events: Event[], log: LogFn, milestones?: Milestones) => Promise<void>
   reset: () => void
   celebrate: () => void
 }
 
-export default function Stage({ lang, ref }: { lang: Lang; ref: Ref<StageHandle> }) {
+export default function Stage({ lang, ref, children }: { lang: Lang; ref: Ref<StageHandle>; children?: ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
   const scene = useRef<TrainScene | null>(null)
 
   useImperativeHandle(
     ref,
     () => ({
-      play: (events, log) => scene.current?.play(events, log) ?? Promise.resolve(),
+      play: (events, log, milestones) => scene.current?.play(events, log, milestones) ?? Promise.resolve(),
       reset: () => scene.current?.reset(),
       celebrate: () => scene.current?.celebrate(),
     }),
@@ -61,5 +61,10 @@ export default function Stage({ lang, ref }: { lang: Lang; ref: Ref<StageHandle>
     scene.current?.setLang(lang)
   }, [lang])
 
-  return <div ref={host} className="aspect-[8/5] w-full overflow-hidden" />
+  return (
+    <div className="relative">
+      <div ref={host} className="aspect-[8/5] w-full overflow-hidden" />
+      {children}
+    </div>
+  )
 }
