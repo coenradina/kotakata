@@ -219,6 +219,32 @@ export default function App() {
     if (quizNow) window.setTimeout(openQuiz, 900)
   }
 
+  const [confirmStartOver, setConfirmStartOver] = useState(false)
+
+  /** Clears blocks, cards, stars and quiz history, so the level plays like the first time. */
+  const startOver = () => {
+    handleReset()
+    setQuiz(null)
+    setConfirmStartOver(false)
+    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY]) {
+      try {
+        localStorage.removeItem(key)
+      } catch {
+        /* not critical */
+      }
+    }
+    const none = new Set<CardId>()
+    foundRef.current = none
+    setFound(none)
+    setFresh(null)
+    setStars({})
+    lastRun.current = null
+    quizzedLastRun.current = false
+    hintStreak.current = { key: '', n: 0 }
+    // Loading the starter blocks also saves them over the old program.
+    editor.current?.resetToStarter()
+  }
+
   const handleReset = () => {
     // Closing an open card lets the paused run finish; reset then stops it.
     runToken.current++
@@ -254,6 +280,28 @@ export default function App() {
                 {l.toUpperCase()}
               </button>
             ))}
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setConfirmStartOver((v) => !v)}
+              aria-expanded={confirmStartOver}
+              className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold hover:bg-amber/30"
+            >
+              {t(lang, 'startOver')}
+            </button>
+            {confirmStartOver && (
+              <div role="alertdialog" aria-labelledby="start-over-text" className="card-in absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border-2 border-ink bg-white p-3 shadow-[4px_4px_0_#0F172A]">
+                <p id="start-over-text" className="font-sans text-xs leading-snug">{t(lang, 'startOverConfirm')}</p>
+                <div className="mt-3 flex justify-end gap-2">
+                  <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold">
+                    {t(lang, 'cancel')}
+                  </button>
+                  <button onClick={startOver} className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 text-xs font-bold text-white">
+                    {t(lang, 'startOverYes')}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <a href="https://aastr.id" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold hover:bg-amber/30">
             {t(lang, 'back')}
@@ -315,8 +363,12 @@ export default function App() {
             >
               {running ? t(lang, 'running') : t(lang, 'run')}
             </button>
-            <button onClick={handleReset} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2.5 text-sm font-bold">
-              {t(lang, 'reset')}
+            <button
+              onClick={handleReset}
+              title={running ? undefined : t(lang, 'clearTitle')}
+              className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2.5 text-sm font-bold"
+            >
+              {running ? t(lang, 'stop') : t(lang, 'clear')}
             </button>
             {found.size >= 2 && (
               <button

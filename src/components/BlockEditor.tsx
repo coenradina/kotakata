@@ -12,6 +12,18 @@ export interface BlockEditorHandle {
    * `reveal`, switches the panel to "All" first so palette blocks are visible.
    */
   locate: (target: HintTarget, reveal?: boolean) => DOMRect | null
+  /** Replaces the player's blocks with the starter program. */
+  resetToStarter: () => void
+}
+
+/** Shows every block: zooms out if the editor is narrow, never past normal size. */
+function fitToView(workspace: Blockly.WorkspaceSvg) {
+  Blockly.svgResize(workspace)
+  workspace.zoomToFit()
+  if (workspace.scale > 0.9) {
+    workspace.setScale(0.9)
+    workspace.scrollCenter()
+  }
 }
 
 const STORAGE_KEY = 'kotakata.level1.blocks'
@@ -65,6 +77,14 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
     () => ({
       program: () => (ws.current ? readProgram(ws.current) : null),
       locate: (target, reveal = false) => (ws.current ? locateIn(ws.current, target, reveal) : null),
+      resetToStarter: () => {
+        const workspace = ws.current
+        if (!workspace) return
+        workspace.clear()
+        Blockly.serialization.workspaces.load(STARTER, workspace)
+        workspace.getToolbox()?.selectItemByPosition(0)
+        requestAnimationFrame(() => fitToView(workspace))
+      },
     }),
     [],
   )
@@ -108,16 +128,7 @@ export default function BlockEditor({ lang, ref, onEdit }: Props) {
       }
     }
     workspace.addChangeListener(keepOpen)
-    // Start with every block in view: zoom out if the editor is narrow, but
-    // never zoom in past the normal size.
-    requestAnimationFrame(() => {
-      Blockly.svgResize(workspace)
-      workspace.zoomToFit()
-      if (workspace.scale > 0.9) {
-        workspace.setScale(0.9)
-        workspace.scrollCenter()
-      }
-    })
+    requestAnimationFrame(() => fitToView(workspace))
 
     const save = (e: Blockly.Events.Abstract) => {
       if (e.isUiEvent) return
