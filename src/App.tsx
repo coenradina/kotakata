@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import BlockEditor, { type BlockEditorHandle } from './components/BlockEditor'
 import Stage, { type StageHandle } from './components/Stage'
+import QuizModal from './components/QuizModal'
 import TermPopup from './components/TermPopup'
 import type { Focus, Milestones } from './game/TrainScene'
 import { LEVEL1_CARDS, initialLang, saveLang, t, type CardId, type Lang, type TermCard } from './i18n'
 import { run } from './levels/train/model'
+import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from './quiz/questions'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
@@ -38,6 +40,27 @@ function saveFound(found: Set<CardId>) {
   }
 }
 
+const STARS_KEY = 'kotakata.stars'
+const RECENT_KEY = 'kotakata.quizRecent'
+type Stars = Partial<Record<CardId, number>>
+
+function loadJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function saveJson(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    /* not critical */
+  }
+}
+
 interface OpenCard {
   card: TermCard
   focus: Focus
@@ -54,6 +77,11 @@ export default function App() {
   const [openCard, setOpenCard] = useState<OpenCard | null>(null)
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
   const foundRef = useRef(found)
+  const [stars, setStars] = useState<Stars>(() => loadJson<Stars>(STARS_KEY, {}))
+  const [quiz, setQuiz] = useState<Question | null>(null)
+  const lastRun = useRef<RunContext | null>(null)
+  const quizzedLastRun = useRef(false)
+  const showedNewCard = useRef(false)
   const editor = useRef<BlockEditorHandle>(null)
   const stage = useRef<StageHandle>(null)
   const seed = useRef(1)
@@ -79,6 +107,7 @@ export default function App() {
   const showCard = (id: CardId, focus: Focus, vars: Record<string, string | number> = {}) =>
     new Promise<void>((resolve) => {
       const card = LEVEL1_CARDS.find((c) => c.id === id)!
+      showedNewCard.current = true
       discover(id)
       setOpenCard({
         card,
@@ -96,6 +125,24 @@ export default function App() {
     show: showCard,
   }
 
+  const openQuiz = () => {
+    const recent = loadJson<string[]>(RECENT_KEY, [])
+    const q = pickQuestion(foundRef.current, stars, recent, lastRun.current, Math.random)
+    if (!q) return
+    saveJson(RECENT_KEY, [q.id, ...recent.filter((id) => id !== q.id)].slice(0, 6))
+    setQuiz(q)
+  }
+
+  const handleQuizAnswer = (correct: boolean) => {
+    if (!correct || !quiz) return
+    setStars((prev) => {
+      const next = { ...prev }
+      for (const id of quiz.terms) next[id] = Math.min(MAX_STARS, (next[id] ?? 0) + 1)
+      saveJson(STARS_KEY, next)
+      return next
+    })
+  }
+
   const switchLang = (next: Lang) => {
     setLang(next)
     saveLang(next)
@@ -111,10 +158,15 @@ export default function App() {
     setRunning(true)
     setLog([])
     const token = ++runToken.current
+    showedNewCard.current = false
     // A new seed each run, so the robot sees fresh fruit every time.
     const result = run(program, seed.current++)
     await stage.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
     if (token !== runToken.current) return
+    const lastTest = [...result.events].reverse().find((e) => e.kind === 'test')
+    if (lastTest?.kind === 'test') {
+      lastRun.current = { correct: lastTest.results.filter((r) => r.correct).length, total: lastTest.results.length }
+    }
 
     const acc = Math.round((result.accuracy ?? 0) * 100)
     if (result.passed) {
@@ -126,6 +178,16 @@ export default function App() {
       setLog((l) => [...l, { text: smallTest ? t(lang, 'tryAgainSmallTest') : t(lang, 'tryAgainLow', { acc }), tone: 'bad' }])
     }
     setRunning(false)
+
+    // Now and then, a quick question about terms the player already knows.
+    const quizNow = shouldQuiz({
+      foundCount: foundRef.current.size,
+      showedNewCard: showedNewCard.current,
+      quizzedLastRun: quizzedLastRun.current,
+      roll: Math.random(),
+    })
+    quizzedLastRun.current = quizNow
+    if (quizNow) window.setTimeout(openQuiz, 900)
   }
 
   const handleReset = () => {
@@ -226,6 +288,15 @@ export default function App() {
             <button onClick={handleReset} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2.5 text-sm font-bold">
               {t(lang, 'reset')}
             </button>
+            {found.size >= 2 && (
+              <button
+                onClick={openQuiz}
+                disabled={running}
+                className="pixel-btn ml-auto rounded border-2 border-ink bg-amber px-4 py-2.5 text-sm font-bold"
+              >
+                {t(lang, 'quizMe')}
+              </button>
+            )}
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
@@ -247,6 +318,17 @@ export default function App() {
         </section>
       </main>
 
+      {quiz && (
+        <QuizModal
+          key={quiz.id}
+          question={quiz}
+          lang={lang}
+          maxed={(id) => (stars[id] ?? 0) >= MAX_STARS}
+          onAnswer={handleQuizAnswer}
+          onClose={() => setQuiz(null)}
+        />
+      )}
+
       {/* Term cards */}
       <section className="border-t-2 border-ink bg-parchment px-4 py-6 sm:px-6" aria-labelledby="cards-title">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -263,7 +345,20 @@ export default function App() {
                 className={`pixel-shadow rounded-lg border-2 border-ink bg-white p-3 ${fresh === card.id ? 'card-in ring-4 ring-amber' : ''}`}
               >
                 <div className="text-2xl" aria-hidden="true">{card.icon}</div>
-                <div className="mt-1 font-pixel text-xl leading-none text-tosca">{card.term}</div>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="font-pixel text-xl leading-none text-tosca">{card.term}</span>
+                  <span
+                    className="whitespace-nowrap text-base leading-none"
+                    role="img"
+                    aria-label={t(lang, 'starsLabel', { n: stars[card.id] ?? 0 })}
+                  >
+                    {Array.from({ length: MAX_STARS }, (_, i) => (
+                      <span key={i} className={i < (stars[card.id] ?? 0) ? 'text-gold' : 'text-ink/15'}>
+                        ★
+                      </span>
+                    ))}
+                  </span>
+                </div>
                 <p className="mt-1.5 font-sans text-xs leading-snug text-ink/80">{card.body[lang]}</p>
               </li>
             ) : (

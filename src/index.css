@@ -31,6 +31,8 @@ body {
 .pixel-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-ink); }
 .pixel-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-ink); }
 .pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
+/* Quiz options stay readable after answering: the colours carry the result. */
+.pixel-btn:disabled[data-revealed] { opacity: 1; cursor: default; }
 
 canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 
