@@ -33,3 +33,7 @@ pnpm build
 ```
 
 Every push to `main` builds and deploys to GitHub Pages.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Blockly media in `public/blockly-media` is Apache-2.0, see its `LICENSE.txt`.
