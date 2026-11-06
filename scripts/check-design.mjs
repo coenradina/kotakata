@@ -90,7 +90,9 @@ for (const path of walk(join(ROOT, 'src'))) {
     }
   }
   if (ext === '.css') {
-    for (const m of text.matchAll(/font-family:\s*([^;]+);/g)) if (!m[1].startsWith('var(')) add(file, lineOf(text, m.index), `font-family ${m[1].trim()}; use var(--font-*)`)
+    // An @font-face block names a font rather than using one, so it is blanked out (keeping line numbers).
+    const uses = text.replace(/@font-face\s*\{[^}]*\}/g, (block) => block.replace(/[^\n]/g, ' '))
+    for (const m of uses.matchAll(/font-family:\s*([^;]+);/g)) if (!m[1].startsWith('var(')) add(file, lineOf(text, m.index), `font-family ${m[1].trim()}; use var(--font-*)`)
     continue
   }
   if (ext !== '.ts' && ext !== '.tsx') continue

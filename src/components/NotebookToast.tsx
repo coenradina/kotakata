@@ -42,7 +42,7 @@ export default function NotebookToast({ entry, lang, onOpenNotebook, onClose }: 
       <div className="flex items-start justify-between gap-2">
         <span className="type-micro text-maroon">📓 {t(lang, 'notebookNew')}</span>
         <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 type-subheading hover:text-maroon">
-          ×
+          ✕
         </button>
       </div>
       <p className="mt-1 flex items-center gap-2 type-pixel text-tosca-dark">

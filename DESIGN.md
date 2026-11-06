@@ -96,6 +96,23 @@ Rules:
   `text-icon-lg` (36px).
 - A role that grows at `sm` grows on its own. Do not add `sm:text-*`.
 
+## Icons
+
+Every emoji and UI symbol draws as pixel art from the `KK Icons` font, which
+sits first in every font stack. Write the plain character (`🎯`, `▶`, `✓`) in
+code and copy, and it renders as a pixel icon in React, Blockly and Phaser.
+
+- Content icons (cards, badges, sessions, scenes) are colour pixel art in the
+  palette. Interface glyphs (▶ ▸ ▾ ◀ ✓ ✗ ✕ ■ ★ ↺ ⟲ ⤢ ⬇ ⋯ « » ← ↗) are one
+  colour and take the text colour.
+- Use ✕ for close buttons. × stays a plain multiplication sign.
+- The art lives in `src/icons/art/*.json`: 12 rows per icon, one character per
+  pixel, colours from `src/icons/palette.json`. After changing it, run
+  `python3 scripts/build-icon-font.py` (needs `pip install fonttools brotli`)
+  and commit the font it writes.
+- `src/icons/icons.test.ts` fails when the code uses an emoji that has no
+  pixel icon yet.
+
 ## Spacing
 
 Padding, margin, gap and space classes use this scale only (Tailwind units,

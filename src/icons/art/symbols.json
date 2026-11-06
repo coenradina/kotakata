@@ -1,0 +1,410 @@
+{
+ "dice": {
+  "char": "🎲",
+  "rows": [
+   ".kkkkkkkkkk.",
+   "kwwwwwwwwwsk",
+   "kwkkwwwwwwsk",
+   "kwkkwwwwwwsk",
+   "kwwwwwwwwwsk",
+   "kwwwwkkwwwsk",
+   "kwwwwkkwwwsk",
+   "kwwwwwwwwwsk",
+   "kwwwwwwwkksk",
+   "kwwwwwwwkksk",
+   "kssssssssssk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "grad-cap": {
+  "char": "🎓",
+  "rows": [
+   ".....kk.....",
+   "...kkiikk...",
+   ".kkiiiiiikk.",
+   "ksiiiaaaaaak",
+   ".kkssiisskak",
+   "...kksskkkak",
+   "..kiiiiiikak",
+   "..kiiiiiikok",
+   "...kiiiikkok",
+   "....kkkk..k.",
+   "............",
+   "............"
+  ]
+ },
+ "party": {
+  "char": "🎉",
+  "rows": [
+   "..kk...kk...",
+   ".kPPk.kyykk.",
+   "..kk.k.kkttk",
+   "....kAkktkk.",
+   "...kaaAkkrrk",
+   "...kaaaAkkk.",
+   "..kaaaaoAkyk",
+   "..kmmaaokkyk",
+   ".kmmaokk..k.",
+   "kaaokk......",
+   "kokk........",
+   ".k.........."
+  ]
+ },
+ "finish-flag": {
+  "char": "🏁",
+  "rows": [
+   "kkkkkkkkkkkk",
+   "knkwwiiwwiik",
+   "knkwwiiwwiik",
+   "knkiiwwiiwwk",
+   "knkiiwwiiwwk",
+   "knkwwiiwwiik",
+   "knkwwiiwwiik",
+   "knkkkkkkkkkk",
+   "knk.........",
+   "knk.........",
+   "knk.........",
+   "kkk........."
+  ]
+ },
+ "medal": {
+  "char": "🏅",
+  "rows": [
+   ".kk......kk.",
+   "kmmk....kttk",
+   ".kmmk..kttk.",
+   "..kmmkkttk..",
+   "...kmMTtk...",
+   "...kooook...",
+   "..kowaaaok..",
+   "..kowaaaok..",
+   "..koaaaaok..",
+   "..koaaaook..",
+   "...kooook...",
+   "....kkkk...."
+  ]
+ },
+ "trophy": {
+  "char": "🏆",
+  "rows": [
+   "..kkkkkkkk..",
+   "kkkwaaaaokkk",
+   "k.kaaaaaok.k",
+   "k.kaaaaaok.k",
+   "kkkaaaaaokkk",
+   "..kaaaaook..",
+   "...kaaook...",
+   "....kaok....",
+   "....kaok....",
+   "...kkaokk...",
+   "..knnnnNNk..",
+   "..kkkkkkkk.."
+  ]
+ },
+ "bulb": {
+  "char": "💡",
+  "rows": [
+   "...kkkkkk...",
+   "..kyyyyyyk..",
+   ".kywwyyyyYk.",
+   ".kywyyyyyYk.",
+   ".kyyyyyyyYk.",
+   ".kyyyyyyyYk.",
+   "..kyyyyyYk..",
+   "...kyyyYk...",
+   "...kssssk...",
+   "...kkkkkk...",
+   "...kssssk...",
+   "....kkkk...."
+  ]
+ },
+ "hundred": {
+  "char": "💯",
+  "rows": [
+   "..k.kkk.kkk.",
+   ".krkrrrkrrrk",
+   "krrkrkrkrkrk",
+   ".krkrkrkrkrk",
+   ".krkrkrkrkrk",
+   ".krkrkrkrkrk",
+   "krrkrrrkrrrk",
+   ".kkkkkkkkkk.",
+   "krrrrrrrrrrk",
+   ".kkkkkkkkkk.",
+   "krrrrrrrrrrk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "chart": {
+  "char": "📊",
+  "rows": [
+   "......kkkk",
+   "......kwok",
+   "......kaok",
+   "...kkkkaok",
+   "...kwMkaok",
+   "...kmMkaok",
+   "kkkkmMkaok",
+   "kwTkmMkaok",
+   "ktTkmMkaok",
+   "ktTkmMkaok",
+   "kkkkkkkkkk",
+   ".........."
+  ]
+ },
+ "repeat": {
+  "char": "🔁",
+  "rows": [
+   ".kkkkkkkkkk.",
+   "kttttttwttTk",
+   "kttttttwwtTk",
+   "ktwwwwwwwwTk",
+   "ktwttttwwtTk",
+   "ktwttttwttTk",
+   "ktttwttttwTk",
+   "kttwwttttwTk",
+   "ktwwwwwwwwTk",
+   "kttwwtttttTk",
+   "kTTTwTTTTTTk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "search-left": {
+  "char": "🔍",
+  "rows": [
+   "...kkkk.....",
+   "..kssssk....",
+   ".kswlllsk...",
+   "kswlllllsk..",
+   "ksllllllsk..",
+   "ksllllllsk..",
+   "ksllllllsk..",
+   ".ksllllssk..",
+   "..ksssssNk..",
+   "...kkkknnNk.",
+   ".......knNk.",
+   "........kk.."
+  ]
+ },
+ "search-right": {
+  "char": "🔎",
+  "rows": [
+   ".....kkkk...",
+   "....kssssk..",
+   "...kslllwsk.",
+   "..kslllllwsk",
+   "..ksllllllsk",
+   "..ksllllllsk",
+   "..ksllllllsk",
+   "..kssllllsk.",
+   "..kNsssssk..",
+   ".kNnnkkkk...",
+   ".kNnk.......",
+   "..kk........"
+  ]
+ },
+ "crystal-ball": {
+  "char": "🔮",
+  "rows": [
+   "....kkkk....",
+   "..kkllllkk..",
+   ".klwwlllllk.",
+   ".klwlllllltk",
+   "kllllllllltk",
+   "kllllllllttk",
+   ".kllllllttk.",
+   "..kttttttk..",
+   ".knnnnnnnnk.",
+   "knnnnnnnnNNk",
+   "kNNNNNNNNNNk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "diamond-amber": {
+  "char": "🔶",
+  "rows": [
+   ".....kk.....",
+   "....kaak....",
+   "...kawaok...",
+   "..kawaaaok..",
+   ".kaaaaaaaok.",
+   "kaaaaaaaaaok",
+   "kaaaaaaaaook",
+   ".kaaaaaaook.",
+   "..kaaaaook..",
+   "...kaaook...",
+   "....kook....",
+   ".....kk....."
+  ]
+ },
+ "diamond-tosca": {
+  "char": "🔷",
+  "rows": [
+   ".....kk.....",
+   "....kttk....",
+   "...ktwtTk...",
+   "..ktwtttTk..",
+   ".ktttttttTk.",
+   "ktttttttttTk",
+   "kttttttttTTk",
+   ".kttttttTTk.",
+   "..kttttTTk..",
+   "...kttTTk...",
+   "....kTTk....",
+   ".....kk....."
+  ]
+ },
+ "square-tosca": {
+  "char": "🟦",
+  "rows": [
+   "............",
+   ".kkkkkkkkkk.",
+   ".kwwtttttTk.",
+   ".kwttttttTk.",
+   ".ktttttttTk.",
+   ".ktttttttTk.",
+   ".ktttttttTk.",
+   ".ktttttttTk.",
+   ".ktttttttTk.",
+   ".kTTTTTTTTk.",
+   ".kkkkkkkkkk.",
+   "............"
+  ]
+ },
+ "shield": {
+  "char": "🛡",
+  "rows": [
+   ".kkkkkkkkkk.",
+   "ktttttTTTTTk",
+   "ktwttttTTTTk",
+   "ktttttTTTTTk",
+   "ktttttTTTTTk",
+   "ktttttTTTTTk",
+   "ktttttTTTTTk",
+   ".kttttTTTTk.",
+   "..ktttTTTk..",
+   "...kttTTk...",
+   "....ktTk....",
+   ".....kk....."
+  ]
+ },
+ "siren": {
+  "char": "🚨",
+  "rows": [
+   "....kkkk....",
+   "...krrrrk...",
+   "..krwrrrRk..",
+   ".krwryyrRRk.",
+   ".krrryyrRRk.",
+   ".krrryyrRRk.",
+   ".krrryyrRRk.",
+   ".krrrrrrRRk.",
+   "kssssssssiik",
+   "kiiiiiiiiiik",
+   ".kkkkkkkkkk.",
+   "............"
+  ]
+ },
+ "brain": {
+  "char": "🧠",
+  "rows": [
+   "..kkk.kkk..",
+   ".kPPPkPPPk.",
+   "kPwPPkPPPmk",
+   "kPMMPkPMMmk",
+   "kPPPPkPPPmk",
+   "kPPMMkMMPmk",
+   "kPPPPkPPPmk",
+   "kMMPPkPPMMk",
+   "kPPPPkPPPmk",
+   ".kmmmkmmmk.",
+   "..kkk.kkk..",
+   "..........."
+  ]
+ },
+ "test-tube": {
+  "char": "🧪",
+  "rows": [
+   "......ksskk.",
+   ".....kkwsskk",
+   "....kkwwwssk",
+   "...kkwwwsssk",
+   "..kkggwsskkk",
+   ".kkgggGskk..",
+   "kkgggGGkk...",
+   "kgggGGkk....",
+   "kggGGkk.....",
+   "kgGGkk......",
+   "kkkkk.......",
+   "............"
+  ]
+ },
+ "scales": {
+  "char": "⚖",
+  "rows": [
+   ".....kk.....",
+   "kkkkkaakkkkk",
+   "kwaaaaaaaaok",
+   "kkkkkaokkkkk",
+   ".kk.kaok.kk.",
+   "k..kkaokk..k",
+   "kaakkaokkaak",
+   "kookkaokkook",
+   ".kk.kaok.kk.",
+   "...kkaokk...",
+   "..kaaaaaok..",
+   "..kkkkkkkk.."
+  ]
+ },
+ "gear": {
+  "char": "⚙",
+  "rows": [
+   ".....kk.....",
+   "..kkksskkk..",
+   ".kssksskssk.",
+   ".kssssssssk.",
+   ".kksssssskk.",
+   "ksssskkssssk",
+   "ksssskkssssk",
+   ".kksssssskk.",
+   ".kssssssssk.",
+   ".kssksskssk.",
+   "..kkksskkk..",
+   ".....kk....."
+  ]
+ },
+ "question": {
+  "char": "❓",
+  "rows": [
+   "..kkkkkk..",
+   ".krrrrrrk.",
+   "krwrrrrrRk",
+   "krRkkkrRRk",
+   ".kk..krRRk",
+   "....krrRk.",
+   "...krrRk..",
+   "...krRk...",
+   "....kk....",
+   "...krRk...",
+   "...kRRk...",
+   "....kk...."
+  ]
+ },
+ "stopwatch": {
+  "char": "⏱",
+  "rows": [
+   "....kkkk....",
+   "...kssssk...",
+   "...kksskk...",
+   "..kssssssk..",
+   ".kswwwkwwsk.",
+   "kswwwwkwwwsk",
+   "kswwwwkwwwsk",
+   "kswwwwwwwwsk",
+   "kswwwwwwwwsk",
+   ".kswwwwwwsk.",
+   "..kssssssk..",
+   "...kkkkkk..."
+  ]
+ }
+}

@@ -5,6 +5,9 @@ import type { Lang } from '../i18n'
 import type { Session } from '../levels'
 import { css } from '../theme'
 
+/** Any character in the icon font's range makes the browser fetch it. */
+const ICON_SAMPLE = '🎯'
+
 export interface StageHandle {
   play: (events: unknown[], log: LogFn, milestones?: Milestones) => Promise<void>
   reset: () => void
@@ -36,8 +39,8 @@ export default function Stage({ lang, level, ref, children }: { lang: Lang; leve
     if (!host.current) return
     let game: Phaser.Game | null = null
     let cancelled = false
-    // Phaser draws text on canvas, so the pixel font must be loaded first.
-    document.fonts.load('24px VT323').catch(() => undefined).finally(() => {
+    // Phaser draws text on canvas, so the pixel font and the icon font must be loaded first.
+    Promise.all([document.fonts.load('24px VT323'), document.fonts.load("24px 'KK Icons'", ICON_SAMPLE)]).catch(() => undefined).finally(() => {
       if (cancelled || !host.current) return
       const s = level.createScene()
       scene.current = s

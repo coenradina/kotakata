@@ -10,7 +10,7 @@ interface Props {
 
 /**
  * A panel that slides up from the bottom of a phone screen. Close it with
- * the × button, a tap on the dimmed page, Esc, or by dragging the handle down.
+ * the ✕ button, a tap on the dimmed page, Esc, or by dragging the handle down.
  */
 export default function BottomSheet({ lang, title, onClose, children }: Props) {
   const panel = useRef<HTMLDivElement>(null)
@@ -78,7 +78,7 @@ export default function BottomSheet({ lang, title, onClose, children }: Props) {
         <div className="mb-2 flex items-center justify-between gap-2">
           <h2 className="type-eyebrow text-maroon">{title}</h2>
           <button onClick={onClose} aria-label={t(lang, 'sheetClose')} className="-mr-2 px-3 py-1 type-subheading hover:text-maroon">
-            ×
+            ✕
           </button>
         </div>
         {children}

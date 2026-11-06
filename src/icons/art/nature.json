@@ -1,0 +1,393 @@
+{
+ "rainbow": {
+  "char": "🌈",
+  "rows": [
+   "............",
+   "...kkkkkk...",
+   ".kkrrrrrrkk.",
+   "krrryyyyrrrk",
+   "kryyttttyyrk",
+   "krytkkkktyrk",
+   "krytk..ktyrk",
+   "krytk..ktyrk",
+   "krytk..ktyrk",
+   "kRYTk..kTYRk",
+   "kkkkk..kkkkk",
+   "............"
+  ]
+ },
+ "moon": {
+  "char": "🌙",
+  "rows": [
+   "....kkkkkk",
+   "..kkkyyyyk",
+   ".kkyyyykkk",
+   "kkywyykk..",
+   "kyyyykk...",
+   "kyyykk....",
+   "kyyykk....",
+   "kyyyykk...",
+   "kkyyyYkk..",
+   ".kkyyYYkkk",
+   "..kkkYYYYk",
+   "....kkkkkk"
+  ]
+ },
+ "thermometer": {
+  "char": "🌡",
+  "rows": [
+   "...kkkk...",
+   "..kkwskk..",
+   "..kwrrsk..",
+   "..kwrrsk..",
+   "..kwrrsk..",
+   "..kwrrsk..",
+   ".kkwrrskk.",
+   "kkrrrrrrkk",
+   "krwrrrrrRk",
+   "krrrrrrrRk",
+   "kkRRRRRRkk",
+   ".kkkkkkkk."
+  ]
+ },
+ "fog": {
+  "char": "🌫",
+  "rows": [
+   "............",
+   "kkkkkkkkkk..",
+   "kwwwwwwwwk..",
+   "kssssssssk..",
+   "kkkkkkkkkkkk",
+   "..kwwwwwwwwk",
+   "..kssssssssk",
+   "kkkkkkkkkkkk",
+   "kwwwwwwwwk..",
+   "kssssssssk..",
+   "kkkkkkkkkk..",
+   "............"
+  ]
+ },
+ "seedling": {
+  "char": "🌱",
+  "rows": [
+   "............",
+   "kkkkk..kkkkk",
+   "kgggkkkkgggk",
+   "kgwggkkgggGk",
+   "kkggggkggGGk",
+   ".kkGGGgGGGkk",
+   "..kkkgGkkkk.",
+   "....kgGk....",
+   ".kkkkgGkkkk.",
+   ".knnnnnnnnk.",
+   ".kNNNNNNNNk.",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "tree": {
+  "char": "🌳",
+  "rows": [
+   "..kkkkkkkk..",
+   ".kkggggggkk.",
+   "kkgwggggggkk",
+   "kgwggggggGgk",
+   "kggggggggGgk",
+   "kggggggggGGk",
+   "kkgggggggGkk",
+   ".kkGGGGGGkk.",
+   "..kkknNkkk..",
+   "...kknNkk...",
+   "...knnNNk...",
+   "...kkkkkk..."
+  ]
+ },
+ "leaf": {
+  "char": "🍃",
+  "rows": [
+   "........kkk.",
+   "......kkgggk",
+   ".....kgggggk",
+   "....kgwgggGk",
+   "...kgggggkGk",
+   "..kggggkgGGk",
+   "..kgggkggGk.",
+   "..kggkgGGk..",
+   "..kgkGGGk...",
+   ".kGGkkkk....",
+   "kGGk........",
+   ".kk........."
+  ]
+ },
+ "banana": {
+  "char": "🍌",
+  "rows": [
+   "..........kk",
+   ".........kYk",
+   "........kyyk",
+   "kk......kyyk",
+   "kyk....kyyyk",
+   "kyykkkkyyyyk",
+   "kyyyyyyyyyk.",
+   ".kwyyyyyyyk.",
+   ".kYyyyyyyk..",
+   "..kYYYYYk...",
+   "...kkkkk....",
+   "............"
+  ]
+ },
+ "apple": {
+  "char": "🍎",
+  "rows": [
+   ".....kkkkkk.",
+   ".....knkggk.",
+   ".kkkkknggkk.",
+   "kkrrrrnrrrkk",
+   "krwrrrrrrrrk",
+   "krwrrrrrrrrk",
+   "krrrrrrrrrrk",
+   "krrrrrrrrRrk",
+   "krrrrrrrrRRk",
+   "kkrrrrrrRRkk",
+   ".kkRRRRRRkk.",
+   "..kkkkkkkk.."
+  ]
+ },
+ "mountain": {
+  "char": "⛰",
+  "rows": [
+   "....kkkk....",
+   "...kkwwk....",
+   "...kwwwkk...",
+   "..kkwwswkk..",
+   "..kwswssik..",
+   ".kksssssikk.",
+   ".kssssssiik.",
+   "kksssssssikk",
+   "kssssssssiik",
+   "ksssssssssik",
+   "kiiiiiiiiiik",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "house": {
+  "char": "🏠",
+  "rows": [
+   "....kkkk....",
+   "...kkmmkk...",
+   "..kkmmmmkk..",
+   ".kkmmmmmmkk.",
+   "kkmmmmmmmmkk",
+   "kMMMMMMMMMMk",
+   "kkccccccppkk",
+   ".kcnnccttpk.",
+   ".kcnnccttpk.",
+   ".kcnNccccpk.",
+   ".kcnNpppppk.",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "house-garden": {
+  "char": "🏡",
+  "rows": [
+   "............",
+   "..kkkk......",
+   ".kkmmkkkkkk.",
+   "kkmmmmkkggkk",
+   "kmmmmmmggggk",
+   "MMMMMMMMggGg",
+   "kcccccpgggGg",
+   "kcnnctpGgGGk",
+   "kcnncppGnGkk",
+   "kcnNpppknkkk",
+   "gggggggggggg",
+   "GGGGGGGGGGGG"
+  ]
+ },
+ "school": {
+  "char": "🏫",
+  "rows": [
+   "...kkkkkk...",
+   "...kmwwmk...",
+   "...kmwkMk...",
+   "kkkkmmmMkkkk",
+   "kmmmmmmmmmmk",
+   "kctctcctctpk",
+   "kctctcctctpk",
+   "kppppppppppk",
+   "kctctnntctpk",
+   "kctctnntctpk",
+   "kppppnnppppk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "door": {
+  "char": "🚪",
+  "rows": [
+   "kkkkkkkkkk",
+   "knnnnnnnNk",
+   "knNNnnNNNk",
+   "knNNnnNNNk",
+   "knNNnnNNNk",
+   "knnnnnnnNk",
+   "knnnnnaoNk",
+   "knNNnnNNNk",
+   "knNNnnNNNk",
+   "knNNnnNNNk",
+   "kNNNNNNNNk",
+   "kkkkkkkkkk"
+  ]
+ },
+ "fire": {
+  "char": "🔥",
+  "rows": [
+   "....kkk.....",
+   "...kkrk.kkk.",
+   "...krrkkkrk.",
+   "..kkrrrkrrk.",
+   ".kkrrrrrrrkk",
+   ".krrrarrrrrk",
+   "kkrraaarrrrk",
+   "krrraayarrrk",
+   "krraayyyarrk",
+   "krraayyyaRrk",
+   "kkRRaaaaRRkk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "lightning": {
+  "char": "⚡",
+  "rows": [
+   ".....kkkk.",
+   "....kaaaak",
+   "...kaaaak.",
+   "..kaaaakk.",
+   ".kaaaaaaak",
+   "..kkkaaok.",
+   "...kaaok..",
+   "..kaaok...",
+   ".kaaok....",
+   "kaokk.....",
+   "kok.......",
+   ".k........"
+  ]
+ },
+ "sparkles": {
+  "char": "✨",
+  "rows": [
+   ".........k..",
+   "........kak.",
+   "....k..kawak",
+   "...kak..kak.",
+   "...kak...k..",
+   ".kkawakk....",
+   "kaawwwaak...",
+   ".kkaaokk.k..",
+   "...kok..kak.",
+   "...kok.kaaok",
+   "....k...kok.",
+   ".........k.."
+  ]
+ },
+ "collision": {
+  "char": "💥",
+  "rows": [
+   "...kkk..kkk.",
+   "kkkkrkkkkrk.",
+   "krkkrrkkrrk.",
+   "krrrrarrrrkk",
+   "kkrraaaarrrk",
+   "krraayyyarkk",
+   "krraayyyarrk",
+   "kkrraayaarrk",
+   "krrrraaarrkk",
+   "kkrrkrrrkrrk",
+   ".krkkkrkkkrk",
+   ".kkk.kkk.kkk"
+  ]
+ },
+ "feather": {
+  "char": "🪶",
+  "rows": [
+   ".......kkk..",
+   "......ktttk.",
+   ".....kttttTk",
+   "....ktwtttTk",
+   "...ktttwtTk.",
+   "..ktttwttTk.",
+   ".kttkwttTk..",
+   ".kttwtTTk...",
+   ".ktwTTkk....",
+   ".kwkkk......",
+   "kwk.........",
+   ".k.........."
+  ]
+ },
+ "basketball": {
+  "char": "🏀",
+  "rows": [
+   "...........",
+   "..kkkkkkk..",
+   ".kkaakaakk.",
+   "kkwaakaaakk",
+   "kakaakaakak",
+   "kakaakaakak",
+   "kkkkkkkkkkk",
+   "kakaakaakak",
+   "kakaakaakok",
+   "kkaaakaaokk",
+   ".kkookokkk.",
+   "..kkkkkk..."
+  ]
+ },
+ "violin": {
+  "char": "🎻",
+  "rows": [
+   "........kkkk",
+   ".kkk...kkiik",
+   ".kckk.kkiikk",
+   ".kkckkkiikk.",
+   "..kkcknnink.",
+   ".kkknnssnNk.",
+   "kknnnscnNkk.",
+   "knnnssncNkk.",
+   "knnccnNkkckk",
+   "knnnnNkkkkck",
+   "kkNNNkk..kkk",
+   ".kkkkk......"
+  ]
+ },
+ "microphone": {
+  "char": "🎤",
+  "rows": [
+   ".kkkkkk.",
+   "kksssskk",
+   "kswssssk",
+   "kssssiik",
+   "kssssiik",
+   "kkiiiikk",
+   "kaaaaook",
+   "kkmmmMkk",
+   ".kmmmMk.",
+   ".kkmMkk.",
+   "..kmMk..",
+   "..kkkk.."
+  ]
+ },
+ "roller-coaster": {
+  "char": "🎢",
+  "rows": [
+   "............",
+   "............",
+   "kkkk.kkkk...",
+   "kwakkmmmmk..",
+   "kaokmMMMMmk.",
+   "kkkmMk..kMmk",
+   "..kmk.s..kmk",
+   ".kmMk.s..kmk",
+   ".kmk..s..kMk",
+   "kmMk..s..kMk",
+   "kMk...s..kMk",
+   "kkk...s..kkk"
+  ]
+ }
+}

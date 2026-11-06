@@ -1,0 +1,427 @@
+{
+ "person": {
+  "char": "🧑",
+  "rows": [
+   "...kkkkkk...",
+   "..knnnnnnk..",
+   ".knwnnnnnnk.",
+   ".knnnnnnnNk.",
+   ".knffffffNk.",
+   ".kffkffkffk.",
+   ".kffffffffk.",
+   "..kffffffk..",
+   "...kkffkk...",
+   ".kkttffttkk.",
+   "kttttttttTTk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "girl": {
+  "char": "👧",
+  "rows": [
+   "...kkkkkk...",
+   "..knnnnnnk..",
+   ".knwnnnnnnk.",
+   ".knnnnnnnNk.",
+   "kkkffffffkkk",
+   "knkfkffkfkNk",
+   "knkffffffkNk",
+   "kkkkffffkkkk",
+   "...kkffkk...",
+   "..kPPffPPk..",
+   ".kPPPPPPPmk.",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "man": {
+  "char": "👨",
+  "rows": [
+   "...kkkkkk...",
+   "..kiiiiiik..",
+   ".kiwiiiiiik.",
+   ".kiiiiiiiik.",
+   ".kiffffffik.",
+   ".kffkffkffk.",
+   ".kffffffffk.",
+   "..kfkkkkfk..",
+   "...kkffkk...",
+   ".kkaaffaakk.",
+   "kaaaaaaaaook",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "woman": {
+  "char": "👩",
+  "rows": [
+   "...kkkkkk...",
+   "..knnnnnnk..",
+   ".knwnnnnnnk.",
+   "knnnnnnnnnNk",
+   "knnffffffnNk",
+   "knffkffkffNk",
+   "knffffffffNk",
+   "knnffffffnNk",
+   "knNkkffkkNNk",
+   "kkkmmffmmkkk",
+   "kmmmmmmmmmMk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "police": {
+  "char": "👮",
+  "rows": [
+   "..kkkkkkkk..",
+   ".kwttaattTk.",
+   ".kttaaaatTk.",
+   "kkkkkkkkkkkk",
+   ".kffffffffk.",
+   ".kffkffkffk.",
+   ".kffffffffk.",
+   "..kffffffk..",
+   "...kkffkk...",
+   ".kkTTffTTkk.",
+   "kTTaTTTTTTTk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "raising-hand": {
+  "char": "🙋",
+  "rows": [
+   ".kkk........",
+   ".kffk.......",
+   ".kffkkkkkkk.",
+   "..kfkknnnnnk",
+   "..kfknwnnnNk",
+   "..kfknffffNk",
+   "..kfkfkffkfk",
+   "..kfkffffffk",
+   "..kfkkffffk.",
+   ".kttkkkffkk.",
+   "kttttttttTk.",
+   "kkkkkkkkkkk."
+  ]
+ },
+ "teacher": {
+  "char": "🧑‍🏫",
+  "rows": [
+   "....kkkk....",
+   "...knnnnk...",
+   "..kknnnnkk..",
+   ".knwnnnnnNk.",
+   "knnffffffnNk",
+   "kfkkkffkkkfk",
+   "kfkwkffkwkfk",
+   "kfkkkffkkkfk",
+   ".kkffffffkk.",
+   ".kkwkkkkwkk.",
+   "kmmmwkkwmmMk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "grinning": {
+  "char": "😀",
+  "rows": [
+   "...kkkkkk...",
+   ".kkaaaaaakk.",
+   ".kawaaaaaok.",
+   "kawaaaaaaaok",
+   "kaaakaakaaok",
+   "kaaakaakaaok",
+   "kaaaaaaaaaok",
+   "kaakkkkkkaok",
+   "kaakwwwwkaok",
+   ".kaakkkkaok.",
+   ".kkooooookk.",
+   "...kkkkkk..."
+  ]
+ },
+ "smiling": {
+  "char": "🙂",
+  "rows": [
+   "...kkkkkk...",
+   ".kkaaaaaakk.",
+   ".kawaaaaaok.",
+   "kawaaaaaaaok",
+   "kaaakaakaaok",
+   "kaaakaakaaok",
+   "kaaaaaaaaaok",
+   "kaakaaaakaok",
+   "kaaakkkkaaok",
+   ".kaaaaaaaok.",
+   ".kkooooookk.",
+   "...kkkkkk..."
+  ]
+ },
+ "worried": {
+  "char": "😟",
+  "rows": [
+   "...kkkkkk...",
+   ".kkaaaaaakk.",
+   ".kawkaakaok.",
+   "kawkaaaakaok",
+   "kaaakaakaaok",
+   "kaaakaakaaok",
+   "kaaaaaaaaaok",
+   "kaaaaaaaaaok",
+   "kaaakkkkaaok",
+   ".kakaaaakok.",
+   ".kkooooookk.",
+   "...kkkkkk..."
+  ]
+ },
+ "thinking": {
+  "char": "🤔",
+  "rows": [
+   "...kkkkkk...",
+   ".kkaaaaaakk.",
+   ".kawakkaaok.",
+   "kawaaaaakaok",
+   "kaaakaakaaok",
+   "kaaakaakaaok",
+   "kaaaaaaaaaok",
+   "kkkaakkkaaok",
+   "kaakaaaaaaok",
+   "kaaakaaaaok.",
+   "kaaaakoookk.",
+   "kkkkkkkkk..."
+  ]
+ },
+ "see-no-evil": {
+  "char": "🙈",
+  "rows": [
+   "...kkkkkk...",
+   "..knnnnnnk..",
+   ".knwnnnnnNk.",
+   "kknnnnnnnNkk",
+   "kckffkkffkck",
+   "kckffkkffkck",
+   "kkkffkkffkkk",
+   ".knkkkkkkNk.",
+   ".kncckkccNk.",
+   ".knccccccNk.",
+   "..kckkkkck..",
+   "...kkkkkk..."
+  ]
+ },
+ "eyes": {
+  "char": "👀",
+  "rows": [
+   "............",
+   "..kk....kk..",
+   ".kwwk..kwwk.",
+   "kwwwwkkwwwwk",
+   "kwkwwkkwkwwk",
+   "kwkkwkkwkkwk",
+   "kwkkwkkwkkwk",
+   "kwwwwkkwwwwk",
+   ".kppk..kppk.",
+   "..kk....kk..",
+   "............",
+   "............"
+  ]
+ },
+ "handshake": {
+  "char": "🤝",
+  "rows": [
+   "............",
+   "............",
+   "kkkk....kkkk",
+   "kttkkkkkkmMk",
+   "kttffffffkMk",
+   "kTTfffffkfMk",
+   "kkkkkffkffMk",
+   "...kfkkfffMk",
+   "...kfffffkkk",
+   "....kkkkkk..",
+   "............",
+   "............"
+  ]
+ },
+ "writing-hand": {
+  "char": "✍",
+  "rows": [
+   "..........kk",
+   ".........kPk",
+   "........kaok",
+   ".......kaok.",
+   "..kkkkkaok..",
+   ".kfffkaokk..",
+   "kffffkokffk.",
+   "kfffffffffk.",
+   "kffffffffk..",
+   "knkffffkk...",
+   "kNkkkkk.....",
+   "kk.........."
+  ]
+ },
+ "sneaker": {
+  "char": "👟",
+  "rows": [
+   "............",
+   "............",
+   "kkkk........",
+   "kttkk.......",
+   "kttwkk......",
+   "ktttwkkk....",
+   "kttttwkwkk..",
+   "kttttttttkk.",
+   "kttttttttTTk",
+   "kwwwwwwwwwwk",
+   "kssssssssssk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "boot": {
+  "char": "🥾",
+  "rows": [
+   "kkkkkkk.....",
+   "knnnnNk.....",
+   "knkknNk.....",
+   "knnnnNk.....",
+   "knkknNk.....",
+   "knnnnNkk....",
+   "knkknnnNkk..",
+   "knnnnnnnnNk.",
+   "knnnnnnnnNNk",
+   "kNNNNNNNNNNk",
+   "kkkkkkkkkkkk",
+   "............"
+  ]
+ },
+ "boxing-glove": {
+  "char": "🥊",
+  "rows": [
+   "...kkkkkk...",
+   "..krrrrrrk..",
+   ".krwrrrrrRk.",
+   ".krrrrrrrRk.",
+   "kkrrrrrrrRk.",
+   "krkrrrrrrRk.",
+   "krrkrrrrrRk.",
+   "kRrrrrrrrRk.",
+   ".kRRRRRRRk..",
+   ".kwwwwwwwk..",
+   ".ksssssssk..",
+   ".kkkkkkkkk.."
+  ]
+ },
+ "bee": {
+  "char": "🐝",
+  "rows": [
+   "............",
+   "..kkk.kkk...",
+   ".kwwwkwwwk..",
+   ".kwwwkwwwk..",
+   "..kkkkkkkk..",
+   ".kkyykkyyYk.",
+   "kkkyykkyyYkk",
+   "kwkyykkyyYkk",
+   "kkkyykkyyYk.",
+   ".kkYYkkYYk..",
+   "..kkkkkkk...",
+   "............"
+  ]
+ },
+ "bird": {
+  "char": "🐦",
+  "rows": [
+   "............",
+   "...kkkk.....",
+   "..kttttk....",
+   ".ktwktttk...",
+   "kkttttttk...",
+   "kaktttttTkk.",
+   ".kkttllltTTk",
+   "..ktlllllTk.",
+   "..kTlllllTk.",
+   "...kkTTTkk..",
+   "....kak.kak.",
+   "....kk..kk.."
+  ]
+ },
+ "frog": {
+  "char": "🐸",
+  "rows": [
+   ".kkk....kkk.",
+   "kwkwk..kwkwk",
+   "kwwwkkkkwwwk",
+   "kggggggggggk",
+   "kgggggggggGk",
+   "kgggggggggGk",
+   "kkgggggggkGk",
+   "kgkkkkkkkgGk",
+   "kgggggggggGk",
+   ".kGGGGGGGGk.",
+   "..kkkkkkkk..",
+   "............"
+  ]
+ },
+ "eagle": {
+  "char": "🦅",
+  "rows": [
+   "kk.kkkkkk.kk",
+   "knkwwwwwwknk",
+   "knkwkwwkwknk",
+   "knnkwaawknnk",
+   "kNnnkaaknnNk",
+   "kNNnnkknnNNk",
+   ".kNNnnnnNNk.",
+   "..kkNnnNkk..",
+   "...kNnnNk...",
+   "...kwwwwk...",
+   "..kwwwwwwk..",
+   "..kkkkkkkk.."
+  ]
+ },
+ "climber": {
+  "char": "🧗",
+  "rows": [
+   "......kkkkkk",
+   ".....kfkssik",
+   ".kkkkkfkssik",
+   "knnnnkfksssk",
+   "knfkfkfkssik",
+   "knfffktkssik",
+   ".kkkttTksssk",
+   "..kttTTkssik",
+   "..kTTTTkssik",
+   "..kTkkTTkssk",
+   "..kTk.kkksik",
+   "..kkk...kkkk"
+  ]
+ },
+ "skier": {
+  "char": "⛷",
+  "rows": [
+   "..kkk.......",
+   ".kmwmk......",
+   ".kfkfk......",
+   "kkttkkkk....",
+   "ktttttffk...",
+   "kTTkkTTkkk..",
+   "kkkk.kTk.k..",
+   "krrrkkkk.k..",
+   "kwwwrrrkkk..",
+   "kwwwwwwrrkk.",
+   "kssssssssskk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "weightlifter": {
+  "char": "🏋",
+  "rows": [
+   "kk........kk",
+   "kkkkkkkkkkkk",
+   "kkfkkkkkkfkk",
+   "kkfknnnnkfkk",
+   ".kfkfkkfkfk.",
+   ".kfkffffkfk.",
+   "..kkkffkkk..",
+   "..kttffttk..",
+   "..kttttttk..",
+   "..kTTkkTTk..",
+   ".kkTk..kTkk.",
+   ".kkkk..kkkk."
+  ]
+ }
+}

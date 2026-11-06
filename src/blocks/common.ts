@@ -37,7 +37,7 @@ export const theme = Blockly.Theme.defineTheme('kotakata', {
     insertionMarkerOpacity: 0.3,
     cursorColour: css('tosca'),
   },
-  fontStyle: { family: "'JetBrains Mono', monospace", weight: '700', size: 12 },
+  fontStyle: { family: "'KK Icons', 'JetBrains Mono', monospace", weight: '700', size: 12 },
   startHats: true,
 })
 

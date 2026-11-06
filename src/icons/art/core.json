@@ -1,0 +1,138 @@
+{
+ "target": {
+  "char": "🎯",
+  "rows": [
+   "...kkkkkk...",
+   ".kkmmmmmmkk.",
+   ".kmmwwwwmmk.",
+   "kmmwwwwwwmMk",
+   "kmwwwmmwwwMk",
+   "kmwwmmmmwwMk",
+   "kmwwmmmmwwMk",
+   "kmwwwmmwwwMk",
+   "kmmwwwwwwmMk",
+   ".kMmwwwwmMk.",
+   ".kkMMMMMMkk.",
+   "...kkkkkk..."
+  ]
+ },
+ "notebook": {
+  "char": "📓",
+  "rows": [
+   ".kkkkkkkkkk",
+   "kkmmmmmmmMk",
+   ".kmmmmmmmMk",
+   "kkmAAAAAmMk",
+   ".kmAAAAAmMk",
+   "kkmmmmmmmMk",
+   ".kmmmmmmmMk",
+   "kkmmmmmmmMk",
+   ".kmmmmmmmMk",
+   "kkmmmmmmmMk",
+   ".kMMMMMMMMk",
+   ".kkkkkkkkkk"
+  ]
+ },
+ "puzzle": {
+  "char": "🧩",
+  "rows": [
+   "....kkk.....",
+   "...kaaak....",
+   "...kaaak....",
+   "kkkkaaakkk..",
+   "kwaaaaaaak..",
+   "kaaaaaaaakk.",
+   "kaaaaaaaaaak",
+   "kaaaaaaaaaYk",
+   "kaaaaaaaakk.",
+   "kaaaaaaaYk..",
+   "kYYYYYYYYk..",
+   "kkkkkkkkkk.."
+  ]
+ },
+ "eye": {
+  "char": "👁",
+  "rows": [
+   "............",
+   "............",
+   "...kkkkkk...",
+   ".kkwwwwwwkk.",
+   "kwwwwttwwwwk",
+   "kwwwtkktwwwk",
+   "kwwwtkktwwwk",
+   "kwwwwttwwwwk",
+   ".kkwwwwwwkk.",
+   "...kkkkkk...",
+   "............",
+   "............"
+  ]
+ },
+ "star": {
+  "char": "⭐",
+  "rows": [
+   "............",
+   ".....kk.....",
+   "....kaak....",
+   "....kaak....",
+   "kkkkkaakkkkk",
+   "kawaaaaaaaok",
+   ".kaaaaaaaok.",
+   "..kaaaaaok..",
+   "..kaaaaaok..",
+   ".kaaaokaaok.",
+   ".kaok..kaok.",
+   ".kk.....kk.."
+  ]
+ },
+ "lock": {
+  "char": "🔒",
+  "rows": [
+   "............",
+   "...kkkkkk...",
+   "..kssssssk..",
+   "..ks....sk..",
+   "..ks....sk..",
+   ".kkkkkkkkkk.",
+   ".kawaaaaaok.",
+   ".kaaakkaaok.",
+   ".kaaakkaaok.",
+   ".kaaaakaaok.",
+   ".kooooooook.",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "speech": {
+  "char": "💬",
+  "rows": [
+   "............",
+   ".kkkkkkkkkk.",
+   "kwwwwwwwwwwk",
+   "kwwwwwwwwwwk",
+   "kwkkwkkwkkwk",
+   "kwkkwkkwkkwk",
+   "kwwwwwwwwwwk",
+   "kppppppppppk",
+   ".kkppkkkkkk.",
+   ".kpk........",
+   ".kk.........",
+   "............"
+  ]
+ },
+ "robot": {
+  "char": "🤖",
+  "rows": [
+   ".....kk.....",
+   ".....ka.....",
+   "..kkkkkkkk..",
+   ".kttttttttk.",
+   "kktkkkkkktkk",
+   "kktkwkkwktkk",
+   "kktkkkkkktkk",
+   ".ktkkaakktk.",
+   ".kttttttttk.",
+   ".kTTTTTTTTk.",
+   "..kkkkkkkk..",
+   "............"
+  ]
+ }
+}

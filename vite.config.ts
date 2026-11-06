@@ -15,7 +15,7 @@ function productionCsp(): Plugin {
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src https://fonts.gstatic.com",
+    "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob:",
     "connect-src 'self' data: blob:",
     "media-src 'self' data: blob:",

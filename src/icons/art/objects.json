@@ -1,0 +1,427 @@
+{
+ "book": {
+  "char": "📘",
+  "rows": [
+   ".kkkkkkkkkk",
+   "kTwttttttTk",
+   "kTttttttttk",
+   "kTtwwwwwtTk",
+   "kTtwwwwwtTk",
+   "kTttttttTTk",
+   "kTtttttttTk",
+   "kTtttttttTk",
+   "kTtttttttTk",
+   "kTTTTTTTTTk",
+   "kTkwwwwwwwk",
+   ".kkkkkkkkkk"
+  ]
+ },
+ "scroll": {
+  "char": "📜",
+  "rows": [
+   ".kkkkkkkkkk.",
+   "kwppppppppnk",
+   "knnnnnnnnnnk",
+   ".kkcccccckk.",
+   "..kckkkcpk..",
+   "..kcccccpk..",
+   "..kckkkcpk..",
+   "..kcccccpk..",
+   ".kkkkkkkkkk.",
+   "kwppppppppnk",
+   "knnnnnnnnnnk",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "memo": {
+  "char": "📝",
+  "rows": [
+   "kkkkkkkk.kk.",
+   "kwwwwwwkkPPk",
+   "kwkkkkwkssk.",
+   "kwwwwwkaok..",
+   "kwkkkkaok...",
+   "kwwwkaok....",
+   "kwkkffkk....",
+   "kwwkkwwk....",
+   "kwkkwwwk....",
+   "kwwwwwwk....",
+   "kcccccck....",
+   "kkkkkkkk...."
+  ]
+ },
+ "clipboard": {
+  "char": "📋",
+  "rows": [
+   "....kkkk....",
+   ".kkkswsskkk.",
+   ".knksssskNk.",
+   ".knkkkkkkNk.",
+   ".knwwwwwwNk.",
+   ".knwkkkkwNk.",
+   ".knwwwwwwNk.",
+   ".knwkkkkwNk.",
+   ".knwwwwwwNk.",
+   ".knwkkkwwNk.",
+   ".kNNNNNNNNk.",
+   ".kkkkkkkkkk."
+  ]
+ },
+ "card-index": {
+  "char": "📇",
+  "rows": [
+   "............",
+   "kkkkkkkkkkkk",
+   "kwmmmmmmmmMk",
+   "kkkkkkkkkkkk",
+   "kwwwwwwwwwck",
+   "kwkkkkkkkwck",
+   "kwwwwwwwwwck",
+   "kwkkkkkwwwck",
+   "kcccccccccck",
+   "kkkkkkkkkkkk",
+   "..ksk..ksk..",
+   "..kkk..kkk.."
+  ]
+ },
+ "dividers": {
+  "char": "🗂",
+  "rows": [
+   ".kkkkk......",
+   ".kwttkkkkkk.",
+   ".ktttkmmmmk.",
+   ".kTTTkMMMMk.",
+   "kkkkkkkkkkkk",
+   "kwaaaaaaaaok",
+   "kaaaaaaaaaok",
+   "kaaaaaaaaaok",
+   "kaaaaaaaaaok",
+   "kaaaaaaaaaok",
+   "kooooooooook",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "card-box": {
+  "char": "🗃",
+  "rows": [
+   "..kkkkkkk...",
+   "..kwwwwwkk..",
+   "..kwkkkwwk..",
+   "..kwwwwwwk..",
+   "kkkkkkkkkkkk",
+   "kwnnnnnnnnNk",
+   "knnkkkkkknNk",
+   "knnkccccknNk",
+   "knnkkkkkknNk",
+   "knnnnnnnnnNk",
+   "kNNNNNNNNNNk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "pushpin": {
+  "char": "📌",
+  "rows": [
+   "......kkkkk.",
+   ".....krrrrrk",
+   "....krwwrrRk",
+   "....krwrrRRk",
+   "...kkrrrRRRk",
+   "..krrkrRRRk.",
+   "...krrkkkk..",
+   "...ksrrk....",
+   "..ksskRRk...",
+   ".kssk.kk....",
+   "kssk........",
+   ".kk........."
+  ]
+ },
+ "ruler": {
+  "char": "📏",
+  "rows": [
+   ".........kak",
+   "........kkka",
+   ".......kaaao",
+   "......kkaaok",
+   ".....kaaaok.",
+   "....kkkaok..",
+   "...kaaaok...",
+   "..kkaaok....",
+   ".kaaaok.....",
+   "kkkaok......",
+   "aaaok.......",
+   "kaok........"
+  ]
+ },
+ "set-square": {
+  "char": "📐",
+  "rows": [
+   "k...........",
+   "kk..........",
+   "kwk.........",
+   "kaok........",
+   "kakok.......",
+   "kakkok......",
+   "kak.kok.....",
+   "kak..kok....",
+   "kak...kok...",
+   "kakkkkkkok..",
+   "koooooooook.",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "satellite": {
+  "char": "📡",
+  "rows": [
+   "...kkkkkk...",
+   "..kssssssk..",
+   ".ksswwssssk.",
+   ".kswssaassk.",
+   ".kisssaossk.",
+   ".kiissssssk.",
+   ".kiiisssssk.",
+   "..kiiisssk..",
+   "...kiiisk...",
+   "....kssk....",
+   "..ksssssik..",
+   "..kkkkkkkk.."
+  ]
+ },
+ "package": {
+  "char": "📦",
+  "rows": [
+   "...kkkkkkkkk",
+   "..kAAAccAAkk",
+   ".kAAAccAAkNk",
+   "kkkkkkkkkNNk",
+   "kwnnccnnkNNk",
+   "knnnccnnkNNk",
+   "knnnccnnkNNk",
+   "knnnccnnkNNk",
+   "knnnccnnkNNk",
+   "knnnccnnkNk.",
+   "kNNNccNNkk..",
+   "kkkkkkkkk..."
+  ]
+ },
+ "camera": {
+  "char": "📷",
+  "rows": [
+   "............",
+   ".kkk.kkkkk..",
+   "kaaokksssskk",
+   "kkkkkkkkkkkk",
+   "kwsskkkkssik",
+   "ksskkwtkksik",
+   "ksskttttksik",
+   "kssktttTksik",
+   "ksskktTkksik",
+   "kssskkkkssik",
+   "kiiiiiiiiiik",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "cassette": {
+  "char": "📼",
+  "rows": [
+   "............",
+   "kkkkkkkkkkkk",
+   "kwccccccccik",
+   "kcccccccccik",
+   "kkkkkkkkkkkk",
+   "kskkkkkkkksk",
+   "kskwwkkwwksk",
+   "kskwkkkkwksk",
+   "kskkkkkkkksk",
+   "ksssssssssik",
+   "kiiiiiiiiiik",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "printer": {
+  "char": "🖨",
+  "rows": [
+   "..kkkkkkkk..",
+   "..kwwwwwwk..",
+   "..kwkkkkwk..",
+   "kkkkkkkkkkkk",
+   "kwssssssssik",
+   "ksssssssgsik",
+   "ksssssssssik",
+   "kiiiiiiiiiik",
+   "kkkwwwwwwkkk",
+   "..kwkkkkwk..",
+   "..kwwwwwwk..",
+   "..kkkkkkkk.."
+  ]
+ },
+ "ballot-box": {
+  "char": "🗳",
+  "rows": [
+   "..kkkkkkkk..",
+   "..kwwwwwwk..",
+   "..kwwwwgwk..",
+   "..kwgwgwwk..",
+   "..kwwgwwwk..",
+   "kkkkkkkkkkkk",
+   "klllllllllTk",
+   "kkkkkkkkkkkk",
+   "ktttttttttTk",
+   "ktttwwwwttTk",
+   "kTTTTTTTTTTk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "tag": {
+  "char": "🏷",
+  "rows": [
+   ".kkkkk......",
+   "kyyyyyk.....",
+   "kyywyyyk....",
+   "kyykkyyyk...",
+   "kYykkyyyyk..",
+   "kYYyyyyyyyk.",
+   ".kYYyyyyyyyk",
+   "..kYYyyyyyYY",
+   "...kYYyyyYYk",
+   "....kYYyYYk.",
+   ".....kYYYk..",
+   "......kYk..."
+  ]
+ },
+ "placard": {
+  "char": "🪧",
+  "rows": [
+   "kkkkkkkkkkkk",
+   "kwccccccccck",
+   "kckkkkkkkcpk",
+   "kcccccccccpk",
+   "kckkkkkcccpk",
+   "kcccccccccpk",
+   "kppppppppppk",
+   "kkkkkkkkkkkk",
+   "....knNk....",
+   "....knNk....",
+   "....knNk....",
+   "....kkkk...."
+  ]
+ },
+ "pencil": {
+  "char": "✏",
+  "rows": [
+   "........kkk.",
+   ".......kPPPk",
+   "......kPPPk.",
+   ".....ksssk..",
+   "....kyaok...",
+   "...kyaok....",
+   "..kyaok.....",
+   ".kyaok......",
+   ".kffk.......",
+   ".kfk........",
+   ".kk.........",
+   "............"
+  ]
+ },
+ "scissors": {
+  "char": "✂",
+  "rows": [
+   "kkkk....kkkk",
+   ".kssk..kssk.",
+   "..ksskkssk..",
+   "...kssssk...",
+   "....kssk....",
+   "...kssssk...",
+   ".kkkkkkkkkk.",
+   "kmmmmkkmmmmk",
+   "kmkkmkkmkkmk",
+   "kmkkMkkmkkMk",
+   "kMMMMkkMMMMk",
+   ".kkkk..kkkk."
+  ]
+ },
+ "toolbox": {
+  "char": "🧰",
+  "rows": [
+   "..kkkkkkkk..",
+   "..kssssssk..",
+   "..kskkkksk..",
+   "kkkkkkkkkkkk",
+   "kwrrrrrrrrRk",
+   "krrrrrrrrrRk",
+   "kkkkkaakkkkk",
+   "krrrkookrrRk",
+   "krrrrkkrrrRk",
+   "krrrrrrrrrRk",
+   "kRRRRRRRRRRk",
+   "kkkkkkkkkkkk"
+  ]
+ },
+ "broom": {
+  "char": "🧹",
+  "rows": [
+   ".........kkk",
+   "........knnk",
+   ".......knnNk",
+   "......knnNk.",
+   ".....knnNk..",
+   "...kkmnNk...",
+   "kkkyymmk....",
+   "kyyyyyk.....",
+   "kyyyyYk.....",
+   ".kyyYk......",
+   "..kYYk......",
+   "...kkk......"
+  ]
+ },
+ "mirror": {
+  "char": "🪞",
+  "rows": [
+   "...kakkak...",
+   "..kakllkak..",
+   ".kakllllkak.",
+   "kaklwwlllkak",
+   "kaklwllllkak",
+   "kkllllllllkk",
+   "kkllllllllkk",
+   "kakllllllknk",
+   "kakllllllknk",
+   ".kakllllknk.",
+   "..kakllknk..",
+   "...knkknk..."
+  ]
+ },
+ "wand": {
+  "char": "🪄",
+  "rows": [
+   ".........k..",
+   "........kak.",
+   ".......kayak",
+   "......k.kak.",
+   ".....kwk.k..",
+   "....kwwwk...",
+   "...ksiwk....",
+   "..ksiik.....",
+   ".ksiik......",
+   "ksiik.......",
+   ".kik........",
+   "..k........."
+  ]
+ },
+ "sunglasses": {
+  "char": "🕶",
+  "rows": [
+   "............",
+   "k..........k",
+   "kkkkkkkkkkkk",
+   "kkkkkkkkkkkk",
+   "kwiiikkwiiik",
+   "kiiiikkiiiik",
+   "kiiiikkiiiik",
+   ".kiiikkiiik.",
+   "..kkk..kkk..",
+   "............",
+   "............",
+   "............"
+  ]
+ }
+}

@@ -27,9 +27,9 @@
 
   /* Type families and weights. Sizes come from the type-* roles below. */
   --font-*: initial;
-  --font-sans: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-pixel: 'VT323', ui-monospace, monospace;
+  --font-sans: 'KK Icons', 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'KK Icons', 'JetBrains Mono', ui-monospace, monospace;
+  --font-pixel: 'KK Icons', 'VT323', ui-monospace, monospace;
   --font-weight-*: initial;
   --font-weight-normal: 400;
   --font-weight-medium: 500;

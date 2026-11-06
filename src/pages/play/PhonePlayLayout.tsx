@@ -382,7 +382,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
                   aria-label={t(lang, 'sheetClose')}
                   className="absolute right-1 top-1 z-raised flex h-10 w-10 items-center justify-center rounded border-2 border-ink/50 bg-white/60 type-button"
                 >
-                  ×
+                  ✕
                 </button>
               ) : (
                 // Scene text is drawn for a 640px stage, too small to read at phone width, so the whole stage opens full screen.
@@ -458,7 +458,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
               </button>
             )}
             <button onClick={() => dismissPill(pill.id)} aria-label={t(lang, 'sheetClose')} className="shrink-0 px-1 type-label">
-              ×
+              ✕
             </button>
           </div>
         )}

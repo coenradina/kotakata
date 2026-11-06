@@ -41,7 +41,7 @@ export default function HintBubble({ hint, lang, locate, onClose, dockBottom, do
         <div className="flex items-start justify-between gap-2">
           <span className="type-pixel-sm">💡 {t(lang, 'hintTitle')}</span>
           <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 type-subheading hover:text-maroon">
-            ×
+            ✕
           </button>
         </div>
         <p className="mt-1 type-body font-bold">{t(lang, hint.textKey ?? (`hint_${hint.key}` as Key))}</p>
