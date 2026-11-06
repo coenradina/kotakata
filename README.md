@@ -2,7 +2,7 @@
 
 Kotakata is a pixel-art block-coding game for learning machine learning terms. You snap blocks together, press run, and watch a small robot learn. Each level you finish unlocks term cards that explain the words you just used.
 
-Play it at https://aastr.id/kotakata. The game is in Indonesian and English. Technical terms like *training*, *dataset* and *accuracy* stay in English in both, because those are the words learners will meet later.
+Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP classrooms is planned in [docs/plan](docs/plan/README.md). The game is in Indonesian and English. Technical terms like *training*, *dataset* and *accuracy* stay in English in both, because those are the words learners will meet later.
 
 ## Levels
 
@@ -22,6 +22,14 @@ Each level is split into small stages, each adding one new idea, plus an optiona
 
 Finishing a stage opens the next one. A strong program can clear several stages in one run. Badges (5 per level) reward small wins like a balanced dataset or a first working split. Stages and badges live in each level's `stages.ts`.
 
+In code a stage is a `Puzzle` and a level a `Session`, the names the plan uses. Each puzzle also has:
+
+- a **beat** (introduce, develop, twist or sandbox) and a first-run success target;
+- an optional **prediction**: RUN waits until the player guesses, and the first run afterwards shows the guess next to what happened;
+- a **hint ladder**: after one failed run, a question about the idea; after two, a pointer at the block to change; after four, the pointer plus part of a working program. Tests check that every example really passes its puzzle.
+
+New terms go into **Kata's notebook** (`/buku`), with the moment the player found them. They show briefly over the log and don't stop the run.
+
 ## How Level 1 works
 
 The robot is a real nearest-centroid classifier (`src/levels/train/model.ts`). Each fruit has two features, colour and shape. Training moves the robot's guess for each label halfway towards the average of its examples, once per round. The robot starts with its guesses swapped, so one round of training isn't enough. That's the lesson. The plot on the right shows the data, the moving centroids, and which label the robot would pick in each region.
@@ -40,7 +48,7 @@ The bard is a tiny language model learned from five tavern sentences (`src/level
 
 ## Adding a level
 
-Each level lives in `src/levels/<id>/`: a model with tests, its blocks, its hints, and an `index.ts` that implements the `Level` interface in `src/levels/types.ts`. Register it in `src/levels/index.ts`. Its Phaser scene implements `LevelScene` from `src/game/types.ts`.
+Each level lives in `src/levels/<id>/`: a model with tests, its blocks, its hints, and an `index.ts` that implements the `Session` interface in `src/levels/types.ts`. Register it in `src/levels/index.ts`. Its Phaser scene implements `SessionScene` from `src/game/types.ts`. Progress goes through the store in `src/store/`, never straight to `localStorage`.
 
 Blocks are always read as data (each level's `read` function) and never turned into code that runs.
 
