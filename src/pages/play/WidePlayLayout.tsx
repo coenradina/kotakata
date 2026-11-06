@@ -18,6 +18,9 @@ import Tour, { type TourStep } from '../../components/Tour'
 import { LangSwitch } from '../../components/SiteHeader'
 import type { PlaySession } from './usePlaySession'
 
+/** Tablets get tap to add too. */
+const TOUCH = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
 /** Tablets and laptops: the mission across the top, blocks on the left, Kata and the run button on the right. */
 export default function WidePlayLayout({ s }: { s: PlaySession }) {
   const {
@@ -93,17 +96,17 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
     <div className="flex min-h-full flex-col">
       {/* A slim header: where you are, and a few tools. Everything else lives on the map or in the menu. */}
       <header className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-cream px-4 py-2 sm:gap-3 sm:px-6">
-        <Link to="/main" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+        <Link to="/main" className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
           ← {t(lang, 'navMap')}
         </Link>
         <div className="min-w-0 flex-1">
           <p className="type-micro text-maroon">{t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}</p>
           <h1 className="truncate type-subheading">{level.title[lang]}</h1>
         </div>
-        <Link to="/buku" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
+        <Link to="/buku" className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
           📓 {found.size}
         </Link>
-        <button onClick={() => setTouring(true)} disabled={running} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+        <button onClick={() => setTouring(true)} disabled={running} className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
           ? {t(lang, 'helpTour')}
         </button>
         <LangSwitch lang={lang} onChange={switchLang} disabled={running} />
@@ -112,7 +115,7 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
             aria-label={t(lang, 'moreMenu')}
-            className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment"
+            className="pixel-btn min-h-10 min-w-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment"
           >
             ⋯
           </button>
@@ -158,8 +161,6 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
         </div>
       </header>
 
-      <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center type-label md:hidden">{t(lang, 'smallScreen')}</p>
-
       {/* The task comes first, full width, where the eye lands. */}
       <div className="px-4 pt-4 sm:px-6">
         <MissionBar lang={lang} level={level} done={done} current={stage.id} fresh={freshStage} />
@@ -175,6 +176,7 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
                 level={level}
                 puzzleId={stage.id}
                 ref={editor}
+                tapToAdd={TOUCH}
                 onEdit={() => {
                   setHint(null)
                   refreshPreview()

@@ -7,6 +7,10 @@ interface Props {
   lang: Lang
   /** `reveal` is true on the first call only. */
   locate: (reveal: boolean) => DOMRect | null
+  /** Phones: show the hint as a card this far above the bottom of the screen, without pointing. */
+  dockBottom?: string
+  /** Where the docked card sits across the screen. */
+  dockClass?: string
   onClose: () => void
 }
 
@@ -14,7 +18,7 @@ interface Props {
  * A speech bubble pointing at one block or field, with a pulsing ring around
  * it. It follows its target as the page scrolls or resizes.
  */
-export default function HintBubble({ hint, lang, locate, onClose }: Props) {
+export default function HintBubble({ hint, lang, locate, onClose, dockBottom, dockClass = 'inset-x-3' }: Props) {
   const [rect, setRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -32,6 +36,36 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
     return () => cancelAnimationFrame(frame)
   }, [locate])
 
+  const body = (
+    <>
+        <div className="flex items-start justify-between gap-2">
+          <span className="type-pixel-sm">💡 {t(lang, 'hintTitle')}</span>
+          <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 type-subheading hover:text-maroon">
+            ×
+          </button>
+        </div>
+        <p className="mt-1 type-body font-bold">{t(lang, hint.textKey ?? (`hint_${hint.key}` as Key))}</p>
+        {hint.exampleKey && <p className="mt-2 rounded border border-ink/20 bg-white px-2 py-1.5 type-caption">{t(lang, hint.exampleKey)}</p>}
+        {hint.rung && (
+          <p className="mt-2 flex items-center gap-1 type-micro" aria-label={t(lang, 'hintRung', { n: hint.rung })}>
+            {[1, 2, 3].map((r) => (
+              <span key={r} aria-hidden="true" className={`h-2 w-2 rounded-full border border-ink ${r <= hint.rung! ? 'bg-ink' : 'bg-white'}`} />
+            ))}
+            <span className="ml-1" aria-hidden="true">
+              {t(lang, 'hintRung', { n: hint.rung })}
+            </span>
+          </p>
+        )}
+    </>
+  )
+
+  if (dockBottom) {
+    return (
+      <div role="status" className={`card-in fixed z-overlay rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel ${dockClass}`} style={{ bottom: dockBottom }}>
+        {body}
+      </div>
+    )
+  }
   if (!rect) return null
   const pad = 6
   const { side, left, top } = placeBubble(rect, hint.exampleKey ? 220 : hint.rung ? 150 : BUBBLE_H)
@@ -52,24 +86,7 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
             right ? '-left-[8px] top-6 border-b-2 border-l-2' : side === 'left' ? '-right-[8px] top-6 border-r-2 border-t-2' : side === 'below' ? '-top-[8px] left-6 border-l-2 border-t-2' : '-bottom-[8px] left-6 border-b-2 border-r-2'
           }`}
         />
-        <div className="flex items-start justify-between gap-2">
-          <span className="type-pixel-sm">💡 {t(lang, 'hintTitle')}</span>
-          <button onClick={onClose} aria-label={t(lang, 'hintClose')} className="-mt-1 px-1 type-subheading hover:text-maroon">
-            ×
-          </button>
-        </div>
-        <p className="mt-1 type-body font-bold">{t(lang, hint.textKey ?? (`hint_${hint.key}` as Key))}</p>
-        {hint.exampleKey && <p className="mt-2 rounded border border-ink/20 bg-white px-2 py-1.5 type-caption">{t(lang, hint.exampleKey)}</p>}
-        {hint.rung && (
-          <p className="mt-2 flex items-center gap-1 type-micro" aria-label={t(lang, 'hintRung', { n: hint.rung })}>
-            {[1, 2, 3].map((r) => (
-              <span key={r} aria-hidden="true" className={`h-2 w-2 rounded-full border border-ink ${r <= hint.rung! ? 'bg-ink' : 'bg-white'}`} />
-            ))}
-            <span className="ml-1" aria-hidden="true">
-              {t(lang, 'hintRung', { n: hint.rung })}
-            </span>
-          </p>
-        )}
+        {body}
       </div>
     </>
   )

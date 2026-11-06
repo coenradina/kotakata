@@ -45,7 +45,7 @@ export function LangSwitch({ lang, onChange, disabled }: { lang: Lang; onChange:
           onClick={() => onChange(l)}
           disabled={disabled}
           aria-pressed={lang === l}
-          className={`px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-60 ${lang === l ? 'bg-ink text-cream' : 'bg-white hover:bg-parchment'}`}
+          className={`min-h-10 min-w-10 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-60 ${lang === l ? 'bg-ink text-cream' : 'bg-white hover:bg-parchment'}`}
         >
           {l.toUpperCase()}
         </button>
