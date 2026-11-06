@@ -21,8 +21,8 @@ export interface BlockEditorHandle {
   looseBlocks: () => string[]
 }
 
-/** One block size everywhere: a bit smaller on narrow screens. */
-const blockScale = () => (window.innerWidth < 1200 ? 0.6 : 0.74)
+/** One block size everywhere: smaller on narrow screens, but big enough to touch on a phone. */
+const blockScale = () => (window.innerWidth < 640 ? 0.62 : window.innerWidth < 1200 ? 0.6 : 0.74)
 
 /**
  * The block panel draws its blocks smaller than the workspace does, so it
@@ -30,7 +30,7 @@ const blockScale = () => (window.innerWidth < 1200 ? 0.6 : 0.74)
  */
 class CompactFlyout extends Blockly.VerticalFlyout {
   override getFlyoutScale() {
-    return window.innerWidth < 1200 ? 0.5 : 0.62
+    return window.innerWidth < 640 ? 0.6 : window.innerWidth < 1200 ? 0.5 : 0.62
   }
 }
 Blockly.registry.register(Blockly.registry.Type.FLYOUTS_VERTICAL_TOOLBOX, 'kkCompactFlyout', CompactFlyout, true)
@@ -92,10 +92,70 @@ interface Props {
   puzzleId?: string
   /** Called when the player changes their blocks. */
   onEdit?: () => void
+  /** The phone layout: the panel starts folded and the zoom buttons give way to pinching. */
+  phone?: boolean
+  /** Tap a block in the panel to add it. On for phones and other touch screens. */
+  tapToAdd?: boolean
 }
 
 /** Which sections were closed in each session, for the rest of the visit. */
 const closedBySession = new Map<string, Set<string>>()
+
+/**
+ * Where a tapped block goes: the first empty branch or chain end in the
+ * program, in reading order. Null if nothing fits (then it lands loose).
+ */
+function openSpot(hat: Blockly.Block, block: Blockly.Block): Blockly.Connection | null {
+  const prev = block.previousConnection
+  if (!prev) return null
+  const fits = (c: Blockly.Connection | null) => !!c && !c.isConnected() && c.getConnectionChecker().canConnect(prev, c, false)
+  const visit = (b: Blockly.Block): Blockly.Connection | null => {
+    for (const input of b.inputList) {
+      if (input.type !== Blockly.inputs.inputTypes.STATEMENT) continue
+      const child = input.connection?.targetBlock()
+      if (!child && fits(input.connection)) return input.connection
+      if (child) {
+        const inner = visitChain(child)
+        if (inner) return inner
+      }
+    }
+    return null
+  }
+  const visitChain = (first: Blockly.Block): Blockly.Connection | null => {
+    let b: Blockly.Block | null = first
+    let last = first
+    while (b) {
+      const inner = visit(b)
+      if (inner) return inner
+      last = b
+      b = b.getNextBlock()
+    }
+    return fits(last.nextConnection) ? last.nextConnection : null
+  }
+  return visitChain(hat)
+}
+
+/** Copies a block from the panel into the program, at the first open spot. */
+function addFromPanel(workspace: Blockly.WorkspaceSvg, source: Blockly.Block) {
+  const state = Blockly.serialization.blocks.save(source, { addCoordinates: false, addInputBlocks: true, addNextBlocks: false })
+  if (!state) return
+  const hat = workspace.getTopBlocks(true).find((b) => b.type === 'kk_when_run' && b.isEnabled())
+  // A second start block, or one with nowhere to go, lands loose by the program.
+  Blockly.Events.setGroup(true)
+  try {
+    const block = Blockly.serialization.blocks.append(state, workspace) as Blockly.BlockSvg
+    const spot = hat && block.type !== 'kk_when_run' ? openSpot(hat, block) : null
+    if (spot && block.previousConnection) spot.connect(block.previousConnection)
+    else {
+      const anchor = (hat ?? workspace.getTopBlocks(true)[0])?.getRelativeToSurfaceXY()
+      block.moveBy((anchor?.x ?? 40) + 20, (anchor?.y ?? 40) + 40 + workspace.getTopBlocks(false).length * 12)
+    }
+    block.select()
+    workspace.scrollBoundsIntoView?.(block.getBoundingRectangle())
+  } finally {
+    Blockly.Events.setGroup(false)
+  }
+}
 
 const groupsOf = (def: Blockly.utils.toolbox.ToolboxDefinition): ToolboxGroup[] | null => (def as GroupedToolbox).groups ?? null
 
@@ -117,7 +177,7 @@ function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget): DOMRect 
   return field?.getSvgRoot()?.getBoundingClientRect() ?? null
 }
 
-export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Props) {
+export default function BlockEditor({ lang, level, ref, onEdit, puzzleId, phone = false, tapToAdd = phone }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const ws = useRef<Blockly.WorkspaceSvg | null>(null)
   const onEditRef = useRef(onEdit)
@@ -133,7 +193,8 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
   // The panel's sections, and which are open (docs/plan/05-mobile-play.md, part A).
   const groups = useRef<ToolboxGroup[] | null>(null)
   const rawToolbox = useRef<Blockly.utils.toolbox.ToolboxDefinition | null>(null)
-  const panel = useRef<PanelState>({ open: store.load().paletteOpen, closed: new Set(), peek: null, fresh: new Set() })
+  // On a phone the panel starts folded, and folding it there isn't saved for bigger screens.
+  const panel = useRef<PanelState>({ open: phone ? false : store.load().paletteOpen, closed: new Set(), peek: null, fresh: new Set() })
 
   /** The flyout for the current panel state. Toolboxes without groups show as they are. */
   const toolboxDef = (): Blockly.utils.toolbox.ToolboxDefinition =>
@@ -155,7 +216,7 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
   const registerCallbacks = (workspace: Blockly.WorkspaceSvg) => {
     workspace.registerButtonCallback(PANEL_TOGGLE, () => {
       const open = !panel.current.open
-      store.save({ paletteOpen: open })
+      if (!phone) store.save({ paletteOpen: open })
       setPanel({ open, peek: null })
       schedulePlace(workspace)
     })
@@ -256,7 +317,7 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
       media: `${import.meta.env.BASE_URL}blockly-media/`,
       trashcan: true,
       grid: { spacing: 24, length: 2, colour: alpha('ink', 0.08), snap: true },
-      zoom: { controls: true, wheel: true, startScale: blockScale(), maxScale: 1.6, minScale: 0.5 },
+      zoom: { controls: !phone, wheel: true, pinch: true, startScale: blockScale(), maxScale: 1.6, minScale: 0.5 },
       move: { scrollbars: true, drag: true, wheel: false },
       plugins: { flyoutsVerticalToolbox: 'kkCompactFlyout' },
     })
@@ -267,6 +328,19 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     }
     ws.current = workspace
     registerCallbacks(workspace)
+
+    // Touch screens: tap a block in the panel to add it, no drag needed.
+    const flyoutWs = workspace.getFlyout()?.getWorkspace()
+    const onTap = (e: Blockly.Events.Abstract) => {
+      if (e.type !== Blockly.Events.CLICK) return
+      const click = e as Blockly.Events.Click
+      if (click.targetType !== 'block' || !click.blockId) return
+      const source = flyoutWs?.getBlockById(click.blockId)?.getRootBlock()
+      if (!source) return
+      addFromPanel(workspace, source)
+      if (!panel.current.open && panel.current.peek) setPanel({ peek: null })
+    }
+    if (tapToAdd) flyoutWs?.addChangeListener(onTap)
 
     // The block list stays open; it has no categories to switch between.
     const flyout = workspace.getFlyout()
@@ -289,6 +363,7 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     return () => {
       resize.disconnect()
       workspace.removeChangeListener(save)
+      flyoutWs?.removeChangeListener(onTap)
     }
   }, [lang, level])
 
