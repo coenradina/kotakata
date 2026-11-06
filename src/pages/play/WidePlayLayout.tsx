@@ -1,0 +1,303 @@
+import BlockEditor from '../../components/BlockEditor'
+import Stage from '../../components/Stage'
+import HintBubble from '../../components/HintBubble'
+import QuizModal from '../../components/QuizModal'
+import NotebookToast from '../../components/NotebookToast'
+import LevelCompleteModal from '../../components/LevelCompleteModal'
+import { t } from '../../i18n'
+import { numberOf } from '../../levels'
+import { PLANNED } from '../../sessions/catalog'
+import type { Prediction } from '../../levels/types'
+import { EVERY_CARD } from '../../store'
+import { Link } from '../../router'
+import { MAX_STARS } from '../../quiz/questions'
+import PredictionCard from '../../components/PredictionCard'
+import MissionBar from '../../components/MissionBar'
+import SessionIntro from '../../components/SessionIntro'
+import Tour, { type TourStep } from '../../components/Tour'
+import { LangSwitch } from '../../components/SiteHeader'
+import type { PlaySession } from './usePlaySession'
+
+/** Tablets and laptops: the mission across the top, blocks on the left, Kata and the run button on the right. */
+export default function WidePlayLayout({ s }: { s: PlaySession }) {
+  const {
+    TRACK,
+    badges,
+    closeEntry,
+    closeIntro,
+    confirmStartOver,
+    done,
+    editor,
+    entry,
+    finishTour,
+    found,
+    freshStage,
+    guess,
+    handleQuizAnswer,
+    handleReset,
+    handleRun,
+    hint,
+    lang,
+    level,
+    levelDone,
+    levelId,
+    locateHint,
+    log,
+    logBox,
+    menuOpen,
+    mustGuess,
+    navigate,
+    openQuiz,
+    passed,
+    puzzleKey,
+    quiz,
+    refreshPreview,
+    runButton,
+    running,
+    setConfirmStartOver,
+    setGuesses,
+    setHint,
+    setLevelDone,
+    setMenuOpen,
+    setQuiz,
+    setTouring,
+    showIntro,
+    stage,
+    stageView,
+    stars,
+    startOver,
+    switchLang,
+    switchLevel,
+    toasts,
+    tourSeen,
+    touring,
+    trackName,
+  } = s
+  const intro = showIntro ? (
+    <SessionIntro
+      lang={lang}
+      label={t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}
+      title={level.title[lang]}
+      goal={PLANNED.find((p) => p.id === levelId)?.bigQuestion[lang] ?? level.topic[lang]}
+      stages={level.puzzles.filter((p) => !p.bonus).length}
+      offerTour={!tourSeen}
+      onTour={() => {
+        closeIntro()
+        setTouring(true)
+      }}
+      onPlay={closeIntro}
+    />
+  ) : null
+
+  return (
+    <div className="flex min-h-full flex-col">
+      {/* A slim header: where you are, and a few tools. Everything else lives on the map or in the menu. */}
+      <header className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-cream px-4 py-2 sm:gap-3 sm:px-6">
+        <Link to="/main" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+          ← {t(lang, 'navMap')}
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="type-micro text-maroon">{t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}</p>
+          <h1 className="truncate type-subheading">{level.title[lang]}</h1>
+        </div>
+        <Link to="/buku" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
+          📓 {found.size}
+        </Link>
+        <button onClick={() => setTouring(true)} disabled={running} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+          ? {t(lang, 'helpTour')}
+        </button>
+        <LangSwitch lang={lang} onChange={switchLang} disabled={running} />
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-label={t(lang, 'moreMenu')}
+            className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment"
+          >
+            ⋯
+          </button>
+          {menuOpen && (
+            <div className="card-in absolute right-0 top-full z-modal mt-2 w-72 rounded-lg border-2 border-ink bg-white p-2 shadow-pixel">
+              {found.size >= 2 && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    openQuiz()
+                  }}
+                  disabled={running}
+                  className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment"
+                >
+                  {t(lang, 'menuQuiz')}
+                </button>
+              )}
+              {!confirmStartOver ? (
+                <button onClick={() => setConfirmStartOver(true)} className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
+                  {t(lang, 'startOver')}
+                </button>
+              ) : (
+                <div role="alertdialog" aria-labelledby="start-over-text" className="space-y-3 p-2">
+                  <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
+                  <div className="flex justify-end gap-2">
+                    <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
+                      {t(lang, 'cancel')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        startOver()
+                      }}
+                      className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white"
+                    >
+                      {t(lang, 'startOverYes')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
+      <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center type-label md:hidden">{t(lang, 'smallScreen')}</p>
+
+      {/* The task comes first, full width, where the eye lands. */}
+      <div className="px-4 pt-4 sm:px-6">
+        <MissionBar lang={lang} level={level} done={done} current={stage.id} fresh={freshStage} />
+      </div>
+
+      {/* Two things below it: the blocks, and Kata with the run button. */}
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <section data-tour="editor" className="pixel-shadow flex min-h-[460px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
+          <div className="relative min-h-[440px] flex-1">
+            <div className="absolute inset-0">
+              <BlockEditor
+                lang={lang}
+                level={level}
+                puzzleId={stage.id}
+                ref={editor}
+                onEdit={() => {
+                  setHint(null)
+                  refreshPreview()
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="flex min-w-0 flex-col gap-3">
+          {/* Hints keep off the stage: it shows the result they're about. */}
+          <div data-hint-avoid data-tour="stage" className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
+            <Stage key={level.id} lang={lang} level={level} ref={stageView} />
+          </div>
+
+          {stage.prediction && (
+            <PredictionCard
+              key={puzzleKey}
+              prediction={stage.prediction as Prediction<unknown>}
+              lang={lang}
+              choice={guess?.choice ?? null}
+              outcome={guess?.outcome}
+              disabled={running}
+              onChoose={(choice) => setGuesses((g) => ({ ...g, [puzzleKey]: { choice } }))}
+            />
+          )}
+
+          <div data-hint-avoid data-tour="run" className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
+            <button
+              ref={runButton}
+              onClick={handleRun}
+              disabled={running}
+              aria-disabled={mustGuess || undefined}
+              title={mustGuess ? t(lang, 'predictNeed') : undefined}
+              className={`pixel-btn flex-1 whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
+            >
+              {running ? t(lang, 'running') : t(lang, 'run')}
+            </button>
+            <button
+              onClick={handleReset}
+              title={running ? undefined : t(lang, 'clearTitle')}
+              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-white px-3 py-3 type-button-lg"
+            >
+              {running ? t(lang, 'stop') : t(lang, 'clear')}
+            </button>
+          </div>
+
+          <div data-tour="log" className="relative min-h-28 rounded-lg border-2 border-ink bg-ink p-3 text-cream" aria-live="polite">
+            <h2 className="type-eyebrow text-amber">🤖 {t(lang, 'kataSays')}</h2>
+            <ul ref={logBox} className="mt-1.5 max-h-32 space-y-1 overflow-y-auto type-mono">
+              {log.map((line, i) => (
+                <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
+                  › {line.text}
+                </li>
+              ))}
+            </ul>
+            {/* New terms land over Kata's log, under the stage, never over it */}
+            {entry && <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />}
+          </div>
+        </section>
+      </main>
+
+      {/* Bottom left, over the block palette: away from the stage and the run controls */}
+      <div className="pointer-events-none fixed bottom-4 left-4 z-toast flex w-72 flex-col gap-2" aria-live="polite">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="card-in flex items-start gap-3 rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel">
+            <span className="badge-pop text-icon-lg" aria-hidden="true">
+              {toast.icon}
+            </span>
+            <div>
+              <div className="type-eyebrow">🏅 {t(lang, 'newBadge')}</div>
+              <div className="type-pixel-sm">{toast.title}</div>
+              <p className="mt-0.5 type-caption">{toast.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {hint && !quiz && !running && !touring && !showIntro && (
+        <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
+      )}
+
+      {levelDone && (
+        <LevelCompleteModal
+          lang={lang}
+          levelId={levelDone}
+          found={found}
+          badges={badges}
+          allDone={trackName === 'classic' && TRACK.every((l) => passed.has(l.id) || l.id === levelDone)}
+          onNext={(id) => {
+            setLevelDone(null)
+            switchLevel(id)
+          }}
+          onClose={() => setLevelDone(null)}
+          onCertificate={(id) => navigate(`/sertifikat/${id}`)}
+        />
+      )}
+
+      {quiz && (
+        <QuizModal
+          key={quiz.id}
+          question={quiz}
+          lang={lang}
+          maxed={(id) => (stars[id] ?? 0) >= MAX_STARS}
+          onAnswer={handleQuizAnswer}
+          explain={EVERY_CARD.find((c) => c.id === quiz.terms[0])?.body[lang] ?? ''}
+          onClose={() => setQuiz(null)}
+        />
+      )}
+
+      {intro}
+      {touring && <Tour steps={TOUR} lang={lang} onDone={finishTour} />}
+    </div>
+  )
+}
+
+/** The tour of the game screen: one part at a time, in the order a player uses them. */
+const TOUR: TourStep[] = [
+  { anchors: ['[data-tour="mission"]'], titleKey: 'tour1Title', bodyKey: 'tour1Body' },
+  { anchors: ['[data-tour="editor"] .blocklyFlyout'], titleKey: 'tour2Title', bodyKey: 'tour2Body' },
+  { anchors: ['[data-tour="editor"]'], titleKey: 'tour3Title', bodyKey: 'tour3Body' },
+  { anchors: ['[data-tour="run"]'], titleKey: 'tour4Title', bodyKey: 'tour4Body' },
+  { anchors: ['[data-tour="stage"]'], titleKey: 'tour5Title', bodyKey: 'tour5Body' },
+  { anchors: ['[data-tour="log"]'], titleKey: 'tour6Title', bodyKey: 'tour6Body' },
+]
+
