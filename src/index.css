@@ -38,11 +38,21 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 .blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 700 !important; }
 .blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: 1 !important; }
 .blocklyFlyout { border-right: 2px solid var(--color-ink); }
-/* Section headings in the "All" panel, coloured like their category */
-.kk-section .blocklyFlyoutLabelText { font-family: var(--font-mono) !important; font-weight: 700; font-size: 0.6875rem; letter-spacing: 0.05em; }
-.kk-section-events .blocklyFlyoutLabelText { fill: var(--color-gold) !important; }
-.kk-section-data .blocklyFlyoutLabelText { fill: var(--color-tosca) !important; }
-.kk-section-model .blocklyFlyoutLabelText { fill: var(--color-maroon) !important; }
+/* Section headers in the block panel: buttons that open and close a section,
+   coloured like their blocks (docs/plan/05-mobile-play.md, part A). */
+.kk-section .blocklyFlyoutButtonShadow, .kk-panel-toggle .blocklyFlyoutButtonShadow { display: none; }
+.kk-section .blocklyFlyoutButtonBackground { fill: transparent !important; stroke: none; }
+.kk-section:hover .blocklyFlyoutButtonBackground, .kk-section:focus .blocklyFlyoutButtonBackground { fill: var(--color-cream) !important; }
+.kk-section .blocklyText { font-family: var(--font-mono) !important; font-weight: 700; font-size: 1.25rem !important; letter-spacing: 0.05em; cursor: pointer; }
+.kk-section-events .blocklyText { fill: var(--color-gold) !important; }
+.kk-section-data .blocklyText { fill: var(--color-tosca-dark) !important; }
+.kk-section-model .blocklyText { fill: var(--color-maroon) !important; }
+.kk-panel-toggle .blocklyFlyoutButtonBackground { fill: var(--color-white) !important; stroke: var(--color-ink); stroke-width: 2px; }
+.kk-panel-toggle:hover .blocklyFlyoutButtonBackground { fill: var(--color-amber-tint) !important; }
+.kk-panel-toggle .blocklyText { fill: var(--color-ink) !important; font-size: 1.75rem !important; cursor: pointer; }
+/* Folded, each section is one big icon. */
+.kk-section.kk-icon .blocklyText { font-size: 2rem !important; }
+.kk-section.kk-icon.kk-open .blocklyFlyoutButtonBackground { fill: var(--color-amber-tint) !important; }
 
 @keyframes badge-pop { 0% { transform: scale(.2) rotate(-30deg) } 60% { transform: scale(1.3) rotate(8deg) } 100% { transform: none } }
 .badge-pop { display: inline-block; animation: badge-pop .5s steps(6) both; }

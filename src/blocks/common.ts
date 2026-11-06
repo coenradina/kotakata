@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core'
 import * as MsgEn from 'blockly/msg/en'
 import * as MsgId from 'blockly/msg/id'
-import { t, type Key, type Lang } from '../i18n'
+import { t, type Lang } from '../i18n'
 import { css } from '../theme'
 
 // Block colours come from the aastr.id palette.
@@ -57,28 +57,7 @@ export function defineWhenRun(lang: Lang) {
   defineJsonBlocks([{ type: 'kk_when_run', message0: t(lang, 'blkWhenRun'), nextStatement: null, style: 'events' }])
 }
 
-export type ToolboxBlock = { kind: 'block'; type: string; fields?: Record<string, unknown> }
-export interface ToolboxGroup {
-  label: Key
-  style: 'events' | 'data' | 'model'
-  blocks: ToolboxBlock[]
-}
-
-/**
- * One always-open list of every block, in coloured sections. There is no
- * category column: sessions have few blocks, and the column took space the
- * player's program needs (usability finding M2).
- */
-export function buildToolbox(lang: Lang, groups: ToolboxGroup[]): Blockly.utils.toolbox.ToolboxDefinition {
-  const section = (g: ToolboxGroup) => ({
-    kind: 'label',
-    text: t(lang, g.label).toUpperCase(),
-    'web-class': `kk-section kk-section-${g.style}`,
-  })
-  return { kind: 'flyoutToolbox', contents: groups.flatMap((g) => [section(g), ...g.blocks]) } as Blockly.utils.toolbox.ToolboxDefinition
-}
-
-export const WHEN_RUN_GROUP: ToolboxGroup = { label: 'catEvents', style: 'events', blocks: [{ kind: 'block', type: 'kk_when_run' }] }
+export { buildToolbox, WHEN_RUN_GROUP, type ToolboxBlock, type ToolboxGroup } from './toolbox'
 
 /** The enabled "when run" block the program hangs from, if there is one. */
 export function findHat(ws: Blockly.Workspace) {

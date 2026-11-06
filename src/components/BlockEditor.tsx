@@ -2,6 +2,7 @@ import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import { store } from '../store'
 import * as Blockly from 'blockly/core'
 import { theme } from '../blocks/common'
+import { PANEL_TOGGLE, SECTION_PREFIX, freshSections, panelContents, sectionOf, type GroupedToolbox, type PanelState, type ToolboxGroup } from '../blocks/toolbox'
 import { defineAllBlocks, type Session } from '../levels'
 import type { Lang } from '../i18n'
 import type { HintTarget } from '../hints'
@@ -93,6 +94,11 @@ interface Props {
   onEdit?: () => void
 }
 
+/** Which sections were closed in each session, for the rest of the visit. */
+const closedBySession = new Map<string, Set<string>>()
+
+const groupsOf = (def: Blockly.utils.toolbox.ToolboxDefinition): ToolboxGroup[] | null => (def as GroupedToolbox).groups ?? null
+
 function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget): DOMRect | null {
   if (target.where === 'block') return workspace.getBlockById(target.blockId)?.getSvgRoot().getBoundingClientRect() ?? null
   if (target.where === 'palette') {
@@ -124,12 +130,77 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
   puzzleRef.current = puzzleId
   // Which level the workspace currently holds, so a level switch loads fresh blocks.
   const shownLevel = useRef<string | null>(null)
+  // The panel's sections, and which are open (docs/plan/05-mobile-play.md, part A).
+  const groups = useRef<ToolboxGroup[] | null>(null)
+  const rawToolbox = useRef<Blockly.utils.toolbox.ToolboxDefinition | null>(null)
+  const panel = useRef<PanelState>({ open: store.load().paletteOpen, closed: new Set(), peek: null, fresh: new Set() })
+
+  /** The flyout for the current panel state. Toolboxes without groups show as they are. */
+  const toolboxDef = (): Blockly.utils.toolbox.ToolboxDefinition =>
+    groups.current ? ({ kind: 'flyoutToolbox', contents: panelContents(langRef.current, groups.current, panel.current) } as Blockly.utils.toolbox.ToolboxDefinition) : rawToolbox.current!
+
+  const renderPanel = () => {
+    const workspace = ws.current
+    if (!workspace) return
+    workspace.updateToolbox(toolboxDef())
+    registerCallbacks(workspace)
+  }
+
+  const setPanel = (patch: Partial<PanelState>) => {
+    panel.current = { ...panel.current, ...patch }
+    closedBySession.set(levelRef.current.id, new Set(panel.current.closed))
+    renderPanel()
+  }
+
+  const registerCallbacks = (workspace: Blockly.WorkspaceSvg) => {
+    workspace.registerButtonCallback(PANEL_TOGGLE, () => {
+      const open = !panel.current.open
+      store.save({ paletteOpen: open })
+      setPanel({ open, peek: null })
+      schedulePlace(workspace)
+    })
+    for (const g of groups.current ?? []) {
+      workspace.registerButtonCallback(`${SECTION_PREFIX}${g.label}`, () => {
+        const p = panel.current
+        if (p.open) {
+          const closed = new Set(p.closed)
+          if (closed.has(g.label)) closed.delete(g.label)
+          else closed.add(g.label)
+          setPanel({ closed })
+        } else setPanel({ peek: p.peek === g.label ? null : g.label })
+      })
+    }
+  }
+
+  /** Opens the section holding a palette block, so a hint can point at it. */
+  const reveal = (target: HintTarget) => {
+    if (target.where !== 'palette' || !groups.current) return false
+    const section = sectionOf(groups.current, target.type)
+    if (!section) return false
+    const p = panel.current
+    if (p.open && p.closed.has(section)) {
+      const closed = new Set(p.closed)
+      closed.delete(section)
+      setPanel({ closed })
+      return true
+    }
+    if (!p.open && p.peek !== section) {
+      setPanel({ peek: section })
+      return true
+    }
+    return false
+  }
 
   useImperativeHandle(
     ref,
     () => ({
       program: () => (ws.current ? levelRef.current.read(ws.current) : null),
-      locate: (target) => (ws.current ? locateIn(ws.current, target) : null),
+      locate: (target, show) => {
+        if (!ws.current) return null
+        const found = locateIn(ws.current, target)
+        if (found || !show || !reveal(target)) return found
+        return locateIn(ws.current, target)
+      },
       resetToStarter: () => {
         const workspace = ws.current
         if (!workspace) return
@@ -165,10 +236,19 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     const state = ws.current && sameLevel ? Blockly.serialization.workspaces.save(ws.current) : loadSaved(level, lang)
     ws.current?.dispose()
     defineAllBlocks(lang)
+    const newLevel = shownLevel.current !== level.id
     shownLevel.current = level.id
+    rawToolbox.current = level.toolbox(lang, puzzleRef.current)
+    groups.current = groupsOf(rawToolbox.current)
+    if (newLevel) {
+      // The start block's section folds away once the program has one.
+      const hasHat = JSON.stringify(state).includes('"kk_when_run"')
+      const closed = closedBySession.get(level.id) ?? new Set(hasHat ? ['catEvents'] : [])
+      panel.current = { ...panel.current, closed, peek: null, fresh: new Set() }
+    }
 
     const workspace = Blockly.inject(host.current, {
-      toolbox: level.toolbox(lang, puzzleRef.current),
+      toolbox: toolboxDef(),
       theme,
       renderer: 'zelos',
       sounds: false,
@@ -186,6 +266,7 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
       Blockly.serialization.workspaces.load(starterOf(level, lang), workspace)
     }
     ws.current = workspace
+    registerCallbacks(workspace)
 
     // The block list stays open; it has no categories to switch between.
     const flyout = workspace.getFlyout()
@@ -193,6 +274,10 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     schedulePlace(workspace)
 
     const save = (e: Blockly.Events.Abstract) => {
+      // A block dragged out of a folded panel's section folds it away again.
+      if (e.type === Blockly.Events.BLOCK_DRAG && !(e as Blockly.Events.BlockDrag).isStart && panel.current.peek && !panel.current.open) {
+        setPanel({ peek: null })
+      }
       if (e.isUiEvent) return
       if (EDIT_EVENTS.has(e.type)) onEditRef.current?.()
       store.saveBlocks(level.id, Blockly.serialization.workspaces.save(workspace))
@@ -211,7 +296,14 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
   useEffect(() => {
     const workspace = ws.current
     if (!workspace) return
-    workspace.updateToolbox(level.toolbox(lang, puzzleId))
+    const before = groups.current
+    rawToolbox.current = level.toolbox(lang, puzzleId)
+    groups.current = groupsOf(rawToolbox.current)
+    // Sections with a block new in this stage open, and say so.
+    const fresh = groups.current ? freshSections(before, groups.current) : new Set<string>()
+    const closed = new Set([...panel.current.closed].filter((c) => !fresh.has(c)))
+    panel.current = { ...panel.current, closed, fresh, peek: null }
+    renderPanel()
     // Only the puzzle matters here; language and level changes rebuild everything above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzleId])

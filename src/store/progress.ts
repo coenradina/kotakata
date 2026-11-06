@@ -29,6 +29,8 @@ export interface Progress {
   tourDone: boolean
   /** Sessions whose intro card has been seen. */
   introSeen: string[]
+  /** The block panel is open (true) or folded down to its section icons. */
+  paletteOpen: boolean
 }
 
 export const EMPTY: Progress = {
@@ -42,6 +44,7 @@ export const EMPTY: Progress = {
   quizRecent: [],
   tourDone: false,
   introSeen: [],
+  paletteOpen: true,
 }
 
 export interface ProgressStore {
@@ -73,6 +76,7 @@ const KEYS = {
   quizRecent: 'kotakata.quizRecent',
   tourDone: 'kotakata.tourDone',
   introSeen: 'kotakata.introSeen',
+  paletteOpen: 'kotakata.paletteOpen',
 } satisfies Record<keyof Progress, string>
 
 /** Where each session's blocks live. Level 1 kept its own older key name. */
@@ -146,6 +150,7 @@ export function createLocalStore(kv: KeyValue, legacy: Legacy, validCards: reado
         quizRecent: read(KEYS.quizRecent, []),
         tourDone: read(KEYS.tourDone, false),
         introSeen: read(KEYS.introSeen, []),
+        paletteOpen: read(KEYS.paletteOpen, true),
       }
     },
     save(patch) {
