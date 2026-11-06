@@ -41,6 +41,15 @@ export const TRAIN_STAGES: Puzzle<Step[]>[] = [
     id: 'test',
     beat: 'develop',
     firstRunTarget: 0.5,
+    prediction: {
+      questionKey: 'pTrainQ',
+      choices: ['pTrainHigh', 'pTrainMid', 'pTrainLow'],
+      outcome: (_p, r) => {
+        const t = lastTest(raw(r))
+        if (t?.kind !== 'test') return null
+        return t.accuracy >= 0.9 ? 0 : t.accuracy >= 0.5 ? 1 : 2
+      },
+    },
     titleKey: 's1TestTitle',
     missionKey: 's1TestMission',
     check: (_p, r) => raw(r).passed,

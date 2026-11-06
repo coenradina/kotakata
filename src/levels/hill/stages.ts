@@ -40,7 +40,21 @@ const fail = (r: Run) => (raw(r).flewOff ? 'hillFlewOffNext' : 'hillNotThere')
 
 export const HILL_STAGES: Puzzle<Step[]>[] = [
   { id: 'gentle', beat: 'introduce', firstRunTarget: 0.7, titleKey: 's3GentleTitle', missionKey: 's3GentleMission', check: reaches('gentle'), failKey: (_p, r) => fail(r) },
-  { id: 'short', beat: 'twist', firstRunTarget: 0.4, titleKey: 's3ShortTitle', missionKey: 's3ShortMission', check: reaches('short'), failKey: (_p, r) => fail(r), demo: CRAWL_DEMO },
+  {
+    id: 'short',
+    beat: 'twist',
+    firstRunTarget: 0.4,
+    titleKey: 's3ShortTitle',
+    missionKey: 's3ShortMission',
+    check: reaches('short'),
+    failKey: (_p, r) => fail(r),
+    demo: CRAWL_DEMO,
+    prediction: {
+      questionKey: 'pHillQ',
+      choices: ['pHillYes', 'pHillShort', 'pHillOff'],
+      outcome: (p, r) => (reaches('short')(p, r) ? 0 : raw(r).flewOff ? 2 : 1),
+    },
+  },
   { id: 'steep', beat: 'twist', firstRunTarget: 0.35, titleKey: 's3SteepTitle', missionKey: 's3SteepMission', check: reaches('steep'), failKey: (_p, r) => fail(r) },
   { id: 'one', beat: 'sandbox', firstRunTarget: 0.3, titleKey: 's3OneTitle', missionKey: 's3OneMission', bonus: true, check: reaches('one'), failKey: () => 'hillOneFail' },
 ]

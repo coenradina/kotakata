@@ -53,6 +53,11 @@ export const TAVERN_STAGES: Puzzle<Step[]>[] = [
     id: 'context',
     beat: 'twist',
     firstRunTarget: 0.45,
+    prediction: {
+      questionKey: 'pTavernQ',
+      choices: ['pTavernDone', 'pTavernLoop', 'pTavernOut'],
+      outcome: (_p, r) => (raw(r).finished ? 0 : raw(r).looped ? 1 : 2),
+    },
     titleKey: 's4ContextTitle',
     missionKey: 's4ContextMission',
     check: (_p, r) => raw(r).finished && raw(r).temperatures.every((t) => t === 0),

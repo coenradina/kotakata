@@ -24,6 +24,19 @@ export interface Run {
 export type Beat = 'introduce' | 'develop' | 'twist' | 'sandbox'
 
 /**
+ * A question the player answers before running, so they have a guess the
+ * result can prove wrong. Nothing is graded: the guess is evidence of what
+ * the player expected.
+ */
+export interface Prediction<P> {
+  questionKey: Key
+  /** Two to four answers, in the order shown. */
+  choices: Key[]
+  /** Which choice this run turned out to match, or null if it doesn't answer the question. */
+  outcome: (program: P, run: Run) => number | null
+}
+
+/**
  * One step of a session. The main puzzles run in order; a bonus (sandbox)
  * puzzle opens once they're all done.
  */
@@ -38,6 +51,8 @@ export interface Puzzle<P> {
   titleKey: Key
   missionKey: Key
   bonus?: boolean
+  /** Asked before the first run of this puzzle. */
+  prediction?: Prediction<P>
   /** Did this run complete the stage? */
   check: (program: P, run: Run) => boolean
   /** What the log says when it didn't. Can use {acc}. */

@@ -19,7 +19,20 @@ const lean = (p: TreeProgram) => {
 
 export const TREE_STAGES: Puzzle<TreeProgram>[] = [
   { id: 'pair', beat: 'introduce', firstRunTarget: 0.7, titleKey: 's2PairTitle', missionKey: 's2PairMission', check: (_p, r) => raw(r).passed, failKey: () => 'tryAgainTree' },
-  { id: 'all', beat: 'twist', firstRunTarget: 0.4, titleKey: 's2AllTitle', missionKey: 's2AllMission', check: (_p, r) => raw(r).passed, failKey: () => 'tryAgainTree' },
+  {
+    id: 'all',
+    beat: 'twist',
+    firstRunTarget: 0.4,
+    titleKey: 's2AllTitle',
+    missionKey: 's2AllMission',
+    check: (_p, r) => raw(r).passed,
+    failKey: () => 'tryAgainTree',
+    prediction: {
+      questionKey: 'pTreeQ',
+      choices: ['pTreeAll', 'pTreeMost', 'pTreeFew'],
+      outcome: (_p, r) => (r.accuracy === null ? null : r.accuracy >= 1 ? 0 : r.accuracy >= 2 / 3 ? 1 : 2),
+    },
+  },
   {
     id: 'lean',
     beat: 'sandbox',

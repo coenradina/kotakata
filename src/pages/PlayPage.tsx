@@ -9,11 +9,13 @@ import type { Milestones } from '../game/types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
 import { MAX_REPEATS, type Hint } from '../hints'
 import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
-import type { Session } from '../levels/types'
+import type { Prediction, Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
 import { useLang } from '../lang'
 import { useRoute } from '../router'
-import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from '../quiz/questions'
+import { MAX_STARS, pickQuestion, type Question, type RunContext } from '../quiz/questions'
+import PredictionCard from '../components/PredictionCard'
+import { track } from '../impact/track'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
@@ -60,6 +62,12 @@ export default function PlayPage() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastId = useRef(0)
   const runButton = useRef<HTMLButtonElement>(null)
+  // Set just before the app runs a stage's demo itself, so it skips the guess.
+  const demoRun = useRef(false)
+  /** Guesses per puzzle (`session:puzzle`), and what each puzzle's first guessed run showed. */
+  const [guesses, setGuesses] = useState<Record<string, { choice: number | null; outcome?: number | null }>>({})
+  /** Runs per puzzle, for impact data. */
+  const runsOn = useRef<Record<string, number>>({})
   /** Which level just finished, for the level-complete card. */
   const [levelDone, setLevelDone] = useState<SessionId | null>(null)
   const [entry, setEntry] = useState<NotebookEntry | null>(null)
@@ -71,8 +79,6 @@ export default function PlayPage() {
   const [stars, setStars] = useState<Stars>(() => initial.stars)
   const [quiz, setQuiz] = useState<Question | null>(null)
   const lastRun = useRef<RunContext | null>(null)
-  const quizzedLastRun = useRef(false)
-  const showedNewCard = useRef(false)
   const [hint, setHint] = useState<Hint | null>(null)
   // The same hint shown run after run means the player is ignoring it.
   const hintStreak = useRef<{ key: string; n: number }>({ key: '', n: 0 })
@@ -115,7 +121,6 @@ export default function PlayPage() {
   const showCard = (id: CardId, vars: Record<string, string | number> = {}) =>
     new Promise<void>((resolve) => {
       const card = EVERY_CARD.find((c) => c.id === id)!
-      showedNewCard.current = true
       discover(id, vars)
       setEntry({ card, vars })
       const done = () => {
@@ -185,7 +190,17 @@ export default function PlayPage() {
 
   const switchLang = (next: Lang) => setLang(next)
 
+  const puzzleKey = `${level.id}:${stage.id}`
+  const guess = guesses[puzzleKey]
+  const mustGuess = Boolean(stage.prediction) && (guess?.choice ?? null) === null
+
   const handleRun = async () => {
+    const demo = demoRun.current
+    demoRun.current = false
+    if (mustGuess && !demo) {
+      setLog([{ text: t(lang, 'predictNeed'), tone: 'info' }])
+      return
+    }
     const program = editor.current?.program() ?? null
     const loose = editor.current?.looseBlocks() ?? []
     setHint(null)
@@ -202,7 +217,6 @@ export default function PlayPage() {
     setRunning(true)
     setLog([])
     const token = ++runToken.current
-    showedNewCard.current = false
     cardsThisRun.current = 0
     // A new seed each run, so every run looks a little different.
     const result = level.run(program, seed.current++, stage.id)
@@ -213,6 +227,17 @@ export default function PlayPage() {
 
     const acc = Math.round((result.accuracy ?? 0) * 100)
     const stagePassed = stage.check(program, result)
+
+    // The first real run after a guess answers it.
+    const answering = !demo && stage.prediction && guess && guess.choice !== null && guess.outcome === undefined
+    const outcome = answering ? stage.prediction!.outcome(program, result) : null
+    if (answering) setGuesses((g) => ({ ...g, [puzzleKey]: { choice: guess.choice, outcome } }))
+    if (!demo) {
+      const n = (runsOn.current[puzzleKey] ?? 0) + 1
+      runsOn.current[puzzleKey] = n
+      track({ t: 'run', session: level.id, puzzle: stage.id, n, passed: stagePassed, prediction: answering ? guess.choice : null, outcome, hint: 0 })
+      if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint: 0 })
+    }
     let levelDoneNow = false
     let demoNext: { blocks: object; messageKey: Key } | undefined
 
@@ -305,26 +330,19 @@ export default function PlayPage() {
         // Blockly's loader wants the blocks wrapped in { blocks: … }
         editor.current?.loadBlocks({ blocks: demo.blocks })
         setLog([{ text: t(lang, demo.messageKey), tone: 'info' }])
-        window.setTimeout(() => runButton.current?.click(), 900)
+        window.setTimeout(() => {
+          demoRun.current = true
+          runButton.current?.click()
+        }, 900)
       }, earned.length ? 1800 : 900)
       return
     }
 
-    // A failed run gets one pointer at what to change. A run with a hint
-    // skips the quiz, so the player isn't handed two things at once.
-    const hinted = offerHint(
+    // A failed run gets one pointer at what to change. The quiz no longer
+    // pops up by itself: guesses before runs do that job inside the game.
+    offerHint(
       stagePassed ? null : loose.length ? { key: 'loose', target: { where: 'block', blockId: loose[0] } } : level.hint(program, result, stage.id),
     )
-    // Now and then, a quick question about terms the player already knows.
-    const quizNow = !hinted && shouldQuiz({
-      foundCount: foundRef.current.size,
-      showedNewCard: showedNewCard.current,
-      quizzedLastRun: quizzedLastRun.current,
-      roll: Math.random(),
-    })
-    quizzedLastRun.current = quizNow
-    // After any badge toast has had its moment
-    if (quizNow) window.setTimeout(openQuiz, earned.length ? 4400 : 900)
   }
 
   /** A level is open once the one before it is passed. */
@@ -362,8 +380,9 @@ export default function PlayPage() {
     setEntry(null)
     setStars({})
     lastRun.current = null
-    quizzedLastRun.current = false
     hintStreak.current = { key: '', n: 0 }
+    setGuesses({})
+    runsOn.current = {}
     setPassed(new Set())
     setStagesDone({})
     setBadges(new Set())
@@ -512,12 +531,26 @@ export default function PlayPage() {
             <Stage key={level.id} lang={lang} level={level} ref={stageView} />
           </div>
 
+          {stage.prediction && (
+            <PredictionCard
+              key={puzzleKey}
+              prediction={stage.prediction as Prediction<unknown>}
+              lang={lang}
+              choice={guess?.choice ?? null}
+              outcome={guess?.outcome}
+              disabled={running}
+              onChoose={(choice) => setGuesses((g) => ({ ...g, [puzzleKey]: { choice } }))}
+            />
+          )}
+
           <div data-hint-avoid className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
             <button
               ref={runButton}
               onClick={handleRun}
               disabled={running}
-              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white"
+              aria-disabled={mustGuess || undefined}
+              title={mustGuess ? t(lang, 'predictNeed') : undefined}
+              className={`pixel-btn whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
             >
               {running ? t(lang, 'running') : t(lang, 'run')}
             </button>
