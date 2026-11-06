@@ -157,3 +157,35 @@ describe('rung-3 examples pass their puzzles, Session 1', async () => {
     }
   }
 })
+
+describe('rung-3 examples pass their puzzles, Session 3', async () => {
+  const { runFair } = await import('./levels/fair/model')
+  const { FAIR_STAGES } = await import('./levels/fair/stages')
+  type Step = import('./levels/fair/model').Step
+  type Source = import('./levels/fair/model').Source
+  const both = (n: number, source: Source): Step[] => [
+    { kind: 'collect', label: 'penting', count: n, source, id: `p${n}${source}` },
+    { kind: 'collect', label: 'santai', count: n, source, id: `s${n}${source}` },
+  ]
+  const T: Step = { kind: 'train', id: 't' }
+  const examples: Record<string, Step[]> = {
+    p1: [...both(10, '8a'), T, { kind: 'test', on: '8c', id: 'x' }, { kind: 'inspect', id: 'i' }],
+    p2: [...both(10, '8a'), ...both(8, '8c'), T, { kind: 'test', on: '8c', id: 'x' }],
+    p3: [...both(16, 'donated'), { kind: 'checkLabels', id: 'k' }, T, { kind: 'test', on: '8a', id: 'x' }],
+    p4: [...both(10, '8a'), ...both(8, '8c'), { kind: 'holdout', count: 10, id: 'h' }, T, { kind: 'test', on: 'holdout', id: 'x' }],
+    p5: [...both(10, '8a'), ...both(10, '8c'), ...both(5, 'bimo'), T, { kind: 'bySender', id: 'b' }],
+    sandbox: [...both(5, '8a'), ...both(10, '8c'), ...both(5, 'bimo'), T, { kind: 'bySender', id: 'b' }],
+  }
+  for (const lang of ['id', 'en'] as const) {
+    for (const stage of FAIR_STAGES) {
+      it(`Session 3, ${lang}, ${stage.id}, on most seeds`, () => {
+        const program = examples[stage.id]
+        const passes = Array.from({ length: 40 }, (_, i) => {
+          const raw = runFair(program, i + 1, lang)
+          return stage.check(program, { raw, events: [raw], accuracy: raw.accuracy, passed: false, context: null } as never)
+        }).filter(Boolean).length
+        expect(passes, `${passes}/40`).toBeGreaterThanOrEqual(38)
+      })
+    }
+  }
+})

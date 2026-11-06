@@ -8,7 +8,9 @@ Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP 
 
 1. **Aturan atau Contoh? / Rules or Examples?** Kata sorts the class chat into important and chit-chat. Rules written by hand break on real messages, a word-counting classifier (naive Bayes) learning from examples does better, and on day 3 new slang shows that a model doesn't learn while it works. Terms: AI, training data, model, machine learning. *(playable, `/kotakata/main/s1`)*
 
-Sessions 2 to 6 are planned in [docs/plan](docs/plan/README.md).
+3. **Data yang Adil / Fair Data.** The same learner, moved to a cousin's class that writes differently. Players inspect the data, learn that different examples beat more of the same, fix joke labels, set examples aside for an honest test, and score Kata person by person to find who it fails. Terms: bias, data quality, test data, overfitting, fairness. *(playable, `/kotakata/main/s3`)*
+
+Sessions 2, 4, 5 and 6 are planned in [docs/plan](docs/plan/README.md).
 
 ## Classic levels
 

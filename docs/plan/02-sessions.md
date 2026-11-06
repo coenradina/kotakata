@@ -324,6 +324,18 @@ A student who skipped Session 1 gets Kata pre-trained on 8A and a 30-second expl
 2. Groups sort 8C cards and score themselves.
 3. Groups decide which new cards to "buy" with 2 tokens.
 
+### As built (step 5, November 2026)
+
+Session 3 is playable at `/kotakata/main/s3`. It reuses Session 1's learner and scene. The balance targets are tests in `src/levels/fair/model.test.ts`, and they pass in both languages. Changes from the design above:
+
+- **P1.** It passes when the program inspects the data after testing on 8C. There's no separate "tap the cause" step: the inspect panel names the unknown words, and the Bias card explains them. Kata trained on 8A scores about 13 of 20 on 8C, against 19 of 20 on 8A.
+- **P2.** P2 has no favours budget. Its demo gives Kata 40 examples from 8A, which leave it at about 14 of 20 on 8C. Adding 8 examples of each label from 8C passes on 97% or more of runs.
+- **P3.** The donated set has 12 joke labels in Indonesian and 8 in English. Without checking, Kata drops to about 10 of 20 (14 in English). The block "minta teman cek label" (ask a friend to check the labels) stands for a person checking each label. A student can also just leave the donated data out.
+- **P4.** P4 passes once the last test uses at least 5 set-aside examples. Its log also shows next week's 8C score, so students can compare the two.
+- **P5.** Everyone sends 6 messages, so a single miss doesn't swing the result. Without Bimo's examples, every tested run is unfair to him. The hint's example (10 from 8A, 10 from 8C, 5 from Bimo, for each label) is fair on 95% or more of runs.
+- **Sandbox.** The sandbox asks for fairness to all four senders with at most 40 examples. With 5 from 8A, 10 from 8C and 5 from Bimo per label, it passes on every tested run.
+- **Not yet built.** *Tantang Teman* (challenge a friend) waits for challenge codes.
+
 ## 5. Session 5: Kata demi Kata (Word by word)
 
 **Big question:** "Kata bilang ulangan IPA hari Senin. Padahal belum diumumkan. Kok bisa?" (Kata said the science test is on Monday. It hasn't even been announced. How?)

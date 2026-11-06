@@ -28,26 +28,26 @@ type Rect = { x: number; y: number; w: number; h: number }
  * words it learned) or the player's rules.
  */
 export class ChatScene extends Phaser.Scene implements SessionScene {
-  private lang: Lang = 'id'
-  private feed!: Phaser.GameObjects.Container
-  private bubbles: Phaser.GameObjects.Container[] = []
-  private beam!: Phaser.GameObjects.Container
-  private pans!: Record<Label, Phaser.GameObjects.Container>
-  private chips!: Phaser.GameObjects.Container
-  private panel!: Phaser.GameObjects.Container
-  private header!: Phaser.GameObjects.Text
-  private chatTitle!: Phaser.GameObjects.Text
-  private score!: Phaser.GameObjects.Text
-  private robot!: Phaser.GameObjects.Image
-  private focusBox?: Phaser.GameObjects.Graphics
-  private milestones: Milestones = NO_MILESTONES
-  private runId = 0
-  private speed = 1
+  protected lang: Lang = 'id'
+  protected feed!: Phaser.GameObjects.Container
+  protected bubbles: Phaser.GameObjects.Container[] = []
+  protected beam!: Phaser.GameObjects.Container
+  protected pans!: Record<Label, Phaser.GameObjects.Container>
+  protected chips!: Phaser.GameObjects.Container
+  protected panel!: Phaser.GameObjects.Container
+  protected header!: Phaser.GameObjects.Text
+  protected chatTitle!: Phaser.GameObjects.Text
+  protected score!: Phaser.GameObjects.Text
+  protected robot!: Phaser.GameObjects.Image
+  protected focusBox?: Phaser.GameObjects.Graphics
+  protected milestones: Milestones = NO_MILESTONES
+  protected runId = 0
+  protected speed = 1
   readyPromise: Promise<void>
-  private resolveReady!: () => void
+  protected resolveReady!: () => void
 
-  constructor() {
-    super('chat')
+  constructor(key = 'chat') {
+    super(key)
     this.readyPromise = new Promise((r) => (this.resolveReady = r))
   }
 
@@ -98,7 +98,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     }
   }
 
-  private makePan(label: Label) {
+  protected makePan(label: Label) {
     const pan = this.add.container(0, 0)
     const strings = this.add.graphics()
     strings.lineStyle(2, INK).lineBetween(0, 0, -34, PAN_DROP).lineBetween(0, 0, 34, PAN_DROP)
@@ -110,14 +110,14 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   }
 
   /** Tilts the beam: positive tips towards penting (left). */
-  private positionPans(angleDeg: number) {
+  protected positionPans(angleDeg: number) {
     this.beam.setAngle(-angleDeg)
     const a = Phaser.Math.DegToRad(-angleDeg)
     this.pans.penting.setPosition(PIVOT.x - Math.cos(a) * ARM, PIVOT.y - Math.sin(a) * ARM)
     this.pans.santai.setPosition(PIVOT.x + Math.cos(a) * ARM, PIVOT.y + Math.sin(a) * ARM)
   }
 
-  private async tilt(score: number) {
+  protected async tilt(score: number) {
     const target = Phaser.Math.Clamp(score * 4, -14, 14)
     const from = { v: -this.beam.angle }
     await this.tween({ targets: from, v: target, duration: 380, ease: 'Back.out', onUpdate: () => this.positionPans(from.v) })
@@ -126,7 +126,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   // --- the phone -------------------------------------------------------------
 
   /** Adds a message bubble at the bottom of the feed and scrolls the rest up. */
-  private async addBubble(text: string) {
+  protected async addBubble(text: string) {
     const label = this.add.text(10, 6, text, { ...FONT, fontSize: '18px', wordWrap: { width: FEED.w - 24 } })
     // Room under the text for the verdict tag
     const h = label.height + 26
@@ -145,7 +145,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   }
 
   /** Marks a bubble with the verdict: the label it went to, and ✓ or ✗. */
-  private tag(bubble: Phaser.GameObjects.Container, label: Label | null, right: boolean) {
+  protected tag(bubble: Phaser.GameObjects.Container, label: Label | null, right: boolean) {
     const h = bubble.getData('h') as number
     const text = label ? `${labelText(this.lang, label)} ${right ? '✓' : '✗'}` : `? ${t(this.lang, 'cSceneNoRule')} ✗`
     const chip = this.add.text(FEED.w - 10, h - 4, text, {
@@ -165,12 +165,12 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
 
   // --- the panel ---------------------------------------------------------------
 
-  private clearPanel(titleKey: Key) {
+  protected clearPanel(titleKey: Key) {
     this.panel.removeAll(true)
     this.panel.add(this.add.text(10, 6, t(this.lang, titleKey), { ...FONT, fontSize: '18px' }))
   }
 
-  private showExamples(count: Record<Label, number>) {
+  protected showExamples(count: Record<Label, number>) {
     this.clearPanel('cSceneExamples')
     ;(['penting', 'santai'] as Label[]).forEach((l, i) => {
       const x = 10 + i * (PANEL.w / 2)
@@ -179,7 +179,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     })
   }
 
-  private showBrain(top: Extract<ChatEvent, { kind: 'train' }>['top']) {
+  protected showBrain(top: Extract<ChatEvent, { kind: 'train' }>['top']) {
     this.clearPanel('cSceneBrain')
     const max = Math.max(0.01, ...top.penting.map((x) => x.w), ...top.santai.map((x) => -x.w))
     ;(['penting', 'santai'] as Label[]).forEach((l, i) => {
@@ -193,7 +193,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     })
   }
 
-  private showRules(rules: ChatResult['rules'], fallback: Label | null, active: number | 'else' | null) {
+  protected showRules(rules: ChatResult['rules'], fallback: Label | null, active: number | 'else' | null) {
     this.clearPanel('cSceneRules')
     const rows = [...rules.map((r) => `${r.word || '…'} → ${labelText(this.lang, r.label)}`), ...(fallback ? [`* → ${labelText(this.lang, fallback)}`] : [])]
     rows.slice(0, 5).forEach((row, i) => {
@@ -206,7 +206,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   // --- weighing one message ----------------------------------------------------
 
   /** Drops each word on the pan it pushes towards; words Kata never saw fall away. */
-  private async weigh(s: Sorted, slow: boolean) {
+  protected async weigh(s: Sorted, slow: boolean) {
     this.chips.removeAll(true)
     const k = s.kata!
     if (!slow) {
@@ -237,17 +237,17 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
 
   // --- playback ----------------------------------------------------------------
 
-  private wait(ms: number) {
+  protected wait(ms: number) {
     return new Promise<void>((resolve) => this.time.delayedCall(ms / this.speed, resolve))
   }
 
-  private tween(config: Phaser.Types.Tweens.TweenBuilderConfig) {
+  protected tween(config: Phaser.Types.Tweens.TweenBuilderConfig) {
     return new Promise<void>((resolve) => {
       this.tweens.add({ ...config, duration: (Number(config.duration) || 300) / this.speed, onComplete: () => resolve() })
     })
   }
 
-  private highlight(rect: Rect | null) {
+  protected highlight(rect: Rect | null) {
     this.focusBox?.destroy()
     this.focusBox = undefined
     if (!rect) return
@@ -257,7 +257,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     this.focusBox = g
   }
 
-  private async milestone(id: CardId, side: PopupSide, rect: Rect, run: number, vars?: Record<string, string | number>) {
+  protected async milestone(id: CardId, side: PopupSide, rect: Rect, run: number, vars?: Record<string, string | number>) {
     if (run !== this.runId || !this.milestones.isNew(id)) return
     this.highlight(rect)
     await this.milestones.show(id, side, vars)
@@ -278,7 +278,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   }
 
   /** Sorts a batch of messages: slowly for the first few, then fast. */
-  private async sortBatch(sorted: Sorted[], res: ChatResult, slowFirst: number, run: number, onEach: (right: number) => void) {
+  protected async sortBatch(sorted: Sorted[], res: ChatResult, slowFirst: number, run: number, onEach: (right: number) => void) {
     let right = 0
     for (const [i, s] of sorted.entries()) {
       if (run !== this.runId) return
@@ -372,7 +372,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     if (lt && lt.rules !== null && lt.kata !== null && lt.rules >= lt.kata && lt.rules >= 18) log(t(L, 'cLogRulesWin'))
   }
 
-  private sparkleAt(x: number, y: number, tint: number) {
+  protected sparkleAt(x: number, y: number, tint: number) {
     const p = this.add.particles(x, y, 'spark', { speed: { min: 50, max: 150 }, lifespan: 500, scale: { start: 3, end: 0 }, tint, emitting: false })
     p.setDepth(11)
     p.explode(12)

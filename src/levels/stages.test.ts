@@ -162,7 +162,8 @@ describe('every puzzle has a place in its arc', () => {
     const { HILL_STAGES } = await import('./hill/stages')
     const { TAVERN_STAGES } = await import('./tavern/stages')
     const { CHAT_STAGES } = await import('./chat/stages')
-    for (const puzzles of [CHAT_STAGES, TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
+    const { FAIR_STAGES } = await import('./fair/stages')
+    for (const puzzles of [CHAT_STAGES, FAIR_STAGES, TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
       expect(puzzles[0].beat).toBe('introduce')
       for (const p of puzzles) {
         expect(p.beat === 'sandbox', p.id).toBe(Boolean(p.bonus))

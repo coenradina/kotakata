@@ -62,6 +62,11 @@ export const TERM_NAME: Record<CardId, string> = {
   trainingData: 'Training Data',
   model: 'Model',
   machineLearning: 'Machine Learning',
+  bias: 'Bias',
+  dataQuality: 'Data Quality',
+  testData: 'Test Data',
+  overfitting: 'Overfitting',
+  fairness: 'Fairness',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })

@@ -8,12 +8,14 @@ import { defineTavernBlocks } from './tavern/blocks'
 import { tavernLevel } from './tavern'
 import { defineChatBlocks } from './chat/blocks'
 import { chatSession } from './chat'
+import { defineFairBlocks } from './fair/blocks'
+import { fairSession } from './fair'
 import { defineWhenRun, setBlocklyLocale } from '../blocks/common'
 import type { Lang } from '../i18n'
 import type { Session, SessionId } from './types'
 
 /** The new one-hour sessions that are built so far (docs/plan/02-sessions.md). Every one is open. */
-export const SESSIONS: Session[] = [chatSession as Session]
+export const SESSIONS: Session[] = [chatSession as Session, fairSession as Session]
 
 /** The classic levels, in order. Each one unlocks when the one before is passed. */
 export const LEVELS: Session[] = [trainLevel as Session, treeLevel as Session, hillLevel as Session, tavernLevel as Session]
@@ -60,6 +62,7 @@ export function defineAllBlocks(lang: Lang) {
   defineHillBlocks(lang)
   defineTavernBlocks(lang)
   defineChatBlocks(lang)
+  defineFairBlocks(lang)
 }
 
 export type { Session, SessionId }
