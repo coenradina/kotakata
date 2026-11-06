@@ -4,7 +4,13 @@ Kotakata is a pixel-art block-coding game for learning machine learning terms. Y
 
 Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP classrooms is planned in [docs/plan](docs/plan/README.md). The game is in Indonesian and English. Technical terms like *training*, *dataset* and *accuracy* stay in English in both, because those are the words learners will meet later.
 
-## Levels
+## Sessions
+
+1. **Aturan atau Contoh? / Rules or Examples?** Kata sorts the class chat into important and chit-chat. Rules written by hand break on real messages, a word-counting classifier (naive Bayes) learning from examples does better, and on day 3 new slang shows that a model doesn't learn while it works. Terms: AI, training data, model, machine learning. *(playable, `/kotakata/main/s1`)*
+
+Sessions 2 to 6 are planned in [docs/plan](docs/plan/README.md).
+
+## Classic levels
 
 1. **Latih Robot / Train the Robot.** Classification: dataset, label, training, testing, accuracy. *(playable)*
 2. **Taman Decision Tree / Decision Tree Garden.** Features, splits, leaves, predictions, decision trees. Unlocks after Level 1. *(playable)*

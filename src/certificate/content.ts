@@ -24,13 +24,14 @@ export interface CertificateText {
   site: string
 }
 
-export function certificateText(level: Session, index: number, lang: Lang, name: string, date: Date): CertificateText {
+/** `numberLabel` is what the session is called in a list, such as "Sesi 1" or "Level 2". */
+export function certificateText(level: Session, numberLabel: string, lang: Lang, name: string, date: Date): CertificateText {
   return {
     title: t(lang, 'certTitle'),
     given: t(lang, 'certGiven'),
     name: cleanName(name) || '…',
     forLine: t(lang, 'certFor'),
-    what: `${t(lang, 'levelN', { n: index + 1 })} · ${level.title[lang]}`,
+    what: `${numberLabel} · ${level.title[lang]}`,
     topic: level.topic[lang],
     learnedLabel: t(lang, 'certLearned'),
     learned: level.cards.map((c) => c.term).join(' · '),

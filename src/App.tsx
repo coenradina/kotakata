@@ -5,7 +5,7 @@ import MapPage from './pages/MapPage'
 import NotebookPage from './pages/NotebookPage'
 import PlayPage from './pages/PlayPage'
 import { RouterProvider, matchRoute, useRoute } from './router'
-import { LEVELS, isUnlocked } from './levels'
+import { ALL, isUnlocked } from './levels'
 import { store } from './store'
 
 function Routes() {
@@ -22,7 +22,7 @@ function Routes() {
       return <CertificatePage id={page.id} />
     case 'play':
       // A session that doesn't exist yet, or is still locked, shows the map instead.
-      return LEVELS.some((l) => l.id === page.id) && isUnlocked(page.id, new Set(store.load().passed)) ? <PlayPage sessionId={page.id} /> : <MapPage />
+      return ALL.some((l) => l.id === page.id) && isUnlocked(page.id, new Set(store.load().passed)) ? <PlayPage sessionId={page.id} /> : <MapPage />
   }
 }
 

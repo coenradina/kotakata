@@ -2,7 +2,7 @@ import PixelSprite from '../components/PixelSprite'
 import SiteHeader from '../components/SiteHeader'
 import { t } from '../i18n'
 import { useLang } from '../lang'
-import { LEVELS, isUnlocked } from '../levels'
+import { ALL, LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
@@ -17,7 +17,8 @@ export default function LandingPage() {
   const progress = store.load()
   const passed = new Set(progress.passed)
   // Pick up where the player left off; a first visit starts at Level 1.
-  const resume = progress.lastSession && LEVELS.some((l) => l.id === progress.lastSession) ? progress.lastSession : LEVELS[0].id
+  // A first visit starts at Session 1, the one that works as an Hour of Code.
+  const resume = progress.lastSession && ALL.some((l) => l.id === progress.lastSession) ? progress.lastSession : SESSIONS[0].id
 
   return (
     <div className="min-h-full bg-cream">
@@ -58,26 +59,42 @@ export default function LandingPage() {
               <p className="type-lead text-ink-soft">{t(lang, 'sessionsLead')}</p>
             </div>
             <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {PLANNED.map((s) => (
-                <li
-                  key={s.id}
-                  className={`flex flex-col rounded-lg border-2 p-6 ${s.firstRelease ? 'border-ink bg-white shadow-pixel' : 'border-dashed border-ink/40 bg-cream'}`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="type-eyebrow text-maroon">{t(lang, 'sessionLabel', { n: s.n })}</span>
-                    <span className="text-icon" aria-hidden="true">
-                      {s.icon}
-                    </span>
-                  </div>
-                  <h3 className="mt-3 type-heading">{s.title[lang]}</h3>
-                  <p className="mt-2 flex-1 type-body text-ink-soft">{s.bigQuestion[lang]}</p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    <Chip>⏱ {t(lang, 'minutes', { n: s.minutes })}</Chip>
-                    <Chip>{t(lang, 'kelasChip', { k: s.kelas.join(', ') })}</Chip>
-                    <Chip>{s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')}</Chip>
-                  </div>
-                </li>
-              ))}
+              {PLANNED.map((s) => {
+                const playable = SESSIONS.some((x) => x.id === s.id)
+                const done = passed.has(s.id)
+                return (
+                  <li
+                    key={s.id}
+                    className={`flex flex-col rounded-lg border-2 p-6 ${playable ? 'border-ink bg-white shadow-pixel-lg' : s.firstRelease ? 'border-ink bg-white shadow-pixel' : 'border-dashed border-ink/40 bg-cream'}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="type-eyebrow text-maroon">{t(lang, 'sessionLabel', { n: s.n })}</span>
+                      <span className="text-icon" aria-hidden="true">
+                        {s.icon}
+                      </span>
+                    </div>
+                    <h3 className="mt-3 type-heading">{s.title[lang]}</h3>
+                    <p className="mt-2 flex-1 type-body text-ink-soft">{s.bigQuestion[lang]}</p>
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      <Chip>⏱ {t(lang, 'minutes', { n: s.minutes })}</Chip>
+                      <Chip>{t(lang, 'kelasChip', { k: s.kelas.join(', ') })}</Chip>
+                      {!playable && <Chip>{s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')}</Chip>}
+                    </div>
+                    {playable && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Link to={`/main/${s.id}`} className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 type-button text-white hover:bg-maroon-dark">
+                          {done ? t(lang, 'replay') : t(lang, 'play')}
+                        </Link>
+                        {done && (
+                          <Link to={`/sertifikat/${s.id}`} className="pixel-btn rounded border-2 border-ink bg-amber px-4 py-2 type-button hover:bg-amber-tint">
+                            🎓 {t(lang, 'certificate')}
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </section>

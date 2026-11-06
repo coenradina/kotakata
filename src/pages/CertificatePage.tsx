@@ -4,7 +4,7 @@ import { MAX_NAME, certificateText } from '../certificate/content'
 import { drawCertificate, loadCertificateFonts } from '../certificate/draw'
 import { t } from '../i18n'
 import { useLang } from '../lang'
-import { LEVELS } from '../levels'
+import { ALL, numberOf, trackOf } from '../levels'
 import { Link } from '../router'
 import { store } from '../store'
 
@@ -16,8 +16,7 @@ import { store } from '../store'
  */
 export default function CertificatePage({ id }: { id: string }) {
   const { lang } = useLang()
-  const index = LEVELS.findIndex((l) => l.id === id)
-  const level = LEVELS[index]
+  const level = ALL.find((l) => l.id === id)
   const passed = level ? store.load().passed.includes(level.id) : false
   const [name, setName] = useState('')
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -27,12 +26,12 @@ export default function CertificatePage({ id }: { id: string }) {
     if (!level || !passed) return
     let live = true
     loadCertificateFonts().then(() => {
-      if (live && canvas.current) drawCertificate(canvas.current, certificateText(level, index, lang, name, today))
+      if (live && canvas.current) drawCertificate(canvas.current, certificateText(level, t(lang, trackOf(level.id).track === 'sessions' ? 'sessionN' : 'levelN', { n: numberOf(level.id) }), lang, name, today))
     })
     return () => {
       live = false
     }
-  }, [level, index, passed, lang, name, today])
+  }, [level, passed, lang, name, today])
 
   const download = () => {
     canvas.current?.toBlob((blob) => {

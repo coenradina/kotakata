@@ -158,14 +158,16 @@ describe('Level 4 stages', () => {
 
 describe('every puzzle has a place in its arc', () => {
   // Imported here, not at the top, to keep the earlier tests' imports as they were.
-  it('opens with an introduce beat, ends free play in the sandbox, and shows each demo as a twist', async () => {
+  it('opens with an introduce beat, ends free play in the sandbox, and demos only problems to fix', async () => {
     const { HILL_STAGES } = await import('./hill/stages')
     const { TAVERN_STAGES } = await import('./tavern/stages')
-    for (const puzzles of [TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
+    const { CHAT_STAGES } = await import('./chat/stages')
+    for (const puzzles of [CHAT_STAGES, TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
       expect(puzzles[0].beat).toBe('introduce')
       for (const p of puzzles) {
         expect(p.beat === 'sandbox', p.id).toBe(Boolean(p.bonus))
-        if (p.demo) expect(p.beat, p.id).toBe('twist')
+        // A demo shows the problem before the player fixes it, so it never opens a session or comes in free play.
+        if (p.demo) expect(['develop', 'twist'], p.id).toContain(p.beat)
         expect(p.firstRunTarget, p.id).toBeGreaterThan(0)
         expect(p.firstRunTarget, p.id).toBeLessThanOrEqual(1)
       }

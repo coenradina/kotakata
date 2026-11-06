@@ -6,10 +6,11 @@ import QuizModal from '../components/QuizModal'
 import NotebookToast, { type NotebookEntry } from '../components/NotebookToast'
 import LevelCompleteModal from '../components/LevelCompleteModal'
 import type { Milestones } from '../game/types'
-import { t, type CardId, type Key, type Lang } from '../i18n'
+import { t, type CardId, type Lang } from '../i18n'
 import { MAX_REPEATS, MISSION_ANCHOR, ladderHint, rungFor, type Hint } from '../hints'
-import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
-import type { Prediction, Session } from '../levels/types'
+import { isUnlocked as unlocked, levelById, numberOf, trackOf, type SessionId } from '../levels'
+import { PLANNED } from '../sessions/catalog'
+import type { Prediction, Puzzle, Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
 import { useLang } from '../lang'
 import { Link, useRoute } from '../router'
@@ -53,6 +54,9 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
   // The route says which session; the router only sends ids that exist.
   const levelId = sessionId as SessionId
   const level = levelById(levelId)
+  // The list this session belongs to: the new sessions, or the classic levels.
+  const { list: TRACK, track: trackName } = trackOf(levelId)
+  const upcoming = trackName === 'sessions' ? PLANNED.filter((p) => !TRACK.some((s) => s.id === p.id)) : []
   useEffect(() => store.save({ lastSession: levelId }), [levelId])
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
@@ -228,7 +232,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
     const token = ++runToken.current
     cardsThisRun.current = 0
     // A new seed each run, so every run looks a little different.
-    const result = level.run(program, seed.current++, stage.id)
+    const result = level.run(program, seed.current++, stage.id, lang)
     await stageView.current?.play(result.events, (text, tone = 'info') => setLog((l) => [...l, { text, tone }]), milestones)
     if (token !== runToken.current) return
     if (result.context) lastRun.current = result.context
@@ -249,7 +253,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
       if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint })
     }
     let levelDoneNow = false
-    let demoNext: { blocks: object; messageKey: Key } | undefined
+    let demoNext: NonNullable<Puzzle<unknown>["demo"]> | undefined
 
     // Badges for anything nice this run did
     const earned = level.badgeDefs.filter((a) => !badges.has(`${level.id}:${a.id}`) && a.check(program, result, stage, stagePassed))
@@ -296,8 +300,8 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
           const next = new Set(passed).add(level.id)
           setPassed(next)
           store.save({ passed: [...next] })
-          const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
-          if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
+          const nextIndex = TRACK.findIndex((l) => l.id === level.id) + 1
+          if (trackName === 'classic' && nextIndex < TRACK.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
         }
         if (level.puzzles.some((st) => st.bonus && !nowDone.has(st.id))) setLog((l) => [...l, { text: t(lang, 'bonusOpen'), tone: 'info' }])
         else setLog((l) => [...l, { text: `${t(lang, 'bonusToo')} ${t(lang, 'allDone')}`, tone: 'good' }])
@@ -314,7 +318,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
       }
     } else {
       const fail = stage.failKey(program, result)
-      if (fail) setLog((l) => [...l, { text: t(lang, fail, { acc }), tone: 'bad' }])
+      if (fail) setLog((l) => [...l, { text: t(lang, fail, { acc, ...stage.failVars?.(program, result) }), tone: 'bad' }])
     }
     // Badge toasts come last, after any win card, so they aren't missed.
     // Several at once become one toast.
@@ -338,8 +342,9 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
       const demo = demoNext
       window.setTimeout(() => {
         // Blockly's loader wants the blocks wrapped in { blocks: … }
-        editor.current?.loadBlocks({ blocks: demo.blocks })
+        editor.current?.loadBlocks({ blocks: typeof demo.blocks === 'function' ? demo.blocks(lang) : demo.blocks })
         setLog([{ text: t(lang, demo.messageKey), tone: 'info' }])
+        if (demo.autoRun === false) return
         window.setTimeout(() => {
           demoRun.current = true
           runButton.current?.click()
@@ -367,7 +372,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
   }
 
   /** A level is open once the one before it is passed. */
-  const isUnlocked = (index: number) => index === 0 || passed.has(LEVELS[index - 1].id)
+  const isUnlocked = (index: number) => unlocked(TRACK[index].id, passed)
 
   const switchLevel = (id: SessionId) => {
     if (id === levelId) return
@@ -483,9 +488,9 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
       <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:grid-cols-[176px_minmax(0,1.45fr)_minmax(0,1fr)]">
         {/* Level list: a row across the top until there's room for a column */}
         <nav aria-label={t(lang, 'levels')} className="space-y-2 lg:col-span-2 xl:col-span-1">
-          <h2 className="type-eyebrow text-ink/70">{t(lang, 'levels')}</h2>
+          <h2 className="type-eyebrow text-ink/70">{t(lang, trackName === 'sessions' ? 'sessionsNav' : 'levels')}</h2>
           <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-1">
-            {LEVELS.map((lv, i) => {
+            {TRACK.map((lv, i) => {
               const open = isUnlocked(i)
               const current = lv.id === levelId
               return (
@@ -504,18 +509,18 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
                     }`}
                   >
                     <div className="type-pixel-sm">
-                      {i + 1}. {lv.title[lang]} {passed.has(lv.id) && '✓'}
+                      {numberOf(lv.id)}. {lv.title[lang]} {passed.has(lv.id) && '✓'}
                     </div>
                     <div className="mt-1 type-eyebrow">{open ? lv.topic[lang] : `🔒 ${t(lang, 'levelLocked')}`}</div>
                   </button>
                 </li>
               )
             })}
-            {UPCOMING.map((lv, i) => (
-              <li key={lv.title.en}>
+            {upcoming.map((lv) => (
+              <li key={lv.id}>
                 <div className="rounded border-2 border-ink bg-parchment px-3 py-2 text-ink/60">
                   <div className="type-pixel-sm">
-                    {LEVELS.length + i + 1}. {lv.title[lang]}
+                    {lv.n}. {lv.title[lang]}
                   </div>
                   <div className="mt-1 type-eyebrow">🔒 {t(lang, 'comingSoon')}</div>
                 </div>
@@ -537,6 +542,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
               <BlockEditor
                 lang={lang}
                 level={level}
+                puzzleId={stage.id}
                 ref={editor}
                 onEdit={() => {
                   setHint(null)
@@ -621,7 +627,8 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
         </section>
       </main>
 
-      <div className="pointer-events-none fixed right-4 top-20 z-toast flex w-72 flex-col gap-2" aria-live="polite">
+      {/* Bottom left, over the block palette: away from the stage and the run controls */}
+      <div className="pointer-events-none fixed bottom-4 left-4 z-toast flex w-72 flex-col gap-2" aria-live="polite">
         {toasts.map((toast) => (
           <div key={toast.id} className="card-in flex items-start gap-3 rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel">
             <span className="badge-pop text-icon-lg" aria-hidden="true">
@@ -646,7 +653,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
           levelId={levelDone}
           found={found}
           badges={badges}
-          allDone={LEVELS.every((l) => passed.has(l.id) || l.id === levelDone)}
+          allDone={trackName === 'classic' && TRACK.every((l) => passed.has(l.id) || l.id === levelDone)}
           onNext={(id) => {
             setLevelDone(null)
             switchLevel(id)

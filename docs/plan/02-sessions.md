@@ -207,6 +207,19 @@ Logged as described in 03, section 6:
 3. 10 new cards break the rules.
 4. Each group then tallies words on a sheet: for each word, how often it was *Penting* and how often *Santai*. They sort the new cards by the tallies.
 
+### As built (step 3, November 2026)
+
+Session 1 is playable at `/kotakata/main/s1`. It differs from the design above in a few places. Each change came from the balance tests in `src/levels/chat/model.test.ts`:
+
+- **Test size.** `uji pada pesan baru` has no count. Each puzzle sets the size: 4 messages in P1, 20 everywhere else.
+- **P3 demo.** The demo program already wins, so it loads but doesn't run until the student has made a guess.
+- **P5 target.** The pass mark is 5 of 6 messages on a working day after the slang arrives (day 4 or later). Retrained Kata scores 6 of 6 on every tested seed.
+- **New examples in P5.** Examples are collected from the chat history newest first. Collecting after the working days picks up the new slang without needing an extra block.
+- **Sandbox.** The sandbox became "Can rules match Kata?": rules alone must get 18 of 20. Two things drove this:
+  - In English, Kata rarely scores a perfect 20/20 even with 40 examples, so a "perfect Kata" goal would come down to luck.
+  - Rules written for 20 messages the student has already seen are exactly the trap that Session 3 will expose.
+- **Not yet built.** *Tantang Teman* (challenge a friend) waits for challenge codes. The third label, *Info Ekskul*, also waits.
+
 ## 4. Session 3: Data yang Adil (Fair data)
 
 **Big question:** "Kenapa Kata jadi kacau di kelas sepupuku?" (Why does Kata get it so wrong in my cousin's class?)

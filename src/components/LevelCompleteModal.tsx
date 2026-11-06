@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { LEVELS, levelById, type SessionId } from '../levels'
+import { LEVELS, levelById, numberOf, trackOf, type SessionId } from '../levels'
 import { t, type CardId, type Lang } from '../i18n'
 
 interface Props {
@@ -18,8 +18,8 @@ interface Props {
 /** Celebrates a finished level, and the whole game once every level is done. */
 export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose, onCertificate }: Props) {
   const level = levelById(levelId)
-  const index = LEVELS.findIndex((l) => l.id === levelId)
-  const next = LEVELS[index + 1]
+  const { list, index, track } = trackOf(levelId)
+  const next = list[index + 1]
   const hasBonus = level.puzzles.some((s) => s.bonus)
   const primary = useRef<HTMLButtonElement>(null)
   const closeRef = useRef(onClose)
@@ -39,7 +39,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
       <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="card-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border-2 border-ink bg-cream shadow-pixel-lg">
         <div className="bg-ink px-6 py-3">
           <h2 id="done-title" className="type-pixel-lg text-amber">
-            {allDone ? t(lang, 'finTitle') : `🎉 ${t(lang, 'lcTitle', { n: index + 1 })}`}
+            {allDone ? t(lang, 'finTitle') : `🎉 ${t(lang, track === 'sessions' ? 'lcTitleSession' : 'lcTitle', { n: numberOf(levelId) })}`}
           </h2>
           <p className="mt-1 type-label text-cream/80">{allDone ? t(lang, 'finBody') : level.title[lang]}</p>
         </div>

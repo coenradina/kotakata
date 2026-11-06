@@ -80,14 +80,18 @@ const EDIT_EVENTS = new Set<string>([
   Blockly.Events.BLOCK_MOVE,
 ])
 
-function loadSaved(level: Session): object {
-  return store.loadBlocks(level.id) ?? level.starter
+const starterOf = (level: Session, lang: Lang) => (typeof level.starter === 'function' ? level.starter(lang) : level.starter)
+
+function loadSaved(level: Session, lang: Lang): object {
+  return store.loadBlocks(level.id) ?? starterOf(level, lang)
 }
 
 interface Props {
   lang: Lang
   level: Session
   ref: Ref<BlockEditorHandle>
+  /** The puzzle being played, for sessions whose palette grows puzzle by puzzle. */
+  puzzleId?: string
   /** Called when the player changes their blocks. */
   onEdit?: () => void
 }
@@ -113,13 +117,17 @@ function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: b
   return field?.getSvgRoot()?.getBoundingClientRect() ?? null
 }
 
-export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
+export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const ws = useRef<Blockly.WorkspaceSvg | null>(null)
   const onEditRef = useRef(onEdit)
   onEditRef.current = onEdit
   const levelRef = useRef(level)
   levelRef.current = level
+  const langRef = useRef(lang)
+  langRef.current = lang
+  const puzzleRef = useRef(puzzleId)
+  puzzleRef.current = puzzleId
   // Which level the workspace currently holds, so a level switch loads fresh blocks.
   const shownLevel = useRef<string | null>(null)
 
@@ -132,7 +140,7 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
         const workspace = ws.current
         if (!workspace) return
         workspace.clear()
-        Blockly.serialization.workspaces.load(levelRef.current.starter, workspace)
+        Blockly.serialization.workspaces.load(starterOf(levelRef.current, langRef.current), workspace)
         workspace.getToolbox()?.selectItemByPosition(0)
         schedulePlace(workspace)
       },
@@ -161,13 +169,13 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
     // Changing language redefines the blocks, so rebuild the workspace and
     // carry the player's blocks across. Changing level loads that level's blocks.
     const sameLevel = shownLevel.current === level.id
-    const state = ws.current && sameLevel ? Blockly.serialization.workspaces.save(ws.current) : loadSaved(level)
+    const state = ws.current && sameLevel ? Blockly.serialization.workspaces.save(ws.current) : loadSaved(level, lang)
     ws.current?.dispose()
     defineAllBlocks(lang)
     shownLevel.current = level.id
 
     const workspace = Blockly.inject(host.current, {
-      toolbox: level.toolbox(lang),
+      toolbox: level.toolbox(lang, puzzleRef.current),
       theme,
       renderer: 'zelos',
       sounds: false,
@@ -182,7 +190,7 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
     try {
       Blockly.serialization.workspaces.load(state, workspace)
     } catch {
-      Blockly.serialization.workspaces.load(level.starter, workspace)
+      Blockly.serialization.workspaces.load(starterOf(level, lang), workspace)
     }
     ws.current = workspace
 
@@ -215,6 +223,16 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
       workspace.removeChangeListener(keepOpen)
     }
   }, [lang, level])
+
+  // A new puzzle can bring new blocks into the palette, without rebuilding the workspace.
+  useEffect(() => {
+    const workspace = ws.current
+    if (!workspace) return
+    workspace.updateToolbox(level.toolbox(lang, puzzleId))
+    workspace.getToolbox()?.selectItemByPosition(0)
+    // Only the puzzle matters here; language and level changes rebuild everything above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleId])
 
   useEffect(
     () => () => {

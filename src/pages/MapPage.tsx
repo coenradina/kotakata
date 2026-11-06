@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import SiteHeader from '../components/SiteHeader'
 import { t } from '../i18n'
 import { useLang } from '../lang'
-import { LEVELS, isUnlocked } from '../levels'
+import { LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
@@ -40,17 +40,28 @@ export default function MapPage() {
           <div className="space-y-6 border-2 border-ink bg-parchment p-4 sm:p-6">
             <Floor title={t(lang, 'floorNew')}>
               <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {PLANNED.map((s) => (
-                  <li key={s.id}>
-                    <Room
-                      number={`R.2${s.n}`}
-                      icon={s.icon}
-                      title={s.title[lang]}
-                      status={s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')}
-                      state="soon"
-                    />
-                  </li>
-                ))}
+                {PLANNED.map((s) => {
+                  if (!SESSIONS.some((x) => x.id === s.id)) {
+                    return (
+                      <li key={s.id}>
+                        <Room number={`R.2${s.n}`} icon={s.icon} title={s.title[lang]} status={s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')} state="soon" />
+                      </li>
+                    )
+                  }
+                  const done = passed.has(s.id)
+                  return (
+                    <li key={s.id} className="space-y-2">
+                      <Link to={`/main/${s.id}`} className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+                        <Room number={`R.2${s.n}`} icon={done ? '✓' : s.icon} title={s.title[lang]} status={done ? t(lang, 'roomDone') : t(lang, 'roomOpen')} state={done ? 'done' : 'open'} />
+                      </Link>
+                      {done && (
+                        <Link to={`/sertifikat/${s.id}`} className="inline-block type-micro underline hover:text-maroon">
+                          🎓 {t(lang, 'certificate')}
+                        </Link>
+                      )}
+                    </li>
+                  )
+                })}
               </ol>
             </Floor>
             <div aria-hidden="true" className="border-t-2 border-dashed border-ink/30" />

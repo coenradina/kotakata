@@ -118,3 +118,42 @@ describe('rung-3 examples pass their puzzles, Levels 2 and 4', async () => {
     })
   }
 })
+
+describe('rung-3 examples pass their puzzles, Session 1', async () => {
+  const { runChat } = await import('./levels/chat/model')
+  const { CHAT_STAGES, TEST_SIZE } = await import('./levels/chat/stages')
+  type Step = import('./levels/chat/model').Step
+  const r = (word: string, label: 'penting' | 'santai'): Step => ({ kind: 'rule', word, label, id: word })
+  const e = (label: 'penting' | 'santai'): Step => ({ kind: 'else', label, id: 'else' })
+  const c = (label: 'penting' | 'santai', count: number, id: string): Step => ({ kind: 'collect', label, count, id })
+  const T: Step = { kind: 'train', id: 't' }
+  const X: Step = { kind: 'test', count: 20, id: 'x' }
+  const examples: Record<'id' | 'en', Record<string, Step[]>> = {
+    id: {
+      p1: [r('ulangan', 'penting'), e('santai'), X],
+      p2: [r('wkwk', 'santai'), r('yuk', 'santai'), r('ulangan', 'penting'), r('pr', 'penting'), r('besok', 'penting'), r('tugas', 'penting'), r('jadwal', 'penting'), e('santai'), X],
+      p3: [c('penting', 10, 'a'), c('santai', 10, 'b'), T, X],
+      p4: [c('penting', 12, 'a'), c('santai', 12, 'b'), T, X],
+      sandbox: [r('wkwk', 'santai'), r('yuk', 'santai'), r('mabar', 'santai'), r('lucu', 'santai'), r('kantin', 'santai'), r('nonton', 'santai'), r('kocak', 'santai'), e('penting'), X],
+    },
+    en: {
+      p1: [r('test', 'penting'), e('santai'), X],
+      p2: [r('lol', 'santai'), r('test', 'penting'), r('hw', 'penting'), r('tomorrow', 'penting'), r('due', 'penting'), r('bring', 'penting'), e('santai'), X],
+      p3: [c('penting', 10, 'a'), c('santai', 10, 'b'), T, X],
+      p4: [c('penting', 12, 'a'), c('santai', 12, 'b'), T, X],
+      sandbox: [r('lol', 'santai'), r('gaming', 'santai'), r('movie', 'santai'), r('cute', 'santai'), r('canteen', 'santai'), r('omg', 'santai'), r('bakso', 'santai'), r('mall', 'santai'), e('penting'), X],
+    },
+  }
+  for (const lang of ['id', 'en'] as const) {
+    for (const stage of CHAT_STAGES.filter((s) => s.id !== 'p5')) {
+      it(`Session 1, ${lang}, ${stage.id}, on most seeds`, () => {
+        const program = examples[lang][stage.id]
+        const passes = Array.from({ length: 40 }, (_, i) => {
+          const raw = runChat(program, i + 1, lang, TEST_SIZE[stage.id] ?? 20)
+          return stage.check(program, { raw, events: [raw], accuracy: raw.accuracy, passed: false, context: null } as never)
+        }).filter(Boolean).length
+        expect(passes, `${passes}/40`).toBeGreaterThanOrEqual(38)
+      })
+    }
+  }
+})

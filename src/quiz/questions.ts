@@ -58,6 +58,10 @@ export const TERM_NAME: Record<CardId, string> = {
   temperature: 'Temperature',
   context: 'Context',
   llm: 'LLM',
+  ai: 'AI',
+  trainingData: 'Training Data',
+  model: 'Model',
+  machineLearning: 'Machine Learning',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })

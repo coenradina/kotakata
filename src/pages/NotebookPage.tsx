@@ -1,6 +1,6 @@
 import { fillMoment, t, type CardId } from '../i18n'
 import { useLang } from '../lang'
-import { LEVELS } from '../levels'
+import { ALL, numberOf, trackOf } from '../levels'
 import { MAX_STARS } from '../quiz/questions'
 import { Link } from '../router'
 import { store } from '../store'
@@ -14,7 +14,7 @@ export default function NotebookPage() {
   const { lang, setLang } = useLang()
   const progress = store.load()
   const found = new Set<CardId>(progress.cards)
-  const total = LEVELS.reduce((n, l) => n + l.cards.length, 0)
+  const total = ALL.reduce((n, l) => n + l.cards.length, 0)
 
   return (
     <div className="min-h-full bg-parchment">
@@ -38,10 +38,10 @@ export default function NotebookPage() {
           <p className="type-label text-tosca-dark">{t(lang, 'notebookCount', { found: found.size, total })}</p>
         </div>
 
-        {LEVELS.map((level, i) => (
+        {ALL.map((level) => (
           <section key={level.id} aria-labelledby={`nb-${level.id}`} className="space-y-3">
             <h2 id={`nb-${level.id}`} className="type-heading">
-              {i + 1}. {level.title[lang]}{' '}
+              {t(lang, trackOf(level.id).track === 'sessions' ? 'sessionN' : 'levelN', { n: numberOf(level.id) })} · {level.title[lang]}{' '}
               <span className="type-pixel-sm text-maroon">
                 {level.cards.filter((c) => found.has(c.id)).length}/{level.cards.length}
               </span>

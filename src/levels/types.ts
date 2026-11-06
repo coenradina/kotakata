@@ -4,7 +4,7 @@ import type { Hint } from '../hints'
 import type { CardId, Key, Lang, TermCard } from '../i18n'
 import type { RunContext } from '../quiz/questions'
 
-export type SessionId = 'train' | 'tree' | 'hill' | 'tavern'
+export type SessionId = 's1' | 'train' | 'tree' | 'hill' | 'tavern'
 
 /** What running a level's program produced, in a shape the app understands. */
 export interface Run {
@@ -59,13 +59,16 @@ export interface Puzzle<P> {
   exampleKey: Key
   /** Did this run complete the stage? */
   check: (program: P, run: Run) => boolean
-  /** What the log says when it didn't. Can use {acc}. */
+  /** What the log says when it didn't. Can use {acc}, and anything `failVars` adds. */
   failKey: (program: P, run: Run) => Key | null
+  /** Numbers for the fail line, such as how many messages were right. */
+  failVars?: (program: P, run: Run) => Record<string, string | number>
   /**
    * Blocks to load and run once when the player reaches this stage, so they
    * see the problem the stage is about before fixing it.
    */
-  demo?: { blocks: object; messageKey: Key }
+  /** `autoRun: false` only loads the blocks, for a demo whose program already solves the puzzle. */
+  demo?: { blocks: object | ((lang: Lang) => object); messageKey: Key; autoRun?: boolean }
 }
 
 /** A small badge for something nice the player did. */
@@ -93,8 +96,9 @@ export interface Session<P = unknown> {
   winCard: CardId
   /** What the log says on a win. Can use {acc}. */
   winKey: Key
-  toolbox: (lang: Lang) => Blockly.utils.toolbox.ToolboxDefinition
-  starter: object
+  /** The block palette. Sessions that add blocks puzzle by puzzle use `puzzleId`. */
+  toolbox: (lang: Lang, puzzleId?: string) => Blockly.utils.toolbox.ToolboxDefinition
+  starter: object | ((lang: Lang) => object)
   /** Null when there's no "when run" block at all. */
   read: (ws: Blockly.Workspace) => P | null
   isEmpty: (program: P) => boolean
@@ -105,7 +109,7 @@ export interface Session<P = unknown> {
    */
   runGroup: (stageId: string) => string
   badgeDefs: BadgeDef<P>[]
-  run: (program: P, seed: number, stageId: string) => Run
+  run: (program: P, seed: number, stageId: string, lang: Lang) => Run
   hint: (program: P | null, result: Run | null, stageId: string) => Hint | null
   createScene: () => SessionScene
   /** What the scene's live preview should show for the current blocks and stage. */
