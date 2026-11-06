@@ -67,6 +67,10 @@ export const TERM_NAME: Record<CardId, string> = {
   testData: 'Test Data',
   overfitting: 'Overfitting',
   fairness: 'Fairness',
+  generativeAI: 'Generative AI',
+  hallucination: 'Hallucination',
+  prompt: 'Prompt',
+  aiAsTool: 'AI as a Tool',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })

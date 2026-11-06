@@ -10,7 +10,9 @@ Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP 
 
 3. **Data yang Adil / Fair Data.** The same learner, moved to a cousin's class that writes differently. Players inspect the data, learn that different examples beat more of the same, fix joke labels, set examples aside for an honest test, and score Kata person by person to find who it fails. Terms: bias, data quality, test data, overfitting, fairness. *(playable, `/kotakata/main/s3`)*
 
-Sessions 2, 4, 5 and 6 are planned in [docs/plan](docs/plan/README.md).
+5. **Kata demi Kata / Word by Word.** Kata becomes the class info chatbot, a word n-gram model trained on the announcement board. Players see the next-word probabilities, use temperature and memory, catch Kata confidently answering a date the board never gave, rewrite vague questions, and make Kata read a new notice. Terms: generative AI, hallucination, prompt, AI as a tool. *(playable, `/kotakata/main/s5`)*
+
+Sessions 2, 4 and 6 are planned in [docs/plan](docs/plan/README.md).
 
 ## Classic levels
 

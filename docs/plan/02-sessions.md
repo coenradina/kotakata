@@ -435,6 +435,17 @@ Keep claims general. Don't say how any specific product works internally.
 2. They roll a die to sample the next word.
 3. One student plays Kata answering classmates' questions, and the class checks each answer against the board.
 
+### As built (step 5, November 2026)
+
+Session 5 is playable at `/kotakata/main/s5`. Its model is a new word n-gram (`src/levels/board/model.ts`). It is not the tavern model: it uses up to 3 words of context, backs off one word at a time, and reads the board as one stream. Its balance tests are in `src/levels/board/model.test.ts`. Changes from the design above:
+
+- **Default memory.** It's 3 words, so puzzle 1's question gets the board's answer. Puzzle 3 loads a 1-word memory on purpose, and Kata then loops. In English a 2-word memory also gets a fact wrong ("maths test on monday"). Only a 3-word memory writes the board back correctly.
+- **The P4 hallucination.** "ulangan ipa hari" ("science test on") is a context Kata has never seen, so it backs off to "hari" ("test on") and answers "senin" ("monday") with 100% confidence. The board says the date is still to follow. Nothing in the game is scripted to produce this.
+- **The P5 questions.** Dinda asks about the maths test, Raka about the basketball club (in English, maths homework), and Sari about class cleaning. Every vague prompt gets an answer about something else. Every specific prompt gets the board's answer. In English, Raka asks about maths homework because his vague basketball question happened to come out right.
+- **The check block.** It asks whether one board sentence contains the prompt's words and the answer. So "ulangan hari senin" counts as being on the board (the Bahasa test) while still answering the wrong question. That contrast is the point of P5.
+- **The sandbox.** It pins the new notice up only during that puzzle. "baca ulang papan pengumuman" (read the notice board again) has to come before the question.
+- **Settings.** Temperature and memory blocks apply wherever they are placed, which fixes usability blocker B1.
+
 ## 6. Session 2: Filter Kamera (Camera filter), outline
 
 **Big question:** "Gimana filter kamera tahu di mana mataku?" (How does a camera filter know where my eyes are?)

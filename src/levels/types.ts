@@ -4,7 +4,7 @@ import type { Hint } from '../hints'
 import type { CardId, Key, Lang, TermCard } from '../i18n'
 import type { RunContext } from '../quiz/questions'
 
-export type SessionId = 's1' | 's3' | 'train' | 'tree' | 'hill' | 'tavern'
+export type SessionId = 's1' | 's3' | 's5' | 'train' | 'tree' | 'hill' | 'tavern'
 
 /** What running a level's program produced, in a shape the app understands. */
 export interface Run {
