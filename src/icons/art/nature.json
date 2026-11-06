@@ -372,22 +372,5 @@
    "..kmMk..",
    "..kkkk.."
   ]
- },
- "roller-coaster": {
-  "char": "🎢",
-  "rows": [
-   "............",
-   "............",
-   "kkkk.kkkk...",
-   "kwakkmmmmk..",
-   "kaokmMMMMmk.",
-   "kkkmMk..kMmk",
-   "..kmk.s..kmk",
-   ".kmMk.s..kmk",
-   ".kmk..s..kMk",
-   "kmMk..s..kMk",
-   "kMk...s..kMk",
-   "kkk...s..kkk"
-  ]
  }
 }

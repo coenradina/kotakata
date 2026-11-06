@@ -90,6 +90,6 @@ export const TAVERN_ACHIEVEMENTS: BadgeDef<Step[]>[] = [
   { id: 'firstWord', icon: '🪶', titleKey: 'aFirstWordTitle', descKey: 'aFirstWordDesc', check: (_p, r) => raw(r).picks.length > 0 },
   { id: 'surprise', icon: '🎲', titleKey: 'aSurpriseTitle', descKey: 'aSurpriseDesc', check: (p, r) => warm(raw(r)) && different(p, raw(r)) },
   { id: 'hot', icon: '🔥', titleKey: 'aHotTitle', descKey: 'aHotDesc', check: (_p, r) => raw(r).temperatures.includes(2) },
-  { id: 'memory', icon: '🧠', titleKey: 'aMemoryTitle', descKey: 'aMemoryDesc', check: (_p, r) => raw(r).finished && raw(r).contexts.includes(2) },
+  { id: 'memory', icon: '📼', titleKey: 'aMemoryTitle', descKey: 'aMemoryDesc', check: (_p, r) => raw(r).finished && raw(r).contexts.includes(2) },
   { id: 'bard', icon: '🎻', titleKey: 'aBardTitle', descKey: 'aBardDesc', check: (_p, _r, stage, passed) => stage.id === 'creative' && passed },
 ]

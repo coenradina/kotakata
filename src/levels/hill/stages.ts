@@ -64,7 +64,7 @@ export const HILL_STAGES: Puzzle<Step[]>[] = [
 export const HILL_ACHIEVEMENTS: BadgeDef<Step[]>[] = [
   { id: 'firstStep', icon: '🥾', titleKey: 'aFirstStepTitle', descKey: 'aFirstStepDesc', check: (_p, r) => raw(r).moves.length > 0 },
   { id: 'valley', icon: '🏁', titleKey: 'aValleyTitle', descKey: 'aValleyDesc', check: (_p, r) => raw(r).arrivedAt !== null },
-  { id: 'bounced', icon: '🎢', titleKey: 'aBouncedTitle', descKey: 'aBouncedDesc', check: (_p, r) => raw(r).flewOff },
+  { id: 'bounced', icon: '🏀', titleKey: 'aBouncedTitle', descKey: 'aBouncedDesc', check: (_p, r) => raw(r).flewOff },
   { id: 'steep', icon: '🧗', titleKey: 'aSteepTitle', descKey: 'aSteepDesc', check: (_p, _r, stage, passed) => stage.id === 'steep' && passed },
   { id: 'oneJump', icon: '🎯', titleKey: 'aOneJumpTitle', descKey: 'aOneJumpDesc', check: (_p, _r, stage, passed) => stage.id === 'one' && passed },
 ]

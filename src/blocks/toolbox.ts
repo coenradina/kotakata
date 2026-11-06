@@ -17,7 +17,7 @@ const SECTION_ICON: Partial<Record<Key, string>> = {
   catAsk: '❓',
   catPens: '🏠',
   catData: '📦',
-  catModel: '🧠',
+  catModel: '⚙',
   catHill: '⛰',
   catTokSettings: '⚙',
   catTokWrite: '✍',

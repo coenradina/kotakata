@@ -15,7 +15,7 @@ const BARS = { x: 14, y: 196, rowH: 40, labelW: 150, barW: 110 }
 const MATRIX = { x: 338, y: 36, w: W - 350, rowH: 52 }
 
 const PLAN_KEY: Record<PlanId, Key> = { attend: 'planAttend', essay1: 'planEssay1', essay2: 'planEssay2', chat: 'planChat', gate: 'planGate' }
-const METER_ICON: Record<MeterId, string> = { time: '⏱', privacy: '🔒', fairness: '⚖', caught: '🎯', trust: '🤝', safety: '🛡' }
+const METER_ICON: Record<MeterId, string> = { time: '⏱', privacy: '🔒', fairness: '⚖', caught: '🎯', trust: '❤', safety: '🛡' }
 const PERSON_ICON: Record<PersonId, string> = { raka: '🧑', rina: '👩', joko: '👨', sari: '👧', udin: '👮' }
 const MOOD_ICON = { happy: '😀', okay: '🙂', upset: '😟', none: '–' }
 

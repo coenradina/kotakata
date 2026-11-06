@@ -305,23 +305,6 @@
    "............"
   ]
  },
- "brain": {
-  "char": "🧠",
-  "rows": [
-   "..kkk.kkk..",
-   ".kPPPkPPPk.",
-   "kPwPPkPPPmk",
-   "kPMMPkPMMmk",
-   "kPPPPkPPPmk",
-   "kPPMMkMMPmk",
-   "kPPPPkPPPmk",
-   "kMMPPkPPMMk",
-   "kPPPPkPPPmk",
-   ".kmmmkmmmk.",
-   "..kkk.kkk..",
-   "..........."
-  ]
- },
  "test-tube": {
   "char": "🧪",
   "rows": [
@@ -405,6 +388,40 @@
    ".kswwwwwwsk.",
    "..kssssssk..",
    "...kkkkkk..."
+  ]
+ },
+ "heart": {
+  "char": "❤",
+  "rows": [
+   "............",
+   ".kkk...kkk..",
+   "krrrk.krrrk.",
+   "krwrrkrrrRk.",
+   "krrrrrrrrRk.",
+   "krrrrrrrrRk.",
+   ".krrrrrrRk..",
+   "..krrrrRk...",
+   "...krrRk....",
+   "....kRk.....",
+   ".....k......",
+   "............"
+  ]
+ },
+ "chart-down": {
+  "char": "📉",
+  "rows": [
+   "kkkkkkkkkkkk",
+   "kwwwwwwwwwwk",
+   "kwmmwwwwwwwk",
+   "kwmmmwwwwwwk",
+   "kwwwmmwwwwwk",
+   "kwwwwmmmwwwk",
+   "kwwwwwwmmwwk",
+   "kwwwwwwwmmwk",
+   "kwwwwwwwwmmk",
+   "kwwwwwwwwwwk",
+   "kTTTTTTTTTTk",
+   "kkkkkkkkkkkk"
   ]
  }
 }

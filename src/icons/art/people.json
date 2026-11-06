@@ -220,23 +220,6 @@
    "............"
   ]
  },
- "handshake": {
-  "char": "🤝",
-  "rows": [
-   "............",
-   "............",
-   "kkkk....kkkk",
-   "kttkkkkkkmMk",
-   "kttffffffkMk",
-   "kTTfffffkfMk",
-   "kkkkkffkffMk",
-   "...kfkkfffMk",
-   "...kfffffkkk",
-   "....kkkkkk..",
-   "............",
-   "............"
-  ]
- },
  "writing-hand": {
   "char": "✍",
   "rows": [
@@ -388,23 +371,6 @@
    "..kTkkTTkssk",
    "..kTk.kkksik",
    "..kkk...kkkk"
-  ]
- },
- "skier": {
-  "char": "⛷",
-  "rows": [
-   "..kkk.......",
-   ".kmwmk......",
-   ".kfkfk......",
-   "kkttkkkk....",
-   "ktttttffk...",
-   "kTTkkTTkkk..",
-   "kkkk.kTk.k..",
-   "krrrkkkk.k..",
-   "kwwwrrrkkk..",
-   "kwwwwwwrrkk.",
-   "kssssssssskk",
-   "kkkkkkkkkkkk"
   ]
  },
  "weightlifter": {

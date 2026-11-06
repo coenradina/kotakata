@@ -1694,7 +1694,7 @@ export const LEVEL3_CARDS: TermCard[] = [
   {
     id: 'gradientDescent',
     term: 'Gradient Descent',
-    icon: '⛷️',
+    icon: '📉',
     body: {
       id: 'Cara melatih model: lihat kemiringan, melangkah turun, lalu ulangi sampai loss sekecil mungkin.',
       en: 'A way to train a model: look at the slope, step downhill, and repeat until the loss is as small as it gets.',
@@ -1736,7 +1736,7 @@ export const LEVEL4_CARDS: TermCard[] = [
   {
     id: 'context',
     term: 'Context',
-    icon: '🧠',
+    icon: '📜',
     body: {
       id: 'Bagian teks sebelumnya yang dilihat model saat memilih token berikutnya.',
       en: 'The earlier text a model looks at when it picks the next token.',
@@ -1805,7 +1805,7 @@ export const SESSION1_CARDS: TermCard[] = [
   {
     id: 'model',
     term: 'Model',
-    icon: '🧠',
+    icon: '⚙',
     body: {
       id: 'Hasil training: apa yang sudah dipelajari AI, misalnya bobot tiap kata. Model tidak berubah saat dipakai. Ia hanya berubah saat dilatih lagi.',
       en: "What training produces: what the AI has learned, such as each word's weight. A model doesn't change while it's used. It only changes when it's trained again.",
@@ -1887,7 +1887,7 @@ export const SESSION3_CARDS: TermCard[] = [
   {
     id: 'fairness',
     term: 'Fairness',
-    icon: '🤝',
+    icon: '⚖',
     body: {
       id: 'AI yang bekerja sama baiknya untuk setiap orang, bukan cuma bagus rata-ratanya.',
       en: 'An AI that works about as well for each person, not just well on average.',
