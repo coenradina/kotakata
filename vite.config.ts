@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 // Served from https://aastr.id/kotakata/ via GitHub Pages.
 export default defineConfig({
   base: '/kotakata/',
-  plugins: [react(), tailwindcss(), productionCsp()],
+  plugins: [react(), tailwindcss(), productionCsp(), spaFallback()],
   build: { chunkSizeWarningLimit: 2000 },
 })
 
@@ -31,5 +31,22 @@ function productionCsp(): Plugin {
       { tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: csp }, injectTo: 'head-prepend' },
       { tag: 'meta', attrs: { name: 'referrer', content: 'strict-origin-when-cross-origin' }, injectTo: 'head' },
     ],
+  }
+}
+
+/**
+ * GitHub Pages answers unknown paths with 404.html. A copy of index.html
+ * there lets deep links such as /kotakata/buku boot the app, which then
+ * reads the path and shows the right page.
+ */
+function spaFallback(): Plugin {
+  return {
+    name: 'spa-fallback',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const html = bundle['index.html']
+      if (html?.type === 'asset') this.emitFile({ type: 'asset', fileName: '404.html', source: html.source })
+    },
   }
 }
