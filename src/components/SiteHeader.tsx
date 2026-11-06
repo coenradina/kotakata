@@ -9,6 +9,7 @@ export default function SiteHeader() {
   const links = [
     { to: '/main', label: t(lang, 'navMap') },
     { to: '/buku', label: t(lang, 'navNotebook') },
+    { to: '/panduan', label: t(lang, 'gIndexTitle') },
   ]
   return (
     <header className="z-nav border-b-2 border-ink bg-cream">
@@ -22,8 +23,8 @@ export default function SiteHeader() {
             <Link
               key={l.to}
               to={l.to}
-              aria-current={route === l.to ? 'page' : undefined}
-              className={`rounded border-2 border-ink px-3 py-1.5 type-button ${route === l.to ? 'bg-ink text-cream' : 'bg-white hover:bg-parchment'}`}
+              aria-current={route === l.to || route.startsWith(`${l.to}/`) ? 'page' : undefined}
+              className={`rounded border-2 border-ink px-3 py-1.5 type-button ${route === l.to || route.startsWith(`${l.to}/`) ? 'bg-ink text-cream' : 'bg-white hover:bg-parchment'}`}
             >
               {l.label}
             </Link>

@@ -157,6 +157,11 @@ export default function LandingPage() {
                   <div className="p-6">
                     <h3 className="type-heading">{t(lang, title)}</h3>
                     <p className="mt-2 type-body text-ink-soft">{t(lang, body)}</p>
+                    {title !== 'forStudents' && (
+                      <Link to="/panduan" className="mt-3 inline-block type-label underline hover:text-maroon">
+                        {t(lang, title === 'forTeachers' ? 'gForGuru' : 'gForOrtu')} →
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}

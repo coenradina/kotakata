@@ -49,6 +49,8 @@ New terms go into **Kata's notebook** (`/buku`), with the moment the player foun
 | `/kotakata/main/<id>` | The game for one level |
 | `/kotakata/buku` | Kata's notebook |
 | `/kotakata/sertifikat/<id>` | Certificate for a finished level, as PNG or print. The name typed on it stays in the page and is never saved. |
+| `/kotakata/panduan` | Teacher and parent guides for Sessions 1, 3 and 5 |
+| `/kotakata/panduan/<guru\|ortu>/<session>` | One guide. It prints, with an appendix of unplugged cards built from the game's own data. |
 
 The build copies `index.html` to `404.html`, so GitHub Pages serves the app for every path.
 
@@ -67,6 +69,10 @@ The robot does real gradient descent on a hill shaped like loss = a·x² (`src/l
 ## How Level 4 works
 
 The bard is a tiny language model learned from five tavern sentences (`src/levels/tavern/model.ts`). To pick the next token it looks at its context (the last 1 or 2 tokens), counts what followed in the stories, and turns the counts into probabilities. Temperature reshapes them: 0 always takes the top token, higher values give rarer tokens a better chance. With a one-word memory at temperature 0, the bard loops ("the cat sleeps by the cat sleeps by…"); a two-word memory lets it finish the sentence. The sentences have the same shape in Indonesian and English, so the model behaves identically in both.
+
+## Guides
+
+Each session's guide is data in `src/guides/` (`s1.ts`, `s3.ts`, `s5.ts`). It holds both roles: the parts they share (goals, terms, exit ticket, misconceptions) are written once, and the teacher (`guru`) and parent (`ortu`) instructions differ. Every text exists in Indonesian and English, which `guides.test.ts` checks. The unplugged cards come from the game's corpora, so the paper version matches the screen.
 
 ## Adding a level
 

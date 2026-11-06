@@ -526,3 +526,11 @@ Each session has one guide per role. The sections are the same, but the content 
 | 13. Privacy note | What the class mode stores, parent letter template | What the family mode stores |
 
 The guides are written natively in each language, and the Indonesian versions are written first.
+
+### As built (step 7, November 2026)
+
+The guides for Sessions 1, 3 and 5 are live at `/kotakata/panduan`. Teachers get all 13 sections plus two appendices: the full unplugged version, and cards to print. Parents get 10 sections in their own voice. Changes from the table above:
+
+- **No ATP numbers.** The KKA mapping cites *materi esensial* by name rather than by ATP number, because only some ATP numbers in the Panduan's sample sequence could be confirmed. Teachers can match the session to their school's own ATP.
+- **Cards built from game data.** The printable cards come from the game's corpora: 8A's chat, 8C's chat, the older class's labels and the notice board. Test cards carry no label; the answer key prints under the sheet. Each set also gets a blank tally sheet.
+- **One parent table.** The parent guide reuses each puzzle's "what to say" as "Tanyakan" (ask), with four tips for playing together.

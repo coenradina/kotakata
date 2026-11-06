@@ -56,6 +56,8 @@ export type Page =
   | { name: 'play'; id: string }
   | { name: 'notebook' }
   | { name: 'certificate'; id: string }
+  | { name: 'guides' }
+  | { name: 'guide'; role: string; id: string }
 
 /** Which page a route shows. Unknown routes go to the landing page. */
 export function matchRoute(route: string): Page {
@@ -64,5 +66,6 @@ export function matchRoute(route: string): Page {
   if (parts[0] === 'main') return parts[1] ? { name: 'play', id: parts[1] } : { name: 'map' }
   if (parts[0] === 'buku' && parts.length === 1) return { name: 'notebook' }
   if (parts[0] === 'sertifikat' && parts[1]) return { name: 'certificate', id: parts[1] }
+  if (parts[0] === 'panduan') return parts[1] && parts[2] ? { name: 'guide', role: parts[1], id: parts[2] } : { name: 'guides' }
   return { name: 'landing' }
 }
