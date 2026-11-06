@@ -14,6 +14,8 @@ import { defineVisionBlocks } from './vision/blocks'
 import { visionSession } from './vision'
 import { defineEkskulBlocks } from './ekskul/blocks'
 import { ekskulSession } from './ekskul'
+import { defineOsisBlocks } from './osis/blocks'
+import { osisSession } from './osis'
 import { defineBoardBlocks } from './board/blocks'
 import { boardSession } from './board'
 import { defineWhenRun, setBlocklyLocale } from '../blocks/common'
@@ -21,7 +23,7 @@ import type { Lang } from '../i18n'
 import type { Session, SessionId } from './types'
 
 /** The new one-hour sessions that are built so far (docs/plan/02-sessions.md). Every one is open. */
-export const SESSIONS: Session[] = [chatSession as Session, visionSession as Session, fairSession as Session, ekskulSession as Session, boardSession as Session]
+export const SESSIONS: Session[] = [chatSession as Session, visionSession as Session, fairSession as Session, ekskulSession as Session, boardSession as Session, osisSession as Session]
 
 /** The classic levels, in order. Each one unlocks when the one before is passed. */
 export const LEVELS: Session[] = [trainLevel as Session, treeLevel as Session, hillLevel as Session, tavernLevel as Session]
@@ -72,6 +74,7 @@ export function defineAllBlocks(lang: Lang) {
   defineBoardBlocks(lang)
   defineVisionBlocks(lang)
   defineEkskulBlocks(lang)
+  defineOsisBlocks(lang)
 }
 
 export type { Session, SessionId }

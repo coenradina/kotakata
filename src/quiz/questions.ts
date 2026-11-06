@@ -81,6 +81,11 @@ export const TERM_NAME: Record<CardId, string> = {
   treeLearning: 'Decision Tree Learning',
   historicalBias: 'Historical Bias',
   pruning: 'Pruning',
+  dataPrivacy: 'Data Privacy',
+  falsePositive: 'False Positive',
+  falseNegative: 'False Negative',
+  humanInTheLoop: 'Human in the Loop',
+  aiEthics: 'AI Ethics',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })

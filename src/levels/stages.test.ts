@@ -166,7 +166,8 @@ describe('every puzzle has a place in its arc', () => {
     const { BOARD_STAGES } = await import('./board/stages')
     const { VISION_STAGES } = await import('./vision/stages')
     const { EKSKUL_STAGES } = await import('./ekskul/stages')
-    for (const puzzles of [CHAT_STAGES, VISION_STAGES, FAIR_STAGES, EKSKUL_STAGES, BOARD_STAGES, TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
+    const { OSIS_STAGES } = await import('./osis/stages')
+    for (const puzzles of [CHAT_STAGES, VISION_STAGES, FAIR_STAGES, EKSKUL_STAGES, BOARD_STAGES, OSIS_STAGES, TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
       expect(puzzles[0].beat).toBe('introduce')
       for (const p of puzzles) {
         expect(p.beat === 'sandbox', p.id).toBe(Boolean(p.bonus))

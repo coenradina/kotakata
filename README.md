@@ -16,7 +16,9 @@ Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP 
 
 5. **Kata demi Kata / Word by Word.** Kata becomes the class info chatbot, a word n-gram model trained on the announcement board. Players see the next-word probabilities, use temperature and memory, catch Kata confidently answering a date the board never gave, rewrite vague questions, and make Kata read a new notice. Terms: generative AI, hallucination, prompt, AI as a tool. *(playable, `/kotakata/main/s5`)*
 
-Session 6 is planned in [docs/plan](docs/plan/README.md).
+6. **Rapat OSIS / Student Council.** A decision simulation. Players chair a meeting on four proposals: a face-scan attendance camera, an AI essay detector, Kata as the parents' info desk, and a gate camera. A school week fills meters for time, privacy, fairness, copies caught, trust and safety, and an ethics matrix shows how five characters feel. The attendance plan everyone accepts uses no AI, the essay detector needs a teacher to talk to flagged students, and the gate camera passes only without face recognition. Terms: data privacy, false positive, false negative, human in the loop, AI ethics. *(playable, `/kotakata/main/s6`)*
+
+The plan for all six sessions is in [docs/plan](docs/plan/README.md).
 
 ## Classic levels
 

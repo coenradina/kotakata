@@ -517,6 +517,16 @@ For each proposal the student picks blocks for: the data needed, who checks hard
 
 The cheaper alternative is an unplugged role-play with printed character cards.
 
+### As built (November 2026)
+
+Session 6 is playable at `/kotakata/main/s6`. Its model is in `src/levels/osis/model.ts`, with balance tests in `src/levels/osis/model.test.ts`, and its scene is `src/game/MeetingScene.ts`. Nothing is random. Changes from the outline above:
+
+- **Blocks are decisions.** Each block is one setting with a dropdown, such as "take attendance by", "AI essay detector strictness" or "if an essay is flagged". Each stage loads the proposal as first made, with as much AI as possible, and players change the settings.
+- **Passing.** Every meter has to reach 50, so nobody objects. Each character watches some meters: Raka watches time, Bu Rina fairness and copies caught, Pak Joko privacy and trust, Sari fairness and privacy, and Pak Udin safety. The ethics matrix shows a dot where a person watches a meter and a face for how they feel.
+- **Five stages instead of three proposals.** P1 is the attendance camera, where only the QR card passes. The essay detector takes two stages. In P2, with automatic zeros, only strictness 8 balances the copies caught against honest students accused. In P3, a class where three honest students write formally, no strictness works until the teacher talks to the student first. P4 is the info desk: Kata says "ask a teacher" for questions no notice answers, and checking every answer swamps the teachers. P5 adds a gate camera that Pak Udin asks for. It passes only without face recognition, with recordings kept 7 days and watched only after an incident.
+- **The sandbox** runs all four plans together with one set of decisions.
+- **The teacher guide** cites Liang et al. (2023) on AI-text detectors flagging non-native writers.
+
 ## 9. Deep dives, outline
 
 | # | Core mechanic | Reuses |
