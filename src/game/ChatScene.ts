@@ -39,6 +39,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   protected chatTitle!: Phaser.GameObjects.Text
   protected score!: Phaser.GameObjects.Text
   protected robot!: Phaser.GameObjects.Image
+  protected idle?: Phaser.GameObjects.Text
   protected focusBox?: Phaser.GameObjects.Graphics
   protected milestones: Milestones = NO_MILESTONES
   protected runId = 0
@@ -85,6 +86,8 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     g.lineStyle(2, INK).strokeRect(PANEL.x, PANEL.y, PANEL.w, PANEL.h)
     this.panel = this.add.container(PANEL.x, PANEL.y)
 
+    // Before the first run: say what will appear, so the stage isn't an empty box.
+    this.idle = this.add.text(PHONE.x + PHONE.w / 2, PHONE.y + PHONE.h / 2, '', { ...FONT, fontSize: '18px', color: css('ink-muted'), align: 'center', wordWrap: { width: PHONE.w - 40 } }).setOrigin(0.5)
     this.setLang(this.lang)
     this.positionPans(0)
     this.resolveReady()
@@ -93,6 +96,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   setLang(lang: Lang) {
     this.lang = lang
     this.chatTitle?.setText(t(lang, 'cSceneChat'))
+    this.idle?.setText(t(lang, 'cSceneIdle'))
     if (this.pans) {
       for (const l of ['penting', 'santai'] as Label[]) (this.pans[l].getData('label') as Phaser.GameObjects.Text).setText(labelText(lang, l))
     }
@@ -267,6 +271,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   reset() {
     this.runId++
     this.highlight(null)
+    this.idle?.setVisible(false)
     if (!this.feed) return
     this.feed.removeAll(true)
     this.bubbles = []

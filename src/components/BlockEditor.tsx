@@ -10,10 +10,7 @@ import { alpha } from '../theme'
 export interface BlockEditorHandle {
   /** The current level's program, read as data. Null when there's no start block. */
   program: () => unknown | null
-  /**
-   * Where a hint target is on screen, or null if it isn't showing. With
-   * `reveal`, switches the panel to "All" first so palette blocks are visible.
-   */
+  /** Where a hint target is on screen, or null if it isn't showing. The block list always shows every block. */
   locate: (target: HintTarget, reveal?: boolean) => DOMRect | null
   /** Replaces the player's blocks with the starter program. */
   resetToStarter: () => void
@@ -96,13 +93,10 @@ interface Props {
   onEdit?: () => void
 }
 
-function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: boolean): DOMRect | null {
+function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget): DOMRect | null {
   if (target.where === 'block') return workspace.getBlockById(target.blockId)?.getSvgRoot().getBoundingClientRect() ?? null
   if (target.where === 'palette') {
-    const box = workspace.getToolbox()
-    // The block may be filtered out of view; "All" always shows it.
-    if (reveal && box && box.getSelectedItem() !== box.getToolboxItems()[0]) box.selectItemByPosition(0)
-    const blocks = box?.getFlyout()?.getWorkspace().getTopBlocks(false) ?? []
+    const blocks = workspace.getFlyout()?.getWorkspace().getTopBlocks(false) ?? []
     const block = blocks.find(
       (b) => b.type === target.type && Object.entries(target.fields ?? {}).every(([name, value]) => b.getFieldValue(name) === value),
     )
@@ -135,13 +129,12 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     ref,
     () => ({
       program: () => (ws.current ? levelRef.current.read(ws.current) : null),
-      locate: (target, reveal = false) => (ws.current ? locateIn(ws.current, target, reveal) : null),
+      locate: (target) => (ws.current ? locateIn(ws.current, target) : null),
       resetToStarter: () => {
         const workspace = ws.current
         if (!workspace) return
         workspace.clear()
         Blockly.serialization.workspaces.load(starterOf(levelRef.current, langRef.current), workspace)
-        workspace.getToolbox()?.selectItemByPosition(0)
         schedulePlace(workspace)
       },
       loadBlocks: (state) => {
@@ -194,18 +187,9 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     }
     ws.current = workspace
 
-    // Keep the block panel open, starting on "All". Clicking the selected
-    // category again goes back to "All" instead of closing the panel.
-    const box = workspace.getToolbox()
-    const flyout = box?.getFlyout()
+    // The block list stays open; it has no categories to switch between.
+    const flyout = workspace.getFlyout()
     if (flyout instanceof Blockly.Flyout) flyout.setAutoClose(false)
-    box?.selectItemByPosition(0)
-    const keepOpen = (e: Blockly.Events.Abstract) => {
-      if (e.type === Blockly.Events.TOOLBOX_ITEM_SELECT && !(e as Blockly.Events.ToolboxItemSelect).newItem) {
-        box?.selectItemByPosition(0)
-      }
-    }
-    workspace.addChangeListener(keepOpen)
     schedulePlace(workspace)
 
     const save = (e: Blockly.Events.Abstract) => {
@@ -220,7 +204,6 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     return () => {
       resize.disconnect()
       workspace.removeChangeListener(save)
-      workspace.removeChangeListener(keepOpen)
     }
   }, [lang, level])
 
@@ -229,7 +212,6 @@ export default function BlockEditor({ lang, level, ref, onEdit, puzzleId }: Prop
     const workspace = ws.current
     if (!workspace) return
     workspace.updateToolbox(level.toolbox(lang, puzzleId))
-    workspace.getToolbox()?.selectItemByPosition(0)
     // Only the puzzle matters here; language and level changes rebuild everything above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzleId])

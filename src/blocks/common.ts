@@ -65,8 +65,9 @@ export interface ToolboxGroup {
 }
 
 /**
- * "All" comes first and shows every block, in coloured sections. The other
- * categories filter the panel down to one group.
+ * One always-open list of every block, in coloured sections. There is no
+ * category column: sessions have few blocks, and the column took space the
+ * player's program needs (usability finding M2).
  */
 export function buildToolbox(lang: Lang, groups: ToolboxGroup[]): Blockly.utils.toolbox.ToolboxDefinition {
   const section = (g: ToolboxGroup) => ({
@@ -74,18 +75,7 @@ export function buildToolbox(lang: Lang, groups: ToolboxGroup[]): Blockly.utils.
     text: t(lang, g.label).toUpperCase(),
     'web-class': `kk-section kk-section-${g.style}`,
   })
-  return {
-    kind: 'categoryToolbox',
-    contents: [
-      {
-        kind: 'category',
-        name: t(lang, 'catAll'),
-        colour: css('ink'),
-        contents: groups.flatMap((g) => [section(g), ...g.blocks]),
-      },
-      ...groups.map((g) => ({ kind: 'category', name: t(lang, g.label), categorystyle: g.style, contents: g.blocks })),
-    ],
-  }
+  return { kind: 'flyoutToolbox', contents: groups.flatMap((g) => [section(g), ...g.blocks]) } as Blockly.utils.toolbox.ToolboxDefinition
 }
 
 export const WHEN_RUN_GROUP: ToolboxGroup = { label: 'catEvents', style: 'events', blocks: [{ kind: 'block', type: 'kk_when_run' }] }

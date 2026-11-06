@@ -32,6 +32,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
   private boardTitle!: Phaser.GameObjects.Text
   private barsTitle!: Phaser.GameObjects.Text
   private robot!: Phaser.GameObjects.Image
+  private idle?: Phaser.GameObjects.Text
   private chipPos: { x: number; y: number; w: number }[] = []
   private noteRects: { text: string; rect: Rect }[] = []
   private focusBox?: Phaser.GameObjects.Graphics
@@ -69,6 +70,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
     this.tweens.add({ targets: this.robot, y: this.robot.y - 3, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
     this.settings = this.add.text(360, H - 76, '', { ...FONT, fontSize: '18px' })
     this.stamp = this.add.text(W - 16, H - 40, '', { ...FONT, fontSize: '20px', color: css('white'), padding: { x: 6, y: 2 } }).setOrigin(1, 0.5)
+    this.idle = this.add.text(STRIP.x + STRIP.w / 2, STRIP.y + STRIP.h / 2, '', { ...FONT, fontSize: '18px', color: css('ink-muted'), align: 'center', wordWrap: { width: STRIP.w - 30 } }).setOrigin(0.5)
     this.setLang(this.lang)
     this.resolveReady()
   }
@@ -77,6 +79,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
     this.lang = lang
     this.boardTitle?.setText(t(lang, 'wSceneBoard'))
     this.barsTitle?.setText(t(lang, 'wSceneNext'))
+    this.idle?.setText(t(lang, 'wSceneIdle'))
   }
 
   /** Pins every board sentence as a note; a new notice gets a NEW tag. */
@@ -161,6 +164,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
   reset() {
     this.runId++
     this.highlight(null)
+    this.idle?.setVisible(false)
     if (!this.chips) return
     this.chips.removeAll(true)
     this.chipPos = []

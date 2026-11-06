@@ -7,8 +7,8 @@ import NotebookToast, { type NotebookEntry } from '../components/NotebookToast'
 import LevelCompleteModal from '../components/LevelCompleteModal'
 import type { Milestones } from '../game/types'
 import { t, type CardId, type Lang } from '../i18n'
-import { MAX_REPEATS, MISSION_ANCHOR, ladderHint, rungFor, type Hint } from '../hints'
-import { isUnlocked as unlocked, levelById, numberOf, trackOf, type SessionId } from '../levels'
+import { MAX_REPEATS, ladderHint, rungFor, type Hint } from '../hints'
+import { levelById, numberOf, trackOf, type SessionId } from '../levels'
 import { PLANNED } from '../sessions/catalog'
 import type { Prediction, Puzzle, Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
@@ -16,6 +16,10 @@ import { useLang } from '../lang'
 import { Link, useRoute } from '../router'
 import { MAX_STARS, pickQuestion, type Question, type RunContext } from '../quiz/questions'
 import PredictionCard from '../components/PredictionCard'
+import MissionBar from '../components/MissionBar'
+import SessionIntro from '../components/SessionIntro'
+import Tour, { type TourStep } from '../components/Tour'
+import { LangSwitch } from '../components/SiteHeader'
 import { track } from '../impact/track'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
@@ -47,7 +51,8 @@ const initial = store.load()
 
 export default function PlayPage({ sessionId }: { sessionId: string }) {
   const { lang, setLang } = useLang()
-  const [log, setLog] = useState<LogLine[]>([])
+  // Before the first run, Kata says what to do, so the log is never an empty box.
+  const [log, setLog] = useState<LogLine[]>(() => [{ text: t(lang, 'kataReady'), tone: 'info' }])
   const [running, setRunning] = useState(false)
   const [found, setFound] = useState(() => new Set<CardId>(initial.cards))
   const [passed, setPassed] = useState(() => new Set<string>(initial.passed))
@@ -56,7 +61,6 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
   const level = levelById(levelId)
   // The list this session belongs to: the new sessions, or the classic levels.
   const { list: TRACK, track: trackName } = trackOf(levelId)
-  const upcoming = trackName === 'sessions' ? PLANNED.filter((p) => !TRACK.some((s) => s.id === p.id)) : []
   useEffect(() => store.save({ lastSession: levelId }), [levelId])
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
@@ -371,8 +375,6 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
     if (offerHint(next) && next.rung) rungOn.current[puzzleKey] = Math.max(rungOn.current[puzzleKey] ?? 0, next.rung) as 1 | 2 | 3
   }
 
-  /** A level is open once the one before it is passed. */
-  const isUnlocked = (index: number) => unlocked(TRACK[index].id, passed)
 
   const switchLevel = (id: SessionId) => {
     if (id === levelId) return
@@ -392,6 +394,39 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
   }, [levelId, lang, stage.id])
 
   const [confirmStartOver, setConfirmStartOver] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // First visit to a session: say what it's about before any blocks, then offer the tour once.
+  const [showIntro, setShowIntro] = useState(() => !initial.introSeen.includes(levelId))
+  const [tourSeen, setTourSeen] = useState(() => initial.tourDone)
+  const [touring, setTouring] = useState(false)
+  useEffect(() => {
+    if (!store.load().introSeen.includes(levelId)) setShowIntro(true)
+  }, [levelId])
+  const closeIntro = useCallback(() => {
+    setShowIntro(false)
+    const seen = store.load().introSeen
+    if (!seen.includes(levelId)) store.save({ introSeen: [...seen, levelId] })
+  }, [levelId])
+  const finishTour = useCallback(() => {
+    setTouring(false)
+    setTourSeen(true)
+    store.save({ tourDone: true })
+  }, [])
+
+  // When the stage changes, the mission bar says so for a moment, so the new task gets read.
+  const [freshStage, setFreshStage] = useState(false)
+  const shownStage = useRef(`${levelId}:${stage.id}`)
+  useEffect(() => {
+    const key = `${levelId}:${stage.id}`
+    if (shownStage.current === key) return
+    const sameSession = shownStage.current.startsWith(`${levelId}:`)
+    shownStage.current = key
+    if (!sameSession) return
+    setFreshStage(true)
+    const timer = window.setTimeout(() => setFreshStage(false), 3500)
+    return () => window.clearTimeout(timer)
+  }, [levelId, stage.id])
 
   /** Clears blocks, cards, stars and quiz history, so the level plays like the first time. */
   const startOver = () => {
@@ -428,116 +463,102 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
     setRunning(false)
   }
 
+  const intro = showIntro ? (
+    <SessionIntro
+      lang={lang}
+      label={t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}
+      title={level.title[lang]}
+      goal={PLANNED.find((p) => p.id === levelId)?.bigQuestion[lang] ?? level.topic[lang]}
+      stages={level.puzzles.filter((p) => !p.bonus).length}
+      offerTour={!tourSeen}
+      onTour={() => {
+        closeIntro()
+        setTouring(true)
+      }}
+      onPlay={closeIntro}
+    />
+  ) : null
+
   return (
     <div className="flex min-h-full flex-col">
-      {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-cream/90 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca-dark type-pixel text-white">
-            KK
-          </div>
-          <div>
-            <h1 className="type-heading">Kotakata</h1>
-            <p className="mt-1 type-micro text-maroon">{t(lang, 'tagline')}</p>
-          </div>
+      {/* A slim header: where you are, and a few tools. Everything else lives on the map or in the menu. */}
+      <header className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-cream px-4 py-2 sm:gap-3 sm:px-6">
+        <Link to="/main" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+          ← {t(lang, 'navMap')}
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded border-2 border-ink type-label" role="group" aria-label="Language">
-            {(['id', 'en'] as Lang[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => switchLang(l)}
-                disabled={running}
-                aria-pressed={lang === l}
-                className={`px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-60 ${lang === l ? 'bg-ink text-cream' : 'bg-white hover:bg-amber/30'}`}
-              >
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          <div className="relative">
-            <button
-              onClick={() => setConfirmStartOver((v) => !v)}
-              aria-expanded={confirmStartOver}
-              className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30"
-            >
-              {t(lang, 'startOver')}
-            </button>
-            {confirmStartOver && (
-              <div role="alertdialog" aria-labelledby="start-over-text" className="card-in absolute right-0 top-full z-modal mt-2 w-72 rounded-lg border-2 border-ink bg-white p-3 shadow-pixel">
-                <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
-                <div className="mt-3 flex justify-end gap-2">
-                  <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
-                    {t(lang, 'cancel')}
-                  </button>
-                  <button onClick={startOver} className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white">
-                    {t(lang, 'startOverYes')}
-                  </button>
+        <div className="min-w-0 flex-1">
+          <p className="type-micro text-maroon">{t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}</p>
+          <h1 className="truncate type-subheading">{level.title[lang]}</h1>
+        </div>
+        <Link to="/buku" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
+          📓 {found.size}
+        </Link>
+        <button onClick={() => setTouring(true)} disabled={running} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
+          ? {t(lang, 'helpTour')}
+        </button>
+        <LangSwitch lang={lang} onChange={switchLang} disabled={running} />
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-label={t(lang, 'moreMenu')}
+            className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment"
+          >
+            ⋯
+          </button>
+          {menuOpen && (
+            <div className="card-in absolute right-0 top-full z-modal mt-2 w-72 rounded-lg border-2 border-ink bg-white p-2 shadow-pixel">
+              {found.size >= 2 && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    openQuiz()
+                  }}
+                  disabled={running}
+                  className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment"
+                >
+                  {t(lang, 'menuQuiz')}
+                </button>
+              )}
+              {!confirmStartOver ? (
+                <button onClick={() => setConfirmStartOver(true)} className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
+                  {t(lang, 'startOver')}
+                </button>
+              ) : (
+                <div role="alertdialog" aria-labelledby="start-over-text" className="space-y-3 p-2">
+                  <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
+                  <div className="flex justify-end gap-2">
+                    <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
+                      {t(lang, 'cancel')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        startOver()
+                      }}
+                      className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white"
+                    >
+                      {t(lang, 'startOverYes')}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-          <Link to="/main" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30">
-            ← {t(lang, 'navMap')}
-          </Link>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
       <p className="border-b-2 border-ink bg-amber/40 px-4 py-2 text-center type-label md:hidden">{t(lang, 'smallScreen')}</p>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:grid-cols-[176px_minmax(0,1.45fr)_minmax(0,1fr)]">
-        {/* Level list: a row across the top until there's room for a column */}
-        <nav aria-label={t(lang, 'levels')} className="space-y-2 lg:col-span-2 xl:col-span-1">
-          <h2 className="type-eyebrow text-ink/70">{t(lang, trackName === 'sessions' ? 'sessionsNav' : 'levels')}</h2>
-          <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-1">
-            {TRACK.map((lv, i) => {
-              const open = isUnlocked(i)
-              const current = lv.id === levelId
-              return (
-                <li key={lv.id}>
-                  <button
-                    onClick={() => open && switchLevel(lv.id)}
-                    disabled={!open || running}
-                    aria-current={current ? 'page' : undefined}
-                    title={open ? undefined : t(lang, 'levelLocked')}
-                    className={`w-full rounded border-2 border-ink px-3 py-2 text-left disabled:cursor-not-allowed ${
-                      current
-                        ? 'pixel-shadow bg-tosca-dark text-white'
-                        : open
-                          ? 'bg-white hover:bg-amber/30 disabled:opacity-50 disabled:hover:bg-white'
-                          : 'bg-parchment text-ink/60'
-                    }`}
-                  >
-                    <div className="type-pixel-sm">
-                      {numberOf(lv.id)}. {lv.title[lang]} {passed.has(lv.id) && '✓'}
-                    </div>
-                    <div className="mt-1 type-eyebrow">{open ? lv.topic[lang] : `🔒 ${t(lang, 'levelLocked')}`}</div>
-                  </button>
-                </li>
-              )
-            })}
-            {upcoming.map((lv) => (
-              <li key={lv.id}>
-                <div className="rounded border-2 border-ink bg-parchment px-3 py-2 text-ink/60">
-                  <div className="type-pixel-sm">
-                    {lv.n}. {lv.title[lang]}
-                  </div>
-                  <div className="mt-1 type-eyebrow">🔒 {t(lang, 'comingSoon')}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </nav>
+      {/* The task comes first, full width, where the eye lands. */}
+      <div className="px-4 pt-4 sm:px-6">
+        <MissionBar lang={lang} level={level} done={done} current={stage.id} fresh={freshStage} />
+      </div>
 
-        {/* Block editor */}
-        <section className="pixel-shadow flex min-h-[420px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
-          <div className="flex items-center justify-between border-b-2 border-ink bg-ink px-3 py-2 type-label text-cream">
-            <span className="truncate">▸ {t(lang, level.fileKey)}.blocks</span>
-            <span className="ml-2 truncate text-amber" title={level.topic[lang]}>
-              {level.topic[lang]}
-            </span>
-          </div>
-          <div className="relative min-h-[380px] flex-1">
+      {/* Two things below it: the blocks, and Kata with the run button. */}
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <section data-tour="editor" className="pixel-shadow flex min-h-[460px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
+          <div className="relative min-h-[440px] flex-1">
             <div className="absolute inset-0">
               <BlockEditor
                 lang={lang}
@@ -553,10 +574,9 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
           </div>
         </section>
 
-        {/* Stage, mission and log */}
-        <section className="flex min-w-0 flex-col gap-4">
+        <section className="flex min-w-0 flex-col gap-3">
           {/* Hints keep off the stage: it shows the result they're about. */}
-          <div data-hint-avoid className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
+          <div data-hint-avoid data-tour="stage" className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
             <Stage key={level.id} lang={lang} level={level} ref={stageView} />
           </div>
 
@@ -572,14 +592,14 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
             />
           )}
 
-          <div data-hint-avoid className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
+          <div data-hint-avoid data-tour="run" className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
             <button
               ref={runButton}
               onClick={handleRun}
               disabled={running}
               aria-disabled={mustGuess || undefined}
               title={mustGuess ? t(lang, 'predictNeed') : undefined}
-              className={`pixel-btn whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
+              className={`pixel-btn flex-1 whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
             >
               {running ? t(lang, 'running') : t(lang, 'run')}
             </button>
@@ -590,39 +610,19 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
             >
               {running ? t(lang, 'stop') : t(lang, 'clear')}
             </button>
-            {found.size >= 2 && (
-              <button
-                onClick={openQuiz}
-                disabled={running}
-                className="pixel-btn ml-auto whitespace-nowrap rounded border-2 border-ink bg-amber px-3 py-3 type-button-lg"
-              >
-                {t(lang, 'quizMe')}
-              </button>
-            )}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-2">
-            <StagePanel
-              lang={lang}
-              level={level}
-              done={done}
-              current={stage.id}
-              badges={badges}
-              cardCount={found.size}
-              onCards={() => navigate('/buku')}
-            />
-            <div className="relative rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
-              <h2 className="type-eyebrow text-amber">{t(lang, 'log')}</h2>
-              <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-mono">
-                {log.map((line, i) => (
-                  <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
-                    › {line.text}
-                  </li>
-                ))}
-              </ul>
-              {/* New terms land over the log, never over the stage */}
-              {entry && <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />}
-            </div>
+          <div data-tour="log" className="relative min-h-28 rounded-lg border-2 border-ink bg-ink p-3 text-cream" aria-live="polite">
+            <h2 className="type-eyebrow text-amber">🤖 {t(lang, 'kataSays')}</h2>
+            <ul ref={logBox} className="mt-1.5 max-h-32 space-y-1 overflow-y-auto type-mono">
+              {log.map((line, i) => (
+                <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
+                  › {line.text}
+                </li>
+              ))}
+            </ul>
+            {/* New terms land over Kata's log, under the stage, never over it */}
+            {entry && <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />}
           </div>
         </section>
       </main>
@@ -643,7 +643,7 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
         ))}
       </div>
 
-      {hint && !quiz && !running && (
+      {hint && !quiz && !running && !touring && !showIntro && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
       )}
 
@@ -675,80 +675,19 @@ export default function PlayPage({ sessionId }: { sessionId: string }) {
         />
       )}
 
+      {intro}
+      {touring && <Tour steps={TOUR} lang={lang} onDone={finishTour} />}
     </div>
   )
 }
 
-/** Mission steps for the current level, a progress bar, and the level's badges. */
-function StagePanel({
-  lang,
-  level,
-  done,
-  current,
-  badges,
-  cardCount,
-  onCards,
-}: {
-  lang: Lang
-  level: Session
-  done: string[]
-  current: string
-  badges: Set<string>
-  cardCount: number
-  onCards: () => void
-}) {
-  const main = level.puzzles.filter((st) => !st.bonus)
-  const mainDone = main.filter((st) => done.includes(st.id)).length
-  const stage = level.puzzles.find((st) => st.id === current)!
-  let n = 0
-  return (
-    <div data-hint-anchor={MISSION_ANCHOR} className="rounded-lg border-2 border-ink bg-amber/30 p-4">
-      <ol className="flex flex-wrap gap-1.5" aria-label={t(lang, 'goal')}>
-        {level.puzzles.map((st) => {
-          const label = st.bonus ? `⭐ ${t(lang, 'bonusLabel')}` : t(lang, 'stageLabel', { n: ++n })
-          const isDone = done.includes(st.id)
-          const isCurrent = st.id === current && !isDone
-          return (
-            <li
-              key={st.id}
-              aria-current={isCurrent ? 'step' : undefined}
-              className={`rounded border-2 px-2 py-0.5 type-eyebrow ${
-                isDone ? 'border-ink bg-tosca-dark text-white' : isCurrent ? 'border-ink bg-white' : 'border-ink/30 text-ink/50'
-              }`}
-            >
-              {isDone ? '✓ ' : isCurrent ? '▸ ' : ''}
-              {label}
-            </li>
-          )
-        })}
-      </ol>
-      <div className="mt-2 h-2 overflow-hidden rounded-full border-2 border-ink bg-white" role="progressbar" aria-valuemin={0} aria-valuemax={main.length} aria-valuenow={mainDone}>
-        <div className="h-full bg-tosca transition-all duration-700" style={{ width: `${(mainDone / main.length) * 100}%` }} />
-      </div>
-      <h2 className="mt-3 type-pixel-sm">
-        {stage.bonus ? '⭐ ' : ''}
-        {t(lang, stage.titleKey)}
-      </h2>
-      <p className="mt-1 type-body">{t(lang, stage.missionKey)}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 type-eyebrow">{t(lang, 'badges')}</span>
-        {level.badgeDefs.map((a) => {
-          const got = badges.has(`${level.id}:${a.id}`)
-          return (
-            <span
-              key={a.id}
-              title={`${t(lang, a.titleKey)}: ${got ? t(lang, a.descKey) : t(lang, 'badgeLocked')}`}
-              aria-label={`${t(lang, a.titleKey)}${got ? '' : ` (${t(lang, 'badgeLocked')})`}`}
-              className={`flex h-7 w-7 items-center justify-center rounded border-2 text-icon-sm ${got ? 'border-ink bg-white' : 'border-ink/20 bg-white/40 grayscale opacity-40'}`}
-            >
-              {a.icon}
-            </span>
-          )
-        })}
-        <button onClick={onCards} className="ml-auto whitespace-nowrap type-micro underline hover:text-maroon">
-          {t(lang, 'cardsButton', { n: cardCount })} →
-        </button>
-      </div>
-    </div>
-  )
-}
+/** The tour of the game screen: one part at a time, in the order a player uses them. */
+const TOUR: TourStep[] = [
+  { anchors: ['[data-tour="mission"]'], titleKey: 'tour1Title', bodyKey: 'tour1Body' },
+  { anchors: ['[data-tour="editor"] .blocklyFlyout'], titleKey: 'tour2Title', bodyKey: 'tour2Body' },
+  { anchors: ['[data-tour="editor"]'], titleKey: 'tour3Title', bodyKey: 'tour3Body' },
+  { anchors: ['[data-tour="run"]'], titleKey: 'tour4Title', bodyKey: 'tour4Body' },
+  { anchors: ['[data-tour="stage"]'], titleKey: 'tour5Title', bodyKey: 'tour5Body' },
+  { anchors: ['[data-tour="log"]'], titleKey: 'tour6Title', bodyKey: 'tour6Body' },
+]
+

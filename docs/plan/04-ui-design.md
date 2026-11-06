@@ -147,6 +147,32 @@ Locking is advisory. Students can open any released session, and a short recap c
 
 **Compact layout (1024 to 1365).** Mission and stage across the top. Editor below at full width. The log becomes a drawer that pulls up from the bottom. The prediction card sits above JALANKAN.
 
+### 5.3a Player, as built after the first hands-on test (November 2026)
+
+The first unexplained hand-over test went badly. The tester didn't understand the goal, clicked around, and missed the mission text, which sat in a corner among a dozen other elements. The player was simplified:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│ ← Peta  SESI 1 · Aturan atau Contoh?          📓 4  ? Cara main  ID|EN  ⋯ │
+├──────────────────────────────────────────────────────────────────────────┤
+│ TAHAP 2 DARI 5 ●●○○○○  ✨ Tahap baru!                                     │
+│ Dua puluh pesan                                                           │
+│ Sekarang ada 20 pesan dari chat yang sama. Tambah dan perbaiki aturanmu…  │  mission bar, type-lead
+├───────────────────────────────────────────┬──────────────────────────────┤
+│ block list │ work area                    │ STAGE                        │
+│ (no category column)                      │ [guess first card, if any]   │
+│                                           │ [▶ JALANKAN        ] [↺]     │
+│                                           │ 🤖 KATA BILANG: log + notebook│
+└───────────────────────────────────────────┴──────────────────────────────┘
+```
+
+- **Gone from the play screen:** the session list (it's on the map), the tagline, the topic label, the badge row (badges stay in the toast, the notebook and the end card), and the Quiz button (now in ⋯ along with Start over).
+- **Mission bar.** The mission is a full-width bar across the top. When the stage changes, it animates and shows "Tahap baru!" (new stage) for a few seconds, so the new task gets read.
+- **Block list.** It has no category column. Every block shows in one labelled list, and the work area gains about 95 px (usability finding M2).
+- **Ready state.** Before the first run, Kata's log says what to do, and the stage says what will appear there.
+- **Session intro.** On a first visit to a session, a centered card gives the big question as the mission and says how many short stages there are.
+- **Tour.** On the first visit ever, the player can take a 6-step tour: mission, block list, work area, RUN, stage, Kata's log. Each step dims the rest of the screen. "? Cara main" (how to play) replays it. The tour state is saved in the store (`tourDone`, `introSeen`).
+
 ### 5.4 Notebook (`/kotakata/buku`)
 
 The notebook is a concept map on a `parchment` "paper" surface with a faint grid (`--fx-grid`).

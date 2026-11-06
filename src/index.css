@@ -67,3 +67,6 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
   body:has(.cert-sheet) * { visibility: hidden; }
   body:has(.cert-sheet) .cert-sheet { visibility: visible; position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 }
+
+/* The tour's spotlight: a clear box whose huge shadow dims the rest of the screen. */
+.tour-spot { box-shadow: 0 0 0 9999px color-mix(in srgb, var(--color-ink) 62%, transparent); }

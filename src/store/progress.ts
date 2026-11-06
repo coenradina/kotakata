@@ -25,6 +25,10 @@ export interface Progress {
   lastSession: string | null
   /** Recent quiz question ids, newest first, so questions don't repeat. */
   quizRecent: string[]
+  /** The tour of the game screen has been seen (or skipped). */
+  tourDone: boolean
+  /** Sessions whose intro card has been seen. */
+  introSeen: string[]
 }
 
 export const EMPTY: Progress = {
@@ -36,6 +40,8 @@ export const EMPTY: Progress = {
   badges: [],
   lastSession: null,
   quizRecent: [],
+  tourDone: false,
+  introSeen: [],
 }
 
 export interface ProgressStore {
@@ -65,6 +71,8 @@ const KEYS = {
   badges: 'kotakata.badges',
   lastSession: 'kotakata.level',
   quizRecent: 'kotakata.quizRecent',
+  tourDone: 'kotakata.tourDone',
+  introSeen: 'kotakata.introSeen',
 } satisfies Record<keyof Progress, string>
 
 /** Where each session's blocks live. Level 1 kept its own older key name. */
@@ -136,6 +144,8 @@ export function createLocalStore(kv: KeyValue, legacy: Legacy, validCards: reado
         badges: read(KEYS.badges, []),
         lastSession: read(KEYS.lastSession, null),
         quizRecent: read(KEYS.quizRecent, []),
+        tourDone: read(KEYS.tourDone, false),
+        introSeen: read(KEYS.introSeen, []),
       }
     },
     save(patch) {
