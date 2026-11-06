@@ -278,7 +278,7 @@ The page has the guest research switch, with the current state shown in words ("
 | Prediction card | `bg-amber-tint border-2 border-ink rounded-lg p-4`, radio choices as `type-button` pills | Turns `tosca-tint` once answered |
 | Hint bubble | `bg-white border-2 border-ink shadow-pixel-sm`, rung shown as 1–3 pixel dots | Anchored to a block, `z-overlay` |
 | Friend chat line | Pixel avatar plus a speech bubble in `bg-white`; a friend's name in `type-label` and `tosca-dark` | Inside the mission card |
-| Notebook entry toast | `bg-ink text-cream`, term in `tosca-light`, `z-toast` | Slides over the log, 4 s, dismissable |
+| Notebook entry toast | `bg-white border-2 border-ink shadow-pixel`, label in `maroon`, term in `tosca-dark`, `z-raised` | Slides over the log (which is `ink`, so the entry is white to stand apart), 6 s, dismissable with × or Esc |
 | Badge reveal | `bg-amber border-2 border-ink`, icon at `text-icon-lg` | Session-complete modal only |
 | Progress dots | Done `bg-tosca` (decoration, not text), current `bg-amber`, upcoming `border-ink/30` | Each dot also has a text label for screen readers |
 | Dashboard cell | `tosca-tint` passed, `amber-tint` in progress, `white` not started, each with a shape (■ ▣ □) | Never colour alone |

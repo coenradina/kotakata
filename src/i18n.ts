@@ -25,8 +25,8 @@ export function saveLang(lang: Lang) {
 
 const dict = {
   tagline: {
-    id: 'Susun blok, latih AI, kumpulkan kartu istilah.',
-    en: 'Stack blocks, train an AI, collect term cards.',
+    id: 'Susun blok, latih AI, isi Buku Kata.',
+    en: "Stack blocks, train an AI, fill Kata's notebook.",
   },
   back: { id: '← aastr.id', en: '← aastr.id' },
   levels: { id: 'Level', en: 'Levels' },
@@ -47,13 +47,6 @@ const dict = {
   log: { id: 'Log', en: 'Log' },
   cards: { id: 'Kartu istilah', en: 'Term cards' },
   locked: { id: 'Terkunci', en: 'Locked' },
-  unlockHint: {
-    id: 'Kartu terbuka saat kamu menemukan istilahnya di dalam game.',
-    en: 'Cards unlock as you meet each term in the game.',
-  },
-  newTerm: { id: 'ISTILAH BARU', en: 'NEW TERM' },
-  gotIt: { id: 'Lanjut ▶', en: 'Got it ▶' },
-  whatItMeans: { id: 'Artinya', en: 'What it means' },
   quizTitle: { id: 'KUIS KILAT', en: 'POP QUIZ' },
   quizMe: { id: '🎲 Kuis', en: '🎲 Quiz me' },
   quizSkip: { id: 'Lewati', en: 'Skip' },
@@ -178,12 +171,17 @@ const dict = {
     id: 'Blok ini belum menempel. Seret sampai menempel di bawah blok lain.',
     en: "This block isn't attached. Drag it until it snaps under another block.",
   },
-  termLook: { id: '▲ Lihat bagian yang berkedip di atas', en: '▲ Look at the blinking box above' },
-  cardsButton: { id: '📚 Kartu istilah ({n})', en: '📚 Term cards ({n})' },
-  starsHelp: {
-    id: 'Isi bintang di tiap kartu dengan menjawab kuis 🎲 dengan benar.',
-    en: 'Fill the stars on each card by answering quizzes 🎲 correctly.',
+  cardsButton: { id: '📓 Buku Kata ({n})', en: "📓 Kata's notebook ({n})" },
+  notebookNew: { id: 'MASUK BUKU KATA', en: 'ADDED TO THE NOTEBOOK' },
+  notebookOpenShort: { id: 'Buka Buku Kata', en: 'Open the notebook' },
+  notebookTitle: { id: 'Buku Kata', en: "Kata's notebook" },
+  notebookIntro: {
+    id: 'Semua istilah yang sudah kamu temui saat bermain, lengkap dengan momen saat kamu menemukannya.',
+    en: 'Every term you have met while playing, with the moment you found it.',
   },
+  yourMoment: { id: 'Momenmu', en: 'Your moment' },
+  backToGame: { id: '← Kembali main', en: '← Back to the game' },
+  notebookCount: { id: '{found} dari {total} istilah', en: '{found} of {total} terms' },
   newBadges: { id: '{n} lencana baru', en: '{n} new badges' },
   lcTitle: { id: 'Level {n} selesai!', en: 'Level {n} complete!' },
   lcCards: { id: 'Istilah yang kamu kumpulkan', en: 'Terms you collected' },
@@ -526,6 +524,11 @@ export function num(lang: Lang, n: number | string) {
 
 export function t(lang: Lang, key: Key, vars: Record<string, string | number> = {}) {
   return dict[key][lang].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`))
+}
+
+/** A card's "moment" line, filled with numbers from the run where it was found. */
+export function fillMoment(card: TermCard, lang: Lang, vars: Record<string, string | number>) {
+  return card.moment[lang].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
 }
 
 // Term cards. `term` is always English. `moment` is shown in the game the

@@ -3,20 +3,23 @@ import BlockEditor, { type BlockEditorHandle } from '../components/BlockEditor'
 import Stage, { type StageHandle } from '../components/Stage'
 import HintBubble from '../components/HintBubble'
 import QuizModal from '../components/QuizModal'
-import TermPopup from '../components/TermPopup'
+import NotebookToast, { type NotebookEntry } from '../components/NotebookToast'
 import LevelCompleteModal from '../components/LevelCompleteModal'
-import type { Milestones, PopupSide } from '../game/types'
-import { t, type CardId, type Key, type Lang, type TermCard } from '../i18n'
+import type { Milestones } from '../game/types'
+import { t, type CardId, type Key, type Lang } from '../i18n'
 import { MAX_REPEATS, type Hint } from '../hints'
 import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
 import type { Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
 import { useLang } from '../lang'
+import { useRoute } from '../router'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from '../quiz/questions'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
 const MAX_CARDS_PER_RUN = 2
+/** How long a scene pauses on a term it just put in the notebook. */
+const TERM_PAUSE_MS = 2200
 type StagesDone = Record<string, string[]>
 
 /** The stage to play: the first main stage not done, then the bonus. */
@@ -36,12 +39,6 @@ interface Toast {
 }
 type Stars = Partial<Record<CardId, number>>
 
-interface OpenCard {
-  card: TermCard
-  side: PopupSide
-  vars: Record<string, string | number>
-  close: () => void
-}
 
 const initial = store.load()
 
@@ -63,11 +60,12 @@ export default function PlayPage() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastId = useRef(0)
   const runButton = useRef<HTMLButtonElement>(null)
-  const cardsSection = useRef<HTMLElement>(null)
   /** Which level just finished, for the level-complete card. */
   const [levelDone, setLevelDone] = useState<SessionId | null>(null)
-  const [fresh, setFresh] = useState<CardId | null>(null)
-  const [openCard, setOpenCard] = useState<OpenCard | null>(null)
+  const [entry, setEntry] = useState<NotebookEntry | null>(null)
+  // Resolves the scene's brief pause on a new term, if one is waiting.
+  const releasePause = useRef<(() => void) | null>(null)
+  const { navigate } = useRoute()
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
   const foundRef = useRef(found)
   const [stars, setStars] = useState<Stars>(() => initial.stars)
@@ -92,12 +90,13 @@ export default function PlayPage() {
     if (box) box.scrollTop = box.scrollHeight
   }, [log])
 
-  const discover = (id: CardId) => {
+  const discover = (id: CardId, vars?: Record<string, string | number>) => {
+    if (foundRef.current.has(id)) return
     const next = new Set(foundRef.current).add(id)
     foundRef.current = next
     setFound(next)
-    setFresh(id)
-    store.save({ cards: [...next] })
+    const progress = store.load()
+    store.save({ cards: [...next], moments: vars ? { ...progress.moments, [id]: vars } : progress.moments })
   }
 
   const stageCelebrate = () => stageView.current?.celebrate()
@@ -108,30 +107,38 @@ export default function PlayPage() {
     window.setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), 4200)
   }
 
-  /** Shows a card over the stage and resolves once the player closes it. */
-  const showCard = (id: CardId, side: PopupSide, vars: Record<string, string | number> = {}) =>
+  /**
+   * Puts a new term in the notebook and shows it over the log. The run
+   * doesn't wait for the player: the scene pauses on the highlighted part
+   * for a moment, or until the entry is closed.
+   */
+  const showCard = (id: CardId, vars: Record<string, string | number> = {}) =>
     new Promise<void>((resolve) => {
       const card = EVERY_CARD.find((c) => c.id === id)!
       showedNewCard.current = true
-      discover(id)
-      setOpenCard({
-        card,
-        side,
-        vars,
-        close: () => {
-          setOpenCard(null)
-          resolve()
-        },
-      })
+      discover(id, vars)
+      setEntry({ card, vars })
+      const done = () => {
+        window.clearTimeout(timer)
+        if (releasePause.current === done) releasePause.current = null
+        resolve()
+      }
+      const timer = window.setTimeout(done, TERM_PAUSE_MS)
+      releasePause.current = done
     })
+
+  const closeEntry = () => {
+    setEntry(null)
+    releasePause.current?.()
+  }
 
   // At most two new term cards per run; the rest wait for a later run.
   const cardsThisRun = useRef(0)
   const milestones: Milestones = {
     isNew: (id) => !foundRef.current.has(id) && cardsThisRun.current < MAX_CARDS_PER_RUN,
-    show: (id, side, vars) => {
+    show: (id, _side, vars) => {
       cardsThisRun.current++
-      return showCard(id, side, vars)
+      return showCard(id, vars)
     },
   }
 
@@ -249,7 +256,7 @@ export default function PlayPage() {
         // The whole mission is complete
         setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
         stageCelebrate()
-        if (!foundRef.current.has(level.winCard)) await showCard(level.winCard, 'right')
+        if (!foundRef.current.has(level.winCard)) await showCard(level.winCard)
         if (!passed.has(level.id)) {
           const next = new Set(passed).add(level.id)
           setPassed(next)
@@ -352,7 +359,7 @@ export default function PlayPage() {
     const none = new Set<CardId>()
     foundRef.current = none
     setFound(none)
-    setFresh(null)
+    setEntry(null)
     setStars({})
     lastRun.current = null
     quizzedLastRun.current = false
@@ -369,7 +376,7 @@ export default function PlayPage() {
     // Closing an open card lets the paused run finish; reset then stops it.
     runToken.current++
     setHint(null)
-    openCard?.close()
+    closeEntry()
     stageView.current?.reset()
     setLog(running ? [{ text: t(lang, 'logStopped'), tone: 'info' }] : [])
     setRunning(false)
@@ -504,8 +511,6 @@ export default function PlayPage() {
           <div className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
             <Stage key={level.id} lang={lang} level={level} ref={stageView} />
           </div>
-          {/* Term cards sit under the stage, so the highlighted part stays visible */}
-          {openCard && <TermPopup card={openCard.card} vars={openCard.vars} lang={lang} onClose={openCard.close} />}
 
           <div data-hint-avoid className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
             <button
@@ -542,9 +547,9 @@ export default function PlayPage() {
               current={stage.id}
               badges={badges}
               cardCount={found.size}
-              onCards={() => cardsSection.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onCards={() => navigate('/buku')}
             />
-            <div className="rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
+            <div className="relative rounded-lg border-2 border-ink bg-ink p-4 text-cream" aria-live="polite">
               <h2 className="type-eyebrow text-amber">{t(lang, 'log')}</h2>
               <ul ref={logBox} className="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-mono">
                 {log.map((line, i) => (
@@ -553,6 +558,8 @@ export default function PlayPage() {
                   </li>
                 ))}
               </ul>
+              {/* New terms land over the log, never over the stage */}
+              {entry && <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />}
             </div>
           </div>
         </section>
@@ -604,52 +611,6 @@ export default function PlayPage() {
         />
       )}
 
-      {/* Term cards */}
-      <section ref={cardsSection} className="scroll-mt-4 border-t-2 border-ink bg-parchment px-4 py-6 sm:px-6" aria-labelledby="cards-title">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="cards-title" className="type-subheading">
-            {t(lang, 'cards')} · {level.title[lang]}{' '}
-            <span className="type-pixel-sm text-maroon">
-              {level.cards.filter((c) => found.has(c.id)).length}/{level.cards.length}
-            </span>
-          </h2>
-          <p className="type-label text-ink/70">
-            {level.cards.some((c) => !found.has(c.id)) ? `${t(lang, 'unlockHint')} ` : ''}
-            {t(lang, 'starsHelp')}
-          </p>
-        </div>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {level.cards.map((card) =>
-            found.has(card.id) ? (
-              <li
-                key={card.term}
-                className={`pixel-shadow rounded-lg border-2 border-ink bg-white p-3 ${fresh === card.id ? 'card-in ring-4 ring-amber' : ''}`}
-              >
-                <div className="text-icon" aria-hidden="true">{card.icon}</div>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span className="type-pixel-sm text-tosca">{card.term}</span>
-                  <span
-                    className="whitespace-nowrap text-icon-sm"
-                    role="img"
-                    aria-label={t(lang, 'starsLabel', { n: stars[card.id] ?? 0 })}
-                  >
-                    {Array.from({ length: MAX_STARS }, (_, i) => (
-                      <span key={i} className={i < (stars[card.id] ?? 0) ? 'text-gold' : 'text-ink/20'}>
-                        ★
-                      </span>
-                    ))}
-                  </span>
-                </div>
-                <p className="mt-1.5 type-caption text-ink/80">{card.body[lang]}</p>
-              </li>
-            ) : (
-              <li key={card.term} className="flex min-h-[120px] items-center justify-center rounded-lg border-2 border-dashed border-ink/40 bg-cream">
-                <span className="type-pixel-sm text-ink/40">🔒 {t(lang, 'locked')}</span>
-              </li>
-            ),
-          )}
-        </ul>
-      </section>
     </div>
   )
 }
@@ -721,7 +682,7 @@ function StagePanel({
           )
         })}
         <button onClick={onCards} className="ml-auto whitespace-nowrap type-micro underline hover:text-maroon">
-          {t(lang, 'cardsButton', { n: cardCount })} ↓
+          {t(lang, 'cardsButton', { n: cardCount })} →
         </button>
       </div>
     </div>

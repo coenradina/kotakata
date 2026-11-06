@@ -3,12 +3,13 @@ import type { CardId, Lang } from '../i18n'
 
 export type LogFn = (line: string, tone?: 'info' | 'good' | 'bad') => void
 
-/** Which side of the stage a term card sits on, away from what it explains. */
+/** Which part of the stage a term is about. The notebook entry no longer uses it to place itself. */
 export type PopupSide = 'left' | 'right'
 
 /**
- * Lets a level pause on a term the player meets for the first time.
- * `show` resolves when the player closes the card.
+ * Lets a session pause on a term the player meets for the first time.
+ * `show` resolves after a short pause, or sooner if the player closes the
+ * notebook entry.
  */
 export interface Milestones {
   isNew: (id: CardId) => boolean
