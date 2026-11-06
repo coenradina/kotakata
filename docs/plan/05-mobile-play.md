@@ -1,6 +1,6 @@
 # Plan 05: Collapsible blocks and a phone-first play screen
 
-Status: proposed, November 2026. Nothing here is built yet.
+Status: built, November 2026. See section 8 for what changed from the plan.
 
 ## 1. What's wrong today
 
@@ -157,3 +157,21 @@ Each step is its own commit and leaves the game working.
 - Blockly `CollapsibleToolboxCategory`: https://developers.google.com/blockly/reference/js/blockly.collapsibletoolboxcategory_class
 - Grasshopper, tap a code piece to insert it: https://theeyeopener.com/?p=80922 and https://gigazine.net/gsc_news/en/20180422-grasshopper-review
 - Material snackbars, placement and queueing: https://material.io/components/snackbars
+
+## 8. As built (November 2026)
+
+All eight steps are in: the layout hook, the collapsible panel, the `usePlaySession` split, the phone shell, tap to add, pills and sheets, the full-screen stage and the phone tour. Changes from the plan:
+
+- **Full screen** doesn't ask the player to turn the phone. On an upright phone it turns the stage a quarter turn with CSS, and the canvas fills the box: 624 × 390 on an iPhone 13, up from 370 × 231. Phaser can't measure a turned box, so `.stage-full canvas` sizes the canvas with CSS.
+- **Tap to add** is on for every touch screen, tablets too, not only phones.
+- **Hints.** Hints that point at a block or field keep the pointing bubble in the Blocks view. Hints that point at the mission (hint rung 1) dock as a card above the bottom bar, so they don't cover the stage. While the player watches, a hint about the blocks waits as a pill with "Show me".
+- **Notebook cards** during a run show as a card above the bottom bar, not a half-height sheet. On a phone on its side they stay in the right column.
+- **Not yet sheets:** the session intro, stage complete and quiz are still centred modals. They fit and scroll inside on a 375px screen, but they don't slide up.
+- **Landscape:** Run sits right under the stage, and the right column scrolls, so Run stays on screen in sessions with a guess card.
+- **A folded panel bug.** The panel's scrollbar layer covered the folded panel and swallowed taps. It now lets taps through, and only its handle catches them.
+- **Checks run:**
+  - On iPhone SE, iPhone 13, Pixel 7, and iPhone 13 and Pixel 7 on their side, for Sessions 1 to 6 and Level 1: no page scroll, no sideways overflow, Run always visible, no control under 40px, a tapped block added, a run completed, and no console errors.
+  - Sessions 2 and 4 played to the end on an iPhone 13, with all cards and badges.
+  - The desktop scripts for Sessions 1, 3, 5 and 6, the onboarding check, and the panel check.
+  - iPad Mini, upright and on its side, in the wide layout.
+- **Not checked:** the minimum on-screen size of scene text.
