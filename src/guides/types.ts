@@ -34,7 +34,7 @@ export interface CardSet {
 }
 
 export interface SessionGuide {
-  session: 's1' | 's3' | 's5'
+  session: 's1' | 's2' | 's3' | 's4' | 's5' | 's6'
   title: L
   bigQuestion: L
   kelas: string

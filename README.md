@@ -8,11 +8,13 @@ Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP 
 
 1. **Aturan atau Contoh? / Rules or Examples?** Kata sorts the class chat into important and chit-chat. Rules written by hand break on real messages, a word-counting classifier (naive Bayes) learning from examples does better, and on day 3 new slang shows that a model doesn't learn while it works. Terms: AI, training data, model, machine learning. *(playable, `/kotakata/main/s1`)*
 
+2. **Filter Kamera / Camera Filter.** Raka wants a sunglasses filter. The photo is a 12×12 grid of brightness numbers. Players mark dark pixels, find the face's edges, keep only level pairs so a mole isn't taken for an eye, fix two dark-room photos with auto brightness, and add a depth sensor so a poster can't fool the filter. Terms: pixel, edge detection, object detection, sensor fusion, computer vision. *(playable, `/kotakata/main/s2`)*
+
 3. **Data yang Adil / Fair Data.** The same learner, moved to a cousin's class that writes differently. Players inspect the data, learn that different examples beat more of the same, fix joke labels, set examples aside for an honest test, and score Kata person by person to find who it fails. Terms: bias, data quality, test data, overfitting, fairness. *(playable, `/kotakata/main/s3`)*
 
 5. **Kata demi Kata / Word by Word.** Kata becomes the class info chatbot, a word n-gram model trained on the announcement board. Players see the next-word probabilities, use temperature and memory, catch Kata confidently answering a date the board never gave, rewrite vague questions, and make Kata read a new notice. Terms: generative AI, hallucination, prompt, AI as a tool. *(playable, `/kotakata/main/s5`)*
 
-Sessions 2, 4 and 6 are planned in [docs/plan](docs/plan/README.md).
+Sessions 4 and 6 are planned in [docs/plan](docs/plan/README.md).
 
 ## Classic levels
 
@@ -49,7 +51,7 @@ New terms go into **Kata's notebook** (`/buku`), with the moment the player foun
 | `/kotakata/main/<id>` | The game for one level |
 | `/kotakata/buku` | Kata's notebook |
 | `/kotakata/sertifikat/<id>` | Certificate for a finished level, as PNG or print. The name typed on it stays in the page and is never saved. |
-| `/kotakata/panduan` | Teacher and parent guides for Sessions 1, 3 and 5 |
+| `/kotakata/panduan` | Teacher and parent guides for every playable session |
 | `/kotakata/panduan/<guru\|ortu>/<session>` | One guide. It prints, with an appendix of unplugged cards built from the game's own data. |
 
 The build copies `index.html` to `404.html`, so GitHub Pages serves the app for every path.

@@ -464,6 +464,16 @@ All faces are fictional pixel-art characters.
 
 New mechanics to build: a pixel-grid stage, convolution-style blocks, and a sensor-fusion block. This session needs the most new art.
 
+### As built (November 2026)
+
+Session 2 is playable at `/kotakata/main/s2`. Its model is in `src/levels/vision/model.ts` and its balance tests in `src/levels/vision/model.test.ts`. Nothing in it is random, so one run per program is enough. Changes from the outline above:
+
+- **No neighbour-comparison block.** The edge block takes a threshold ("find edges: a jump of more than n") and marks both sides of every jump. A separate block keeps only dark marks inside the face outline. This gave five puzzles that each fail in one visible way, instead of a convolution block players would have to tune blind.
+- **The puzzles.** P1 picks a dark threshold that catches the eyes and not the hair (below 1 or 2). P2 adds two dark dots on the wall, fixed by the face outline. P3 adds Sari's mole, Ayu's poster dots and mole, and Bimo's darker skin. Level pairs fix the mole, and only a threshold of 2 or less is fair to Bimo. P4 adds two dark-room photos, fixed by auto brightness at the top of the program. P5 adds a poster of a face, which only the depth sensor can tell apart.
+- **The human-versus-AI comparison** from the outline moved to the debrief and the teacher guide, because it is a discussion, not a puzzle.
+- **The sandbox** is a hat filter on all eight photos. A hat placed from the camera's outline lands on the poster too. One placed from the depth sensor fits everyone.
+- **Fairness.** P3 is the first place the session touches bias: a threshold chosen on light skin fails on Bimo. The guide's debrief asks about it.
+
 ## 7. Session 4: Ekskul Apa? (Which ekskul?), outline
 
 **Big question:** "Kenapa aku disarankan masuk paduan suara? Aku kan mau basket." (Why was I told to join choir? I want basketball.)
