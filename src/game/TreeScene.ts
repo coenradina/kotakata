@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
-import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
+import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { t, type CardId, type Lang } from '../i18n'
 import { depth, type Creature, type Critter, type Tree, type TreeEvent, type Walk } from '../levels/tree/model'
 import { questionText } from '../levels/tree/blocks'
@@ -37,7 +37,7 @@ function textureFor(c: Creature) {
  * The garden: the player's tree drawn as paths and signposts, with pens at
  * the ends. Critters walk it one by one.
  */
-export class TreeScene extends Phaser.Scene implements LevelScene {
+export class TreeScene extends Phaser.Scene implements SessionScene {
   private lang: Lang = 'id'
   private layer!: Phaser.GameObjects.Container
   private critters!: Phaser.GameObjects.Container

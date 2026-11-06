@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { predict, type Centroids, type Event, type Label, type Point } from '../levels/train/model'
 import { t, type CardId, type Lang } from '../i18n'
-import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
+import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { FONTS, css, hex } from '../theme'
 
 const WIDTH = STAGE_WIDTH
@@ -24,7 +24,7 @@ type Focus = 'plot' | 'markers' | 'belt' | 'status'
 // The card goes on the side away from what it explains.
 const SIDE: Record<Focus, PopupSide> = { plot: 'left', markers: 'left', belt: 'right', status: 'right' }
 
-export class TrainScene extends Phaser.Scene implements LevelScene {
+export class TrainScene extends Phaser.Scene implements SessionScene {
   private lang: Lang = 'id'
   private robot!: Phaser.GameObjects.Image
   private belt!: Phaser.GameObjects.TileSprite

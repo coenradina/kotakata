@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
-import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
+import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { num, t, type CardId, type Lang } from '../i18n'
 import type { Pick, TavernResult, Token } from '../levels/tavern/model'
 import { tokenWord } from '../levels/tavern/blocks'
@@ -19,7 +19,7 @@ const FLOOR_Y = 336
  * The tavern: a story scroll at the top, the bard on the left, and the
  * next-token probability bars on the right, redrawn for every token.
  */
-export class TavernScene extends Phaser.Scene implements LevelScene {
+export class TavernScene extends Phaser.Scene implements SessionScene {
   private lang: Lang = 'id'
   private chips!: Phaser.GameObjects.Container
   private bars!: Phaser.GameObjects.Container

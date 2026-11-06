@@ -1,6 +1,6 @@
 import { TrainScene } from '../../game/TrainScene'
 import { LEVEL1_CARDS } from '../../i18n'
-import type { Level } from '../types'
+import type { Session } from '../types'
 import { TRAIN_ACHIEVEMENTS, TRAIN_STAGES, type TrainRun } from './stages'
 import { TRAIN_STARTER, readTrainProgram, trainToolbox } from './blocks'
 import { chooseTrainHint } from './hints'
@@ -12,7 +12,7 @@ function toLevelRun(result: RunResult): TrainRun {
   return { raw: result, events: result.events, accuracy: result.accuracy, passed: result.passed, context }
 }
 
-export const trainLevel: Level<Step[]> = {
+export const trainLevel: Session<Step[]> = {
   id: 'train',
   title: { id: 'Latih Robot', en: 'Train the Robot' },
   topic: { id: 'Memilah (Classification)', en: 'Classification' },
@@ -24,10 +24,10 @@ export const trainLevel: Level<Step[]> = {
   starter: TRAIN_STARTER,
   read: readTrainProgram,
   isEmpty: (p) => p.length === 0,
-  stages: TRAIN_STAGES,
+  puzzles: TRAIN_STAGES,
   // Every stage plays the same run, so a full program clears them together.
   runGroup: () => 'all',
-  achievements: TRAIN_ACHIEVEMENTS,
+  badgeDefs: TRAIN_ACHIEVEMENTS,
   run: (p, seed) => toLevelRun(run(p, seed)),
   hint: (p, r, stage) => chooseTrainHint(p, r ? (r as TrainRun).raw : null, stage),
   createScene: () => new TrainScene(),

@@ -18,7 +18,7 @@ export interface Milestones {
 export const NO_MILESTONES: Milestones = { isNew: () => false, show: () => Promise.resolve() }
 
 /** What every level's Phaser scene offers the React app. */
-export interface LevelScene extends Phaser.Scene {
+export interface SessionScene extends Phaser.Scene {
   readyPromise: Promise<void>
   setLang: (lang: Lang) => void
   play: (events: unknown[], log: LogFn, milestones?: Milestones) => Promise<void>

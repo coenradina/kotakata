@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import { store } from '../store'
 import * as Blockly from 'blockly/core'
 import { theme } from '../blocks/common'
-import { defineAllBlocks, type Level } from '../levels'
+import { defineAllBlocks, type Session } from '../levels'
 import type { Lang } from '../i18n'
 import type { HintTarget } from '../hints'
 import { alpha } from '../theme'
@@ -80,13 +80,13 @@ const EDIT_EVENTS = new Set<string>([
   Blockly.Events.BLOCK_MOVE,
 ])
 
-function loadSaved(level: Level): object {
+function loadSaved(level: Session): object {
   return store.loadBlocks(level.id) ?? level.starter
 }
 
 interface Props {
   lang: Lang
-  level: Level
+  level: Session
   ref: Ref<BlockEditorHandle>
   /** Called when the player changes their blocks. */
   onEdit?: () => void

@@ -9,7 +9,7 @@ export const store = createLocalStore(
   browserStorage(),
   {
     level1Cards: LEVEL1_CARDS.map((c) => c.id),
-    mainPuzzles: (id) => LEVELS.find((l) => l.id === id)?.stages.filter((s) => !s.bonus).map((s) => s.id) ?? [],
+    mainPuzzles: (id) => LEVELS.find((l) => l.id === id)?.puzzles.filter((s) => !s.bonus).map((s) => s.id) ?? [],
   },
   EVERY_CARD.map((c) => c.id),
 )

@@ -8,8 +8,8 @@ import LevelCompleteModal from '../components/LevelCompleteModal'
 import type { Milestones, PopupSide } from '../game/types'
 import { t, type CardId, type Key, type Lang, type TermCard } from '../i18n'
 import { MAX_REPEATS, type Hint } from '../hints'
-import { LEVELS, UPCOMING, levelById, type LevelId } from '../levels'
-import type { Level } from '../levels/types'
+import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
+import type { Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
 import { useLang } from '../lang'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from '../quiz/questions'
@@ -20,11 +20,11 @@ const MAX_CARDS_PER_RUN = 2
 type StagesDone = Record<string, string[]>
 
 /** The stage to play: the first main stage not done, then the bonus. */
-function currentStage(level: Level, done: string[]) {
+function currentStage(level: Session, done: string[]) {
   return (
-    level.stages.find((s) => !s.bonus && !done.includes(s.id)) ??
-    level.stages.find((s) => s.bonus && !done.includes(s.id)) ??
-    level.stages[level.stages.length - 1]
+    level.puzzles.find((s) => !s.bonus && !done.includes(s.id)) ??
+    level.puzzles.find((s) => s.bonus && !done.includes(s.id)) ??
+    level.puzzles[level.puzzles.length - 1]
   )
 }
 
@@ -51,9 +51,9 @@ export default function PlayPage() {
   const [running, setRunning] = useState(false)
   const [found, setFound] = useState(() => new Set<CardId>(initial.cards))
   const [passed, setPassed] = useState(() => new Set<string>(initial.passed))
-  const [levelId, setLevelId] = useState<LevelId>(() => {
+  const [levelId, setLevelId] = useState<SessionId>(() => {
     const saved = initial.lastSession
-    return saved && LEVELS.some((l) => l.id === saved) ? (saved as LevelId) : 'train'
+    return saved && LEVELS.some((l) => l.id === saved) ? (saved as SessionId) : 'train'
   })
   const level = levelById(levelId)
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
@@ -65,7 +65,7 @@ export default function PlayPage() {
   const runButton = useRef<HTMLButtonElement>(null)
   const cardsSection = useRef<HTMLElement>(null)
   /** Which level just finished, for the level-complete card. */
-  const [levelDone, setLevelDone] = useState<LevelId | null>(null)
+  const [levelDone, setLevelDone] = useState<SessionId | null>(null)
   const [fresh, setFresh] = useState<CardId | null>(null)
   const [openCard, setOpenCard] = useState<OpenCard | null>(null)
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
@@ -210,7 +210,7 @@ export default function PlayPage() {
     let demoNext: { blocks: object; messageKey: Key } | undefined
 
     // Badges for anything nice this run did
-    const earned = level.achievements.filter((a) => !badges.has(`${level.id}:${a.id}`) && a.check(program, result, stage, stagePassed))
+    const earned = level.badgeDefs.filter((a) => !badges.has(`${level.id}:${a.id}`) && a.check(program, result, stage, stagePassed))
 
     if (stagePassed) {
       // Mark this stage done, and any later stage this same run also clears.
@@ -218,7 +218,7 @@ export default function PlayPage() {
       const group = level.runGroup(stage.id)
       // A stage with a demo is never cleared in passing: the player should see
       // its problem first, so it waits until it's the current stage.
-      for (const st of level.stages) {
+      for (const st of level.puzzles) {
         if (nowDone.has(st.id) || st.demo || level.runGroup(st.id) !== group) continue
         // Stop at the first stage this run can't clear, or that has a demo still to show
         if (!st.check(program, result)) {
@@ -228,9 +228,9 @@ export default function PlayPage() {
         nowDone.add(st.id)
       }
       // Badges for stages this run also cleared (like the bonus)
-      for (const st of level.stages) {
+      for (const st of level.puzzles) {
         if (st === stage || !nowDone.has(st.id) || done.includes(st.id)) continue
-        for (const a of level.achievements) {
+        for (const a of level.badgeDefs) {
           if (!earned.includes(a) && !badges.has(`${level.id}:${a.id}`) && a.check(program, result, st, true)) earned.push(a)
         }
       }
@@ -240,11 +240,11 @@ export default function PlayPage() {
         store.save({ puzzlesDone: next })
         return next
       })
-      for (const st of level.stages) {
+      for (const st of level.puzzles) {
         if (nowDone.has(st.id) && !done.includes(st.id)) setLog((l) => [...l, { text: `✓ ${t(lang, 'stageDone', { title: t(lang, st.titleKey) })}`, tone: 'good' }])
       }
-      const mainDone = level.stages.every((st) => st.bonus || nowDone.has(st.id))
-      const wasMainDone = level.stages.every((st) => st.bonus || done.includes(st.id))
+      const mainDone = level.puzzles.every((st) => st.bonus || nowDone.has(st.id))
+      const wasMainDone = level.puzzles.every((st) => st.bonus || done.includes(st.id))
       if (mainDone && !wasMainDone) {
         // The whole mission is complete
         setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
@@ -257,13 +257,13 @@ export default function PlayPage() {
           const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
           if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
         }
-        if (level.stages.some((st) => st.bonus && !nowDone.has(st.id))) setLog((l) => [...l, { text: t(lang, 'bonusOpen'), tone: 'info' }])
+        if (level.puzzles.some((st) => st.bonus && !nowDone.has(st.id))) setLog((l) => [...l, { text: t(lang, 'bonusOpen'), tone: 'info' }])
         else setLog((l) => [...l, { text: `${t(lang, 'bonusToo')} ${t(lang, 'allDone')}`, tone: 'good' }])
         levelDoneNow = true
       } else {
         stageCelebrate()
         const upcoming = currentStage(level, doneList)
-        const gotBonus = level.stages.some((st) => st.bonus && nowDone.has(st.id) && !done.includes(st.id) && st !== stage)
+        const gotBonus = level.puzzles.some((st) => st.bonus && nowDone.has(st.id) && !done.includes(st.id) && st !== stage)
         if (gotBonus) setLog((l) => [...l, { text: t(lang, 'bonusToo'), tone: 'good' }])
         if (!nowDone.has(upcoming.id)) {
           setLog((l) => [...l, { text: t(lang, 'stageNext', { title: t(lang, upcoming.titleKey) }), tone: 'info' }])
@@ -323,7 +323,7 @@ export default function PlayPage() {
   /** A level is open once the one before it is passed. */
   const isUnlocked = (index: number) => index === 0 || passed.has(LEVELS[index - 1].id)
 
-  const switchLevel = (id: LevelId) => {
+  const switchLevel = (id: SessionId) => {
     if (id === levelId) return
     handleReset()
     setHint(null)
@@ -665,21 +665,21 @@ function StagePanel({
   onCards,
 }: {
   lang: Lang
-  level: Level
+  level: Session
   done: string[]
   current: string
   badges: Set<string>
   cardCount: number
   onCards: () => void
 }) {
-  const main = level.stages.filter((st) => !st.bonus)
+  const main = level.puzzles.filter((st) => !st.bonus)
   const mainDone = main.filter((st) => done.includes(st.id)).length
-  const stage = level.stages.find((st) => st.id === current)!
+  const stage = level.puzzles.find((st) => st.id === current)!
   let n = 0
   return (
     <div className="rounded-lg border-2 border-ink bg-amber/30 p-4">
       <ol className="flex flex-wrap gap-1.5" aria-label={t(lang, 'goal')}>
-        {level.stages.map((st) => {
+        {level.puzzles.map((st) => {
           const label = st.bonus ? `⭐ ${t(lang, 'bonusLabel')}` : t(lang, 'stageLabel', { n: ++n })
           const isDone = done.includes(st.id)
           const isCurrent = st.id === current && !isDone
@@ -707,7 +707,7 @@ function StagePanel({
       <p className="mt-1 type-body">{t(lang, stage.missionKey)}</p>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span className="mr-1 type-eyebrow">{t(lang, 'badges')}</span>
-        {level.achievements.map((a) => {
+        {level.badgeDefs.map((a) => {
           const got = badges.has(`${level.id}:${a.id}`)
           return (
             <span

@@ -1,8 +1,8 @@
 import { useEffect, useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import * as Phaser from 'phaser'
-import { STAGE_HEIGHT as HEIGHT, STAGE_WIDTH as WIDTH, type LevelScene, type LogFn, type Milestones } from '../game/types'
+import { STAGE_HEIGHT as HEIGHT, STAGE_WIDTH as WIDTH, type SessionScene, type LogFn, type Milestones } from '../game/types'
 import type { Lang } from '../i18n'
-import type { Level } from '../levels'
+import type { Session } from '../levels'
 import { css } from '../theme'
 
 export interface StageHandle {
@@ -13,9 +13,9 @@ export interface StageHandle {
 }
 
 /** One Phaser game per level: give this component a `key` of the level id. */
-export default function Stage({ lang, level, ref, children }: { lang: Lang; level: Level; ref: Ref<StageHandle>; children?: ReactNode }) {
+export default function Stage({ lang, level, ref, children }: { lang: Lang; level: Session; ref: Ref<StageHandle>; children?: ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
-  const scene = useRef<LevelScene | null>(null)
+  const scene = useRef<SessionScene | null>(null)
   const pendingPreview = useRef<{ data: unknown } | null>(null)
 
   useImperativeHandle(

@@ -1,12 +1,12 @@
 import { HillScene } from '../../game/HillScene'
 import { LEVEL3_CARDS } from '../../i18n'
-import type { Level } from '../types'
+import type { Session } from '../types'
 import { HILL_STARTER, hillToolbox, readHillProgram } from './blocks'
 import { chooseHillHint } from './hints'
 import { runHill, type Step } from './model'
 import { HILL_ACHIEVEMENTS, HILL_STAGES, STAGE_SETUP, type HillRun } from './stages'
 
-export const hillLevel: Level<Step[]> = {
+export const hillLevel: Session<Step[]> = {
   id: 'hill',
   title: { id: 'Bukit Loss', en: 'Hill of Loss' },
   topic: { id: 'Menuruni bukit (Gradient descent)', en: 'Gradient descent' },
@@ -18,8 +18,8 @@ export const hillLevel: Level<Step[]> = {
   starter: HILL_STARTER,
   read: readHillProgram,
   isEmpty: (p) => p.length === 0,
-  stages: HILL_STAGES,
-  achievements: HILL_ACHIEVEMENTS,
+  puzzles: HILL_STAGES,
+  badgeDefs: HILL_ACHIEVEMENTS,
   // Stages on the same hill share a run; each checks its own energy budget.
   runGroup: (stage) => STAGE_SETUP[stage]?.hill ?? 'gentle',
   run: (p, _seed, stage): HillRun => {

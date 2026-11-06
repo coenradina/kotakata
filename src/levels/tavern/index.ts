@@ -1,12 +1,12 @@
 import { TavernScene } from '../../game/TavernScene'
 import { LEVEL4_CARDS } from '../../i18n'
-import type { Level } from '../types'
+import type { Session } from '../types'
 import { TAVERN_STARTER, readTavernProgram, tavernToolbox } from './blocks'
 import { chooseTavernHint } from './hints'
 import { runTavern, type Step } from './model'
 import { TAVERN_ACHIEVEMENTS, TAVERN_STAGES, type TavernRun } from './stages'
 
-export const tavernLevel: Level<Step[]> = {
+export const tavernLevel: Session<Step[]> = {
   id: 'tavern',
   title: { id: 'Kedai Token', en: 'Token Tavern' },
   topic: { id: 'Penyair AI (LLM)', en: 'How LLMs write' },
@@ -18,8 +18,8 @@ export const tavernLevel: Level<Step[]> = {
   starter: TAVERN_STARTER,
   read: readTavernProgram,
   isEmpty: (p) => p.length === 0,
-  stages: TAVERN_STAGES,
-  achievements: TAVERN_ACHIEVEMENTS,
+  puzzles: TAVERN_STAGES,
+  badgeDefs: TAVERN_ACHIEVEMENTS,
   // Every stage judges the same story, so one run can clear several.
   runGroup: () => 'all',
   run: (p, seed): TavernRun => {

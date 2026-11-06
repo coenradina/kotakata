@@ -1,15 +1,15 @@
 import { useEffect, useRef } from 'react'
-import { LEVELS, levelById, type LevelId } from '../levels'
+import { LEVELS, levelById, type SessionId } from '../levels'
 import { t, type CardId, type Lang } from '../i18n'
 
 interface Props {
   lang: Lang
-  levelId: LevelId
+  levelId: SessionId
   found: Set<CardId>
   badges: Set<string>
   /** True when this was the last level left: show the whole-game recap. */
   allDone: boolean
-  onNext: (id: LevelId) => void
+  onNext: (id: SessionId) => void
   onClose: () => void
 }
 
@@ -18,7 +18,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
   const level = levelById(levelId)
   const index = LEVELS.findIndex((l) => l.id === levelId)
   const next = LEVELS[index + 1]
-  const hasBonus = level.stages.some((s) => s.bonus)
+  const hasBonus = level.puzzles.some((s) => s.bonus)
   const primary = useRef<HTMLButtonElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
@@ -58,7 +58,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
           {!allDone && (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 type-eyebrow">{t(lang, 'badges')}</span>
-              {level.achievements.map((a) => (
+              {level.badgeDefs.map((a) => (
                 <span
                   key={a.id}
                   title={t(lang, a.titleKey)}

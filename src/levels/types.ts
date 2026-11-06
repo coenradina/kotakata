@@ -1,13 +1,13 @@
 import type * as Blockly from 'blockly/core'
-import type { LevelScene } from '../game/types'
+import type { SessionScene } from '../game/types'
 import type { Hint } from '../hints'
 import type { CardId, Key, Lang, TermCard } from '../i18n'
 import type { RunContext } from '../quiz/questions'
 
-export type LevelId = 'train' | 'tree' | 'hill' | 'tavern'
+export type SessionId = 'train' | 'tree' | 'hill' | 'tavern'
 
 /** What running a level's program produced, in a shape the app understands. */
-export interface LevelRun {
+export interface Run {
   /** Level-specific events the scene animates. */
   events: unknown[]
   accuracy: number | null
@@ -17,18 +17,31 @@ export interface LevelRun {
 }
 
 /**
- * One step of a level's mission. The main stages run in order; a bonus
- * stage opens once they're all done.
+ * Where a puzzle sits in its session's arc (docs/plan/02-sessions.md):
+ * introduce an idea safely, develop it, twist it so the obvious move
+ * fails, then free play.
  */
-export interface StageDef<P> {
+export type Beat = 'introduce' | 'develop' | 'twist' | 'sandbox'
+
+/**
+ * One step of a session. The main puzzles run in order; a bonus (sandbox)
+ * puzzle opens once they're all done.
+ */
+export interface Puzzle<P> {
   id: string
+  beat: Beat
+  /**
+   * Share of players who should pass on their first run, 0 to 1. Playtests
+   * and the impact data compare against it.
+   */
+  firstRunTarget: number
   titleKey: Key
   missionKey: Key
   bonus?: boolean
   /** Did this run complete the stage? */
-  check: (program: P, run: LevelRun) => boolean
+  check: (program: P, run: Run) => boolean
   /** What the log says when it didn't. Can use {acc}. */
-  failKey: (program: P, run: LevelRun) => Key | null
+  failKey: (program: P, run: Run) => Key | null
   /**
    * Blocks to load and run once when the player reaches this stage, so they
    * see the problem the stage is about before fixing it.
@@ -37,20 +50,20 @@ export interface StageDef<P> {
 }
 
 /** A small badge for something nice the player did. */
-export interface AchievementDef<P> {
+export interface BadgeDef<P> {
   id: string
   icon: string
   titleKey: Key
   descKey: Key
-  check: (program: P, run: LevelRun, stage: StageDef<P>, stagePassed: boolean) => boolean
+  check: (program: P, run: Run, stage: Puzzle<P>, stagePassed: boolean) => boolean
 }
 
 /**
  * Everything the app needs from a level. `P` is the level's program: what
  * its blocks mean, read as data.
  */
-export interface Level<P = unknown> {
-  id: LevelId
+export interface Session<P = unknown> {
+  id: SessionId
   title: Record<Lang, string>
   /** Short topic label; the technical term stays in brackets in Indonesian. */
   topic: Record<Lang, string>
@@ -66,16 +79,16 @@ export interface Level<P = unknown> {
   /** Null when there's no "when run" block at all. */
   read: (ws: Blockly.Workspace) => P | null
   isEmpty: (program: P) => boolean
-  stages: StageDef<P>[]
+  puzzles: Puzzle<P>[]
   /**
    * Stages with the same group are played with the same run, so one strong
    * program can clear several of them at once (bonus included).
    */
   runGroup: (stageId: string) => string
-  achievements: AchievementDef<P>[]
-  run: (program: P, seed: number, stageId: string) => LevelRun
-  hint: (program: P | null, result: LevelRun | null, stageId: string) => Hint | null
-  createScene: () => LevelScene
+  badgeDefs: BadgeDef<P>[]
+  run: (program: P, seed: number, stageId: string) => Run
+  hint: (program: P | null, result: Run | null, stageId: string) => Hint | null
+  createScene: () => SessionScene
   /** What the scene's live preview should show for the current blocks and stage. */
   previewData?: (program: P | null, stageId: string) => unknown
 }

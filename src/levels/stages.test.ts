@@ -155,3 +155,20 @@ describe('Level 4 stages', () => {
     expect(seeds.length).toBeGreaterThan(1)
   })
 })
+
+describe('every puzzle has a place in its arc', () => {
+  // Imported here, not at the top, to keep the earlier tests' imports as they were.
+  it('opens with an introduce beat, ends free play in the sandbox, and shows each demo as a twist', async () => {
+    const { HILL_STAGES } = await import('./hill/stages')
+    const { TAVERN_STAGES } = await import('./tavern/stages')
+    for (const puzzles of [TRAIN_STAGES, TREE_STAGES, HILL_STAGES, TAVERN_STAGES] as { id: string; beat: string; bonus?: boolean; demo?: object; firstRunTarget: number }[][]) {
+      expect(puzzles[0].beat).toBe('introduce')
+      for (const p of puzzles) {
+        expect(p.beat === 'sandbox', p.id).toBe(Boolean(p.bonus))
+        if (p.demo) expect(p.beat, p.id).toBe('twist')
+        expect(p.firstRunTarget, p.id).toBeGreaterThan(0)
+        expect(p.firstRunTarget, p.id).toBeLessThanOrEqual(1)
+      }
+    }
+  })
+})

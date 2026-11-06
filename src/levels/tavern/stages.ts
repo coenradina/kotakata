@@ -1,8 +1,8 @@
-import type { AchievementDef, LevelRun, StageDef } from '../types'
+import type { BadgeDef, Run, Puzzle } from '../types'
 import { boringStory, type Step, type TavernResult } from './model'
 
-export type TavernRun = LevelRun & { raw: TavernResult }
-const raw = (r: LevelRun) => (r as TavernRun).raw
+export type TavernRun = Run & { raw: TavernResult }
+const raw = (r: Run) => (r as TavernRun).raw
 
 const different = (p: Step[], r: TavernResult) => r.story.join(' ') !== boringStory(p).join(' ')
 const warm = (r: TavernResult) => r.temperatures.some((t) => t > 0)
@@ -30,9 +30,11 @@ const LOOP_DEMO = {
   messageKey: 'demoLoop' as const,
 }
 
-export const TAVERN_STAGES: StageDef<Step[]>[] = [
+export const TAVERN_STAGES: Puzzle<Step[]>[] = [
   {
     id: 'first',
+    beat: 'introduce',
+    firstRunTarget: 0.85,
     titleKey: 's4FirstTitle',
     missionKey: 's4FirstMission',
     check: (_p, r) => raw(r).picks.length >= 4,
@@ -40,6 +42,8 @@ export const TAVERN_STAGES: StageDef<Step[]>[] = [
   },
   {
     id: 'surprise',
+    beat: 'develop',
+    firstRunTarget: 0.7,
     titleKey: 's4SurpriseTitle',
     missionKey: 's4SurpriseMission',
     check: (p, r) => warm(raw(r)) && different(p, raw(r)),
@@ -47,6 +51,8 @@ export const TAVERN_STAGES: StageDef<Step[]>[] = [
   },
   {
     id: 'context',
+    beat: 'twist',
+    firstRunTarget: 0.45,
     titleKey: 's4ContextTitle',
     missionKey: 's4ContextMission',
     check: (_p, r) => raw(r).finished && raw(r).temperatures.every((t) => t === 0),
@@ -56,6 +62,8 @@ export const TAVERN_STAGES: StageDef<Step[]>[] = [
   },
   {
     id: 'creative',
+    beat: 'sandbox',
+    firstRunTarget: 0.4,
     titleKey: 's4CreativeTitle',
     missionKey: 's4CreativeMission',
     bonus: true,
@@ -65,7 +73,7 @@ export const TAVERN_STAGES: StageDef<Step[]>[] = [
   },
 ]
 
-export const TAVERN_ACHIEVEMENTS: AchievementDef<Step[]>[] = [
+export const TAVERN_ACHIEVEMENTS: BadgeDef<Step[]>[] = [
   { id: 'firstWord', icon: '🪶', titleKey: 'aFirstWordTitle', descKey: 'aFirstWordDesc', check: (_p, r) => raw(r).picks.length > 0 },
   { id: 'surprise', icon: '🎲', titleKey: 'aSurpriseTitle', descKey: 'aSurpriseDesc', check: (p, r) => warm(raw(r)) && different(p, raw(r)) },
   { id: 'hot', icon: '🔥', titleKey: 'aHotTitle', descKey: 'aHotDesc', check: (_p, r) => raw(r).temperatures.includes(2) },

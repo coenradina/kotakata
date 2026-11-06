@@ -8,15 +8,15 @@ import { defineTavernBlocks } from './tavern/blocks'
 import { tavernLevel } from './tavern'
 import { defineWhenRun, setBlocklyLocale } from '../blocks/common'
 import type { Lang } from '../i18n'
-import type { Level, LevelId } from './types'
+import type { Session, SessionId } from './types'
 
 /** Playable levels, in order. Each one unlocks when the one before is passed. */
-export const LEVELS: Level[] = [trainLevel as Level, treeLevel as Level, hillLevel as Level, tavernLevel as Level]
+export const LEVELS: Session[] = [trainLevel as Session, treeLevel as Session, hillLevel as Session, tavernLevel as Session]
 
 /** Shown in the level list as "coming soon". */
 export const UPCOMING: { title: Record<Lang, string>; topic: Record<Lang, string> }[] = []
 
-export function levelById(id: LevelId): Level {
+export function levelById(id: SessionId): Session {
   return LEVELS.find((l) => l.id === id) ?? LEVELS[0]
 }
 
@@ -30,4 +30,4 @@ export function defineAllBlocks(lang: Lang) {
   defineTavernBlocks(lang)
 }
 
-export type { Level, LevelId }
+export type { Session, SessionId }

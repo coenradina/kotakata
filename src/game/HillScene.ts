@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
-import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LevelScene, type LogFn, type Milestones, type PopupSide } from './types'
+import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { num, t, type CardId, type Lang } from '../i18n'
 import { EDGE, GOAL, HILLS, START_X, loss, overshot, type HillId, type HillResult, type Move } from '../levels/hill/model'
 import { FONTS, css, hex } from '../theme'
@@ -26,7 +26,7 @@ const fmtEn = (n: number) => (n < 0.01 ? n.toFixed(3) : n.toFixed(2))
  * The hill of loss: a curve whose height is the loss, a flag in the valley,
  * and the robot hopping downhill one gradient step at a time.
  */
-export class HillScene extends Phaser.Scene implements LevelScene {
+export class HillScene extends Phaser.Scene implements SessionScene {
   private lang: Lang = 'id'
   private hill: HillId = 'gentle'
   private budget = 30

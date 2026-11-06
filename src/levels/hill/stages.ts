@@ -1,8 +1,8 @@
-import type { AchievementDef, LevelRun, StageDef } from '../types'
+import type { BadgeDef, Run, Puzzle } from '../types'
 import { inValleyAfter, type HillId, type HillResult, type Step } from './model'
 
-export type HillRun = LevelRun & { raw: HillResult }
-const raw = (r: LevelRun) => (r as HillRun).raw
+export type HillRun = Run & { raw: HillResult }
+const raw = (r: Run) => (r as HillRun).raw
 
 /** Which hill each stage is on, and how many steps of energy it allows. */
 export const STAGE_SETUP: Record<string, { hill: HillId; budget: number }> = {
@@ -13,7 +13,7 @@ export const STAGE_SETUP: Record<string, { hill: HillId; budget: number }> = {
 }
 
 /** Passes when the run is on this stage's hill and ends in the valley within its energy. */
-const reaches = (stageId: string) => (_p: Step[], r: LevelRun) => {
+const reaches = (stageId: string) => (_p: Step[], r: Run) => {
   const setup = STAGE_SETUP[stageId]
   const res = raw(r)
   return res.hill === setup.hill && inValleyAfter(res, setup.budget)
@@ -36,16 +36,16 @@ const CRAWL_DEMO = {
   messageKey: 'demoCrawl' as const,
 }
 
-const fail = (r: LevelRun) => (raw(r).flewOff ? 'hillFlewOffNext' : 'hillNotThere')
+const fail = (r: Run) => (raw(r).flewOff ? 'hillFlewOffNext' : 'hillNotThere')
 
-export const HILL_STAGES: StageDef<Step[]>[] = [
-  { id: 'gentle', titleKey: 's3GentleTitle', missionKey: 's3GentleMission', check: reaches('gentle'), failKey: (_p, r) => fail(r) },
-  { id: 'short', titleKey: 's3ShortTitle', missionKey: 's3ShortMission', check: reaches('short'), failKey: (_p, r) => fail(r), demo: CRAWL_DEMO },
-  { id: 'steep', titleKey: 's3SteepTitle', missionKey: 's3SteepMission', check: reaches('steep'), failKey: (_p, r) => fail(r) },
-  { id: 'one', titleKey: 's3OneTitle', missionKey: 's3OneMission', bonus: true, check: reaches('one'), failKey: () => 'hillOneFail' },
+export const HILL_STAGES: Puzzle<Step[]>[] = [
+  { id: 'gentle', beat: 'introduce', firstRunTarget: 0.7, titleKey: 's3GentleTitle', missionKey: 's3GentleMission', check: reaches('gentle'), failKey: (_p, r) => fail(r) },
+  { id: 'short', beat: 'twist', firstRunTarget: 0.4, titleKey: 's3ShortTitle', missionKey: 's3ShortMission', check: reaches('short'), failKey: (_p, r) => fail(r), demo: CRAWL_DEMO },
+  { id: 'steep', beat: 'twist', firstRunTarget: 0.35, titleKey: 's3SteepTitle', missionKey: 's3SteepMission', check: reaches('steep'), failKey: (_p, r) => fail(r) },
+  { id: 'one', beat: 'sandbox', firstRunTarget: 0.3, titleKey: 's3OneTitle', missionKey: 's3OneMission', bonus: true, check: reaches('one'), failKey: () => 'hillOneFail' },
 ]
 
-export const HILL_ACHIEVEMENTS: AchievementDef<Step[]>[] = [
+export const HILL_ACHIEVEMENTS: BadgeDef<Step[]>[] = [
   { id: 'firstStep', icon: '🥾', titleKey: 'aFirstStepTitle', descKey: 'aFirstStepDesc', check: (_p, r) => raw(r).moves.length > 0 },
   { id: 'valley', icon: '🏁', titleKey: 'aValleyTitle', descKey: 'aValleyDesc', check: (_p, r) => raw(r).arrivedAt !== null },
   { id: 'bounced', icon: '🎢', titleKey: 'aBouncedTitle', descKey: 'aBouncedDesc', check: (_p, r) => raw(r).flewOff },
