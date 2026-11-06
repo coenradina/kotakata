@@ -3,7 +3,7 @@ import type { CardId, Lang } from '../i18n'
 
 export type LogFn = (line: string, tone?: 'info' | 'good' | 'bad') => void
 
-/** Which part of the stage a term is about. The notebook entry no longer uses it to place itself. */
+/** The half of the stage a new word's card goes on: the half away from the part the scene highlights. */
 export type PopupSide = 'left' | 'right'
 
 /**

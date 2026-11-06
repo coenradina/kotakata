@@ -82,6 +82,7 @@ line height and letter spacing together:
 | `type-eyebrow` | mono 700 | 11, uppercase | Kickers above titles, badges |
 | `type-micro` | mono 700 | 11 | Counters, tiny annotations |
 | `type-mono` | mono 400 | 12 / 14 | Code, terminal output, mono paragraphs |
+| `type-log` | mono 400 | 14 | Kata's log on the play screen, at reading size on phones |
 | `type-pixel-sm` | pixel | 20 | Small game text |
 | `type-pixel` | pixel | 24 | Scores and stats |
 | `type-pixel-lg` | pixel | 36 | Big game numbers |

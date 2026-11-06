@@ -15,8 +15,17 @@ export interface StageHandle {
   preview: (data: unknown) => void
 }
 
+/** Scales every timer and tween in the scene, so the player's speed applies to all scenes alike. */
+function applySpeed(scene: SessionScene | null, speed: number) {
+  if (!scene?.time || !scene.tweens) return
+  scene.time.timeScale = speed
+  scene.tweens.timeScale = speed
+}
+
 /** One Phaser game per level: give this component a `key` of the level id. */
-export default function Stage({ lang, level, ref, children }: { lang: Lang; level: Session; ref: Ref<StageHandle>; children?: ReactNode }) {
+export default function Stage({ lang, level, speed = 1, ref, children }: { lang: Lang; level: Session; speed?: number; ref: Ref<StageHandle>; children?: ReactNode }) {
+  const speedRef = useRef(speed)
+  speedRef.current = speed
   const host = useRef<HTMLDivElement>(null)
   const scene = useRef<SessionScene | null>(null)
   const pendingPreview = useRef<{ data: unknown } | null>(null)
@@ -58,6 +67,8 @@ export default function Stage({ lang, level, ref, children }: { lang: Lang; leve
       })
       game.canvas?.classList.add('pixel')
       s.setLang(lang)
+      // The scene's clock exists once Phaser has booted it.
+      void s.readyPromise?.then(() => applySpeed(s, speedRef.current))
       if (pendingPreview.current) s.preview?.(pendingPreview.current.data)
     })
     return () => {
@@ -73,9 +84,11 @@ export default function Stage({ lang, level, ref, children }: { lang: Lang; leve
     scene.current?.setLang(lang)
   }, [lang])
 
+  useEffect(() => applySpeed(scene.current, speed), [speed])
+
   return (
     <div className="relative">
-      <div ref={host} className="aspect-[8/5] w-full overflow-hidden" />
+      <div ref={host} className="aspect-[8/5] w-full overflow-hidden rounded" />
       {children}
     </div>
   )

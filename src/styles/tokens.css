@@ -169,6 +169,13 @@
   line-height: 1.65;
   @media (width >= 40rem) { font-size: 0.875rem; }
 }
+/* Kata's log on the play screen: mono, at reading size on phones too */
+@utility type-log {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
 /* Retro accents: scores, levels, game numbers. VT323 runs small, so its
    steps sit a size above the sans scale. */
 @utility type-pixel-sm {

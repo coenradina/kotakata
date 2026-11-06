@@ -11,6 +11,8 @@ interface Props {
   dockBottom?: string
   /** Where the docked card sits across the screen. */
   dockClass?: string
+  /** Phones: show the hint as a card in the page flow, where it is placed. */
+  inline?: boolean
   onClose: () => void
 }
 
@@ -18,7 +20,7 @@ interface Props {
  * A speech bubble pointing at one block or field, with a pulsing ring around
  * it. It follows its target as the page scrolls or resizes.
  */
-export default function HintBubble({ hint, lang, locate, onClose, dockBottom, dockClass = 'inset-x-3' }: Props) {
+export default function HintBubble({ hint, lang, locate, onClose, dockBottom, dockClass = 'inset-x-3', inline = false }: Props) {
   const [rect, setRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -59,6 +61,13 @@ export default function HintBubble({ hint, lang, locate, onClose, dockBottom, do
     </>
   )
 
+  if (inline) {
+    return (
+      <div role="status" className="card-in shrink-0 rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel-sm">
+        {body}
+      </div>
+    )
+  }
   if (dockBottom) {
     return (
       <div role="status" className={`card-in fixed z-overlay rounded-lg border-2 border-ink bg-amber p-3 shadow-pixel ${dockClass}`} style={{ bottom: dockBottom }}>

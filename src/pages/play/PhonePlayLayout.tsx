@@ -3,7 +3,8 @@ import BlockEditor from '../../components/BlockEditor'
 import Stage from '../../components/Stage'
 import HintBubble from '../../components/HintBubble'
 import QuizModal from '../../components/QuizModal'
-import NotebookToast from '../../components/NotebookToast'
+import TermMoment from '../../components/TermMoment'
+import SpeedButton from '../../components/SpeedButton'
 import LevelCompleteModal from '../../components/LevelCompleteModal'
 import BottomSheet from '../../components/BottomSheet'
 import PredictionCard from '../../components/PredictionCard'
@@ -22,7 +23,10 @@ import { MAX_STARS } from '../../quiz/questions'
 import type { PlaySession } from './usePlaySession'
 
 type View = 'build' | 'watch'
-type Pill = { id: number; icon: string; text: string; tone: 'good' | 'bad' | 'info'; action?: { label: string; run: () => void } }
+type Pill = { id: number; icon: string; text: string; tone: 'good' | 'bad' | 'info'; ms: number; action?: { label: string; run: () => void } }
+
+/** How long a view takes to slide in; matches .view-in-* in index.css. */
+const SLIDE_MS = 260
 
 /** Room the bottom bar takes, so pills and sheets sit just above it. */
 const BAR = 'calc(68px + env(safe-area-inset-bottom))'
@@ -51,6 +55,11 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     stars,
     entry,
     closeEntry,
+    cycleSpeed,
+    firstIntro,
+    outcome,
+    speed,
+    navigate,
     toasts,
     guess,
     mustGuess,
@@ -84,10 +93,28 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     setTouring,
     finishTour,
     freshStage,
-    navigate,
   } = s
 
   const [view, setView] = useState<View>('build')
+  // The view sliding out while the other slides in.
+  const [leaving, setLeaving] = useState<View | null>(null)
+  const slideTimer = useRef(0)
+  const viewRef = useRef(view)
+  viewRef.current = view
+  const goTo = (next: View) => {
+    const from = viewRef.current
+    if (next === from) return
+    viewRef.current = next
+    window.clearTimeout(slideTimer.current)
+    setLeaving(from)
+    setView(next)
+    slideTimer.current = window.setTimeout(() => setLeaving(null), SLIDE_MS)
+  }
+  // A result the player hasn't looked at yet: the Result tab shows how it went.
+  const [unseen, setUnseen] = useState(false)
+  useEffect(() => {
+    if (view === 'watch') setUnseen(false)
+  }, [view])
   const [missionOpen, setMissionOpen] = useState(false)
   const [guessOpen, setGuessOpen] = useState(false)
   const [runAfterGuess, setRunAfterGuess] = useState(false)
@@ -108,22 +135,22 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
   const pillId = useRef(0)
   const split = landscape
 
-  const pushPill = (p: Omit<Pill, 'id'>, ms = 4000) => {
+  const pushPill = (p: Omit<Pill, 'id' | 'ms'>, ms = 4000) => {
     const id = ++pillId.current
-    setPills((ps) => [...ps, { ...p, id }])
-    window.setTimeout(() => setPills((ps) => ps.filter((x) => x.id !== id)), ms)
+    setPills((ps) => [...ps, { ...p, id, ms }])
   }
   const dismissPill = (id: number) => setPills((ps) => ps.filter((x) => x.id !== id))
 
-  // A new stage opens its mission once, so the new task gets read.
+  // A new stage opens its mission once, so the new task gets read. It waits
+  // its turn: after the run, its new words, the result and any badges.
   const seenMission = useRef<string | null>(null)
+  const [missionPending, setMissionPending] = useState(false)
   useEffect(() => {
-    if (showIntro || touring) return
     if (seenMission.current === puzzleKey) return
     const first = seenMission.current === null
     seenMission.current = puzzleKey
-    if (!first) setMissionOpen(true)
-  }, [puzzleKey, showIntro, touring])
+    if (!first) setMissionPending(true)
+  }, [puzzleKey])
 
   // Badges arrive as pills, one at a time.
   const shownToasts = useRef(new Set<number>())
@@ -142,6 +169,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     if (wasRunning.current && !running) {
       const last = [...log].reverse().find((l) => l.tone !== 'info') ?? log[log.length - 1]
       if (last) pushPill({ icon: last.tone === 'good' ? '✓' : last.tone === 'bad' ? '✗' : '🤖', text: last.text.replace(/^✓ /, ''), tone: last.tone }, 4500)
+      if (view !== 'watch') setUnseen(true)
     }
     wasRunning.current = running
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,7 +179,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
   const pointsAtBlocks = hint !== null && hint.target.where !== 'element'
   useEffect(() => {
     if (!hint || !pointsAtBlocks || split || view === 'build') return
-    pushPill({ icon: '💡', text: t(lang, 'phoneHintReady'), tone: 'info', action: { label: t(lang, 'phoneShow'), run: () => setView('build') } }, 7000)
+    pushPill({ icon: '💡', text: t(lang, 'phoneHintReady'), tone: 'info', action: { label: t(lang, 'phoneShow'), run: () => goTo('build') } }, 7000)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hint])
 
@@ -165,14 +193,14 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
       setGuessOpen(true)
       return
     }
-    setView('watch')
+    goTo('watch')
     setHint(null)
     void handleRun()
   }
   useEffect(() => {
     if (runAfterGuess && !mustGuess) {
       setRunAfterGuess(false)
-      setView('watch')
+      goTo('watch')
       void handleRun()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,14 +208,31 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
 
   // The tour shows the blocks, so it starts there.
   useEffect(() => {
-    if (touring) setView('build')
+    if (!touring) return
+    setView('build')
+    setStageFull(false)
   }, [touring])
+  // On the tour's Blocks/Result step, slide to Result and back once, so the player sees the motion.
+  const tourDemo = useRef<number[]>([])
+  const onTourStep = (i: number) => {
+    tourDemo.current.forEach((id) => window.clearTimeout(id))
+    if (split || i !== PHONE_TOUR.length - 1) return
+    tourDemo.current = [window.setTimeout(() => goTo('watch'), 700), window.setTimeout(() => goTo('build'), 2000)]
+  }
 
   const main = level.puzzles.filter((p) => !p.bonus)
   const n = main.findIndex((p) => p.id === stage.id) + 1
   const stepLabel = stage.bonus ? '⭐' : `${n}/${main.length}`
   const showBuild = split || view === 'build'
   const showWatch = split || view === 'watch'
+  /** Blocks sits left of Result: the view coming in slides from its side, the one leaving slides out the other way. */
+  const paneClass = (pane: View) => {
+    if (split) return ''
+    const fromLeft = pane === 'build'
+    if (view === pane) return leaving ? (fromLeft ? 'view-in-left' : 'view-in-right') : ''
+    if (leaving === pane) return fromLeft ? 'view-out-left' : 'view-out-right'
+    return 'invisible'
+  }
 
   const runButtonEl = (
     <button
@@ -196,7 +241,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
       aria-haspopup={mustGuess ? 'dialog' : undefined}
       data-hint-avoid
       data-tour="run"
-      className={`pixel-btn order-2 flex min-h-12 flex-1 items-center justify-center whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-2 type-button-lg text-white ${mustGuess ? 'opacity-80' : ''}`}
+      className={`pixel-btn flex min-h-12 flex-1 items-center justify-center whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-2 type-button-lg text-white ${mustGuess ? 'opacity-80' : ''}`}
     >
       {running ? t(lang, 'stop') : t(lang, 'run')}
     </button>
@@ -206,18 +251,46 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     <button
       role="tab"
       aria-selected={view === id}
-      onClick={() => setView(id)}
-      data-tour={id === 'watch' ? 'tabs' : undefined}
-      className={`flex min-h-12 w-20 flex-col items-center justify-center rounded px-1 py-1 type-micro ${id === 'build' ? 'order-1' : 'order-3'} ${view === id ? 'bg-amber-tint text-ink' : 'text-ink-soft'}`}
+      onClick={() => goTo(id)}
+      className={`relative z-raised flex min-h-11 w-20 flex-col items-center justify-center rounded px-1 type-label ${view === id ? 'text-ink' : 'text-ink-soft'}`}
     >
       <span className="text-icon" aria-hidden="true">
         {icon}
       </span>
       {label}
+      {id === 'watch' && unseen && outcome && (
+        <span
+          className={`absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-ink type-micro ${outcome === 'pass' ? 'bg-tosca-light' : 'bg-maroon-tint'}`}
+          aria-label={t(lang, 'phoneResultNew')}
+        >
+          {outcome === 'pass' ? '✓' : '✗'}
+        </span>
+      )}
     </button>
   )
 
-  const pill = pills[0]
+  const hintReady = Boolean(hint && !quiz && !running && !touring && !showIntro && !missionOpen && !entry && !levelDone && !missionPending)
+  const inlineHint = hintReady && !split && !pointsAtBlocks && view === 'watch'
+
+  // One thing at a time: a pill waits while a card, sheet or new word is open,
+  // and its clock only starts once it is on screen.
+  const busy = Boolean(entry || levelDone || quiz || missionOpen || guessOpen || touring || showIntro || stageFull)
+  const pill = !busy && !(hint && !pointsAtBlocks) ? pills[0] : undefined
+  useEffect(() => {
+    if (!pill) return
+    // A new stage's mission is waiting, so pills keep it short.
+    const timer = window.setTimeout(() => dismissPill(pill.id), missionPending ? Math.min(pill.ms, 2500) : pill.ms)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pill?.id])
+  useEffect(() => {
+    if (!missionPending || running || pills.length || busy) return
+    const timer = window.setTimeout(() => {
+      setMissionPending(false)
+      setMissionOpen(true)
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [missionPending, running, pills.length, busy])
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-cream" style={{ height: '100dvh' }}>
@@ -241,8 +314,8 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
             <span className="truncate">{t(lang, stage.titleKey)}</span>
           </button>
         )}
-        <Link to="/buku" aria-label={t(lang, 'notebookTitle')} className="flex h-10 items-center gap-1 rounded border-2 border-ink bg-white px-2 type-button">
-          📓 {found.size}
+        <Link to="/buku" data-notebook-count aria-label={t(lang, 'notebookTitle')} className="flex h-10 items-center gap-1 rounded border-2 border-ink bg-white px-2 type-button">
+          📓 {found.size - (entry ? 1 : 0)}
         </Link>
         <div className="relative">
           <button
@@ -339,11 +412,11 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
         </button>
       )}
 
-      <main className={`relative min-h-0 flex-1 ${split ? 'grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2 p-2' : ''}`}>
+      <main className={`relative min-h-0 flex-1 ${split ? 'grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2 p-2' : 'overflow-hidden'}`}>
         <section
           data-tour="editor"
           aria-hidden={!showBuild || undefined}
-          className={`${split ? 'relative overflow-hidden rounded-lg border-2 border-ink bg-white' : 'absolute inset-0 bg-white'} ${showBuild ? '' : 'invisible'}`}
+          className={`${split ? 'relative overflow-hidden rounded-lg border-2 border-ink bg-white' : 'absolute inset-0 bg-white'} ${paneClass('build')}`}
         >
           <div className="absolute inset-0">
             <BlockEditor
@@ -362,9 +435,9 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
 
         <section
           aria-hidden={!showWatch || undefined}
-          className={`${split ? 'flex min-h-0 flex-col gap-2 overflow-y-auto' : 'absolute inset-0 flex flex-col gap-2 p-2'} ${showWatch ? '' : 'invisible'}`}
+          className={`${split ? 'flex min-h-0 flex-col gap-2 overflow-y-auto' : 'absolute inset-0 flex flex-col gap-2 overflow-y-auto p-2'} ${paneClass('watch')}`}
         >
-          <div data-hint-avoid data-tour="stage" className="relative shrink-0 overflow-hidden rounded-lg border-2 border-ink bg-cream">
+          <div data-hint-avoid data-tour="stage" className="relative shrink-0 rounded-lg border-2 border-ink bg-cream">
             {/* The same stage element goes full screen, so the running scene carries on. */}
             <div
               className={stageFull ? 'fixed z-takeover flex items-center justify-center bg-cream' : ''}
@@ -374,7 +447,10 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
               aria-label={stageFull ? t(lang, 'phoneFullscreen') : undefined}
             >
               <div style={stageFull ? { width: split ? 'min(100vw, 160dvh)' : 'min(100dvh, 160vw)' } : undefined} className={stageFull ? 'stage-full' : 'w-full'}>
-                <Stage key={level.id} lang={lang} level={level} ref={stageView} />
+                <Stage key={level.id} lang={lang} level={level} speed={speed} ref={stageView}>
+                  {stageFull && <SpeedButton lang={lang} speed={speed} onCycle={cycleSpeed} className="absolute left-1 top-1 z-float min-h-10 border-2 border-ink/50 bg-white/80 type-label" />}
+                  {entry && <TermMoment key={entry.card.id} entry={entry} lang={lang} onClose={closeEntry} besideSelector={split && !stageFull ? '[data-tour="editor"]' : undefined} />}
+                </Stage>
               </div>
               {stageFull ? (
                 <button
@@ -386,13 +462,16 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
                 </button>
               ) : (
                 // Scene text is drawn for a 640px stage, too small to read at phone width, so the whole stage opens full screen.
-                <button onClick={() => setStageFull(true)} aria-label={t(lang, 'phoneFullscreen')} className="absolute inset-0 z-raised flex items-start justify-end p-1">
-                  <span className="flex min-h-8 items-center gap-1 rounded border-2 border-ink/50 bg-white/80 px-2 type-label" aria-hidden="true">
-                    ⤢ {t(lang, 'phoneEnlarge')}
-                  </span>
-                </button>
+                <button onClick={() => setStageFull(true)} aria-label={t(lang, 'phoneFullscreen')} className="absolute inset-0 z-raised" />
               )}
             </div>
+          </div>
+          {/* Under the stage, never over the scene's own labels: speed on the left, full screen on the right. */}
+          <div className="-mt-1 flex shrink-0 items-center justify-between gap-2">
+            <SpeedButton lang={lang} speed={speed} onCycle={cycleSpeed} />
+            <button onClick={() => setStageFull(true)} className="flex min-h-8 items-center gap-1 rounded border-2 border-ink/50 bg-white px-2 type-label">
+              ⤢ {t(lang, 'phoneEnlarge')}
+            </button>
           </div>
           {/* On its side, Run sits right under the stage so it never falls off the screen. */}
           {split && <div className="flex shrink-0 gap-2">{runButtonEl}</div>}
@@ -409,9 +488,10 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
               />
             </div>
           )}
-          <div data-tour="log" className={`flex flex-1 flex-col rounded-lg border-2 border-ink bg-ink p-2 text-cream ${split ? 'min-h-24' : 'min-h-0'}`} aria-live="polite">
+          {/* Upright, the log takes the room its lines need and the view scrolls; it never shrinks to nothing. */}
+          <div data-tour="log" className={`flex flex-col rounded-lg border-2 border-ink bg-ink p-3 text-cream ${split ? 'min-h-24 flex-1' : 'min-h-32 shrink-0'}`} aria-live="polite">
             <h2 className="type-eyebrow text-amber">🤖 {t(lang, 'kataSays')}</h2>
-            <ul ref={logBox} className="mt-1 min-h-0 flex-1 space-y-1 overflow-y-auto type-mono">
+            <ul ref={logBox} className={`mt-1 space-y-1 overflow-y-auto type-log ${split ? 'min-h-0 flex-1' : 'max-h-60'}`}>
               {log.map((line, i) => (
                 <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
                   › {line.text}
@@ -419,6 +499,14 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
               ))}
             </ul>
           </div>
+          {/* On Result, a hint that isn't about the blocks sits under Kata's log, in the flow, so it covers nothing. */}
+          {inlineHint && hint && <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} inline />}
+          {/* After a run, the way back to the blocks, named for what the player will do there. */}
+          {!split && !running && outcome && (
+            <button onClick={() => goTo('build')} className="pixel-btn min-h-11 shrink-0 rounded border-2 border-ink bg-white px-4 py-2 type-button-lg hover:bg-parchment">
+              {t(lang, outcome === 'fail' ? 'phoneFixBlocks' : levelDone ? 'phoneEditBlocks' : 'phoneNextBlocks')}
+            </button>
+          )}
         </section>
       </main>
 
@@ -426,10 +514,16 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
       {!split && (
         <nav
           className="safe-bottom flex shrink-0 items-center gap-2 border-t-2 border-ink bg-cream px-2 pt-2"
+          data-term-floor
           aria-label={t(lang, 'phoneViews')}
         >
-          {/* One tab list; Run sits between its two tabs on screen. */}
-          <div role="tablist" aria-label={t(lang, 'phoneViews')} className="contents">
+          {/* Blocks and Result as one switch; the highlight slides the same way the screen does. */}
+          <div role="tablist" aria-label={t(lang, 'phoneViews')} data-tour="tabs" className="relative flex shrink-0 rounded-lg border-2 border-ink bg-white p-0.5">
+            <span
+              aria-hidden="true"
+              className="switch-thumb absolute inset-y-0.5 left-0.5 w-20 rounded border-2 border-ink bg-amber-tint"
+              style={{ transform: view === 'watch' ? 'translateX(100%)' : 'none' }}
+            />
             {tab('build', '🧩', t(lang, 'phoneBlocks'))}
             {tab('watch', '👁', t(lang, 'phoneResult'))}
           </div>
@@ -439,7 +533,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
 
       {/* One pill at a time, just above the bottom bar. */}
       <div className="pointer-events-none fixed inset-x-3 z-toast flex justify-center" style={{ bottom: split ? '12px' : BAR }} aria-live="polite">
-        {pill && !entry && !(hint && !pointsAtBlocks) && (
+        {pill && (
           <div
             key={pill.id}
             className={`pill-in pointer-events-auto flex max-w-full items-center gap-2 rounded-full border-2 border-ink px-4 py-2 shadow-pixel-sm ${pill.tone === 'good' ? 'bg-tosca-tint' : pill.tone === 'bad' ? 'bg-maroon-tint' : 'bg-white'}`}
@@ -464,15 +558,8 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
         )}
       </div>
 
-      {/* A new notebook term during a run, above the bar so the stage stays in view. */}
-      {entry && (
-        <div className={`fixed z-toast ${split ? 'bottom-3 right-3 w-[40vw]' : 'inset-x-3'}`} style={split ? undefined : { bottom: BAR }}>
-          <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />
-        </div>
-      )}
-
       {/* Hints about the blocks point at them; the rest sit above the bar, so the stage stays clear. */}
-      {hint && !quiz && !running && !touring && !showIntro && !missionOpen && !entry && (pointsAtBlocks ? showBuild : true) && (
+      {hint && hintReady && !inlineHint && (pointsAtBlocks ? showBuild : true) && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} dockBottom={pointsAtBlocks ? undefined : split ? '12px' : BAR} dockClass={split ? 'right-3 w-[40vw]' : 'inset-x-3'} />
       )}
 
@@ -537,6 +624,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
           title={level.title[lang]}
           goal={PLANNED.find((p) => p.id === levelId)?.bigQuestion[lang] ?? level.topic[lang]}
           stages={main.length}
+          firstTime={firstIntro}
           offerTour={!tourSeen}
           onTour={() => {
             closeIntro()
@@ -546,7 +634,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
           sheet
         />
       )}
-      {touring && <Tour steps={split ? LANDSCAPE_TOUR : PHONE_TOUR} lang={lang} onDone={finishTour} />}
+      {touring && <Tour steps={split ? LANDSCAPE_TOUR : PHONE_TOUR} lang={lang} onDone={finishTour} onStep={onTourStep} />}
     </div>
   )
 }

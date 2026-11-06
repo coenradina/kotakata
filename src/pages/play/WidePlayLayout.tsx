@@ -2,7 +2,8 @@ import BlockEditor from '../../components/BlockEditor'
 import Stage from '../../components/Stage'
 import HintBubble from '../../components/HintBubble'
 import QuizModal from '../../components/QuizModal'
-import NotebookToast from '../../components/NotebookToast'
+import TermMoment from '../../components/TermMoment'
+import SpeedButton from '../../components/SpeedButton'
 import LevelCompleteModal from '../../components/LevelCompleteModal'
 import { t } from '../../i18n'
 import { numberOf } from '../../levels'
@@ -29,6 +30,9 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
     closeEntry,
     closeIntro,
     confirmStartOver,
+    cycleSpeed,
+    firstIntro,
+    speed,
     done,
     editor,
     entry,
@@ -83,6 +87,7 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
       title={level.title[lang]}
       goal={PLANNED.find((p) => p.id === levelId)?.bigQuestion[lang] ?? level.topic[lang]}
       stages={level.puzzles.filter((p) => !p.bonus).length}
+      firstTime={firstIntro}
       offerTour={!tourSeen}
       onTour={() => {
         closeIntro()
@@ -103,8 +108,9 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
           <p className="type-micro text-maroon">{t(lang, trackName === 'sessions' ? 'introSession' : 'introLevel', { n: numberOf(levelId) })}</p>
           <h1 className="truncate type-subheading">{level.title[lang]}</h1>
         </div>
-        <Link to="/buku" className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
-          📓 {found.size}
+        <Link to="/buku" data-notebook-count className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment" title={t(lang, 'notebookTitle')}>
+          {/* A new word counts once it has flown in from its card. */}
+          📓 {found.size - (entry ? 1 : 0)}
         </Link>
         <button onClick={() => setTouring(true)} disabled={running} className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
           ? {t(lang, 'helpTour')}
@@ -188,8 +194,10 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
 
         <section className="flex min-w-0 flex-col gap-3">
           {/* Hints keep off the stage: it shows the result they're about. */}
-          <div data-hint-avoid data-tour="stage" className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
-            <Stage key={level.id} lang={lang} level={level} ref={stageView} />
+          <div data-hint-avoid data-tour="stage" className="pixel-shadow rounded-lg border-2 border-ink bg-cream">
+            <Stage key={level.id} lang={lang} level={level} speed={speed} ref={stageView}>
+              {entry && <TermMoment key={entry.card.id} entry={entry} lang={lang} onClose={closeEntry} />}
+            </Stage>
           </div>
 
           {stage.prediction && (
@@ -222,6 +230,7 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
             >
               {running ? t(lang, 'stop') : t(lang, 'clear')}
             </button>
+            <SpeedButton lang={lang} speed={speed} onCycle={cycleSpeed} className="pixel-btn border-2 border-ink bg-white py-3 type-button-lg" />
           </div>
 
           <div data-tour="log" className="relative min-h-28 rounded-lg border-2 border-ink bg-ink p-3 text-cream" aria-live="polite">
@@ -233,8 +242,6 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
                 </li>
               ))}
             </ul>
-            {/* New terms land over Kata's log, under the stage, never over it */}
-            {entry && <NotebookToast key={entry.card.id} entry={entry} lang={lang} onOpenNotebook={() => navigate('/buku')} onClose={closeEntry} />}
           </div>
         </section>
       </main>
@@ -255,7 +262,7 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
         ))}
       </div>
 
-      {hint && !quiz && !running && !touring && !showIntro && (
+      {hint && !quiz && !running && !touring && !showIntro && !entry && !levelDone && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
       )}
 

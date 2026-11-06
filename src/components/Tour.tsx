@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { t, type Key, type Lang } from '../i18n'
+import PixelSprite from './PixelSprite'
 
 export interface TourStep {
   /** CSS selectors; the spotlight covers all of them together. */
@@ -12,11 +13,13 @@ interface Props {
   steps: TourStep[]
   lang: Lang
   onDone: () => void
+  /** Called when a step shows, so a layout can demonstrate it. */
+  onStep?: (index: number) => void
 }
 
 const PAD = 8
 const BUBBLE_W = 320
-const BUBBLE_H = 190
+const BUBBLE_H = 230
 
 /** The box around every element that matches any of the selectors. */
 function unionRect(selectors: string[]): DOMRect | null {
@@ -45,12 +48,15 @@ function place(r: DOMRect) {
  * A short guided tour: one part of the screen at a time is lit, the rest
  * dimmed, with a card that says what it's for. Esc skips, Enter goes on.
  */
-export default function Tour({ steps, lang, onDone }: Props) {
+export default function Tour({ steps, lang, onDone, onStep }: Props) {
   const [i, setI] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const next = useRef<HTMLButtonElement>(null)
   const step = steps[i]
   const last = i === steps.length - 1
+  const stepRef = useRef(onStep)
+  stepRef.current = onStep
+  useEffect(() => stepRef.current?.(i), [i])
 
   useEffect(() => {
     let frame = 0
@@ -92,10 +98,16 @@ export default function Tour({ steps, lang, onDone }: Props) {
         <div aria-hidden="true" className="fixed inset-0 bg-ink/60" />
       )}
       <div className="card-in fixed w-80 rounded-lg border-2 border-ink bg-white p-4 shadow-pixel-lg" style={pos}>
-        <p className="type-micro text-ink-muted">{t(lang, 'tourOf', { n: i + 1, total: steps.length })}</p>
-        <h2 id="tour-title" className="mt-1 type-heading">
-          {t(lang, step.titleKey)}
-        </h2>
+        {/* Kata gives the tour, so its face is on every card. */}
+        <div className="flex items-center gap-3">
+          <PixelSprite sprite="robot0" scale={3} className="kata-bob shrink-0" label="Kata" />
+          <div className="min-w-0">
+            <p className="type-micro text-ink-muted">{t(lang, 'tourOf', { n: i + 1, total: steps.length })}</p>
+            <h2 id="tour-title" className="type-heading">
+              {t(lang, step.titleKey)}
+            </h2>
+          </div>
+        </div>
         <p className="mt-2 type-body">{t(lang, step.bodyKey)}</p>
         <div className="mt-4 flex items-center gap-2">
           <button onClick={onDone} className="type-label underline hover:text-maroon">

@@ -31,6 +31,8 @@ export interface Progress {
   introSeen: string[]
   /** The block panel is open (true) or folded down to its section icons. */
   paletteOpen: boolean
+  /** How fast the stage plays: 0.5, 1 or 2. */
+  speed: number
 }
 
 export const EMPTY: Progress = {
@@ -45,6 +47,7 @@ export const EMPTY: Progress = {
   tourDone: false,
   introSeen: [],
   paletteOpen: true,
+  speed: 1,
 }
 
 export interface ProgressStore {
@@ -77,6 +80,7 @@ const KEYS = {
   tourDone: 'kotakata.tourDone',
   introSeen: 'kotakata.introSeen',
   paletteOpen: 'kotakata.paletteOpen',
+  speed: 'kotakata.speed',
 } satisfies Record<keyof Progress, string>
 
 /** Where each session's blocks live. Level 1 kept its own older key name. */
@@ -151,6 +155,7 @@ export function createLocalStore(kv: KeyValue, legacy: Legacy, validCards: reado
         tourDone: read(KEYS.tourDone, false),
         introSeen: read(KEYS.introSeen, []),
         paletteOpen: read(KEYS.paletteOpen, true),
+        speed: [0.5, 1, 2].includes(read(KEYS.speed, 1)) ? read(KEYS.speed, 1) : 1,
       }
     },
     save(patch) {

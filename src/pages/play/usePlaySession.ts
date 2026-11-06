@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BlockEditorHandle } from '../../components/BlockEditor'
 import type { StageHandle } from '../../components/Stage'
-import type { NotebookEntry } from '../../components/NotebookToast'
-import type { Milestones } from '../../game/types'
+import type { NotebookEntry } from '../../components/TermMoment'
+import type { Milestones, PopupSide } from '../../game/types'
 import { t, type CardId, type Lang } from '../../i18n'
 import { MAX_REPEATS, ladderHint, rungFor, type Hint } from '../../hints'
 import { levelById, trackOf, type SessionId } from '../../levels'
@@ -16,8 +16,8 @@ import { track } from '../../impact/track'
 export type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
 const MAX_CARDS_PER_RUN = 2
-/** How long a scene pauses on a term it just put in the notebook. */
-const TERM_PAUSE_MS = 2200
+/** Stage speeds the player can pick, in the order a tap cycles them. */
+export const SPEEDS = [1, 2, 0.5] as const
 type StagesDone = Record<string, string[]>
 
 /** The stage to play: the first main stage not done, then the bonus. */
@@ -77,6 +77,14 @@ export function usePlaySession(sessionId: string) {
   /** Which level just finished, for the level-complete card. */
   const [levelDone, setLevelDone] = useState<SessionId | null>(null)
   const [entry, setEntry] = useState<NotebookEntry | null>(null)
+  /** How the last finished run went, so the phone layout can say what to do next. */
+  const [outcome, setOutcome] = useState<'pass' | 'fail' | null>(null)
+  const [speed, setSpeed] = useState(() => initial.speed)
+  const cycleSpeed = () => {
+    const next = SPEEDS[(SPEEDS.indexOf(speed as (typeof SPEEDS)[number]) + 1) % SPEEDS.length]
+    setSpeed(next)
+    store.save({ speed: next })
+  }
   // Resolves the scene's brief pause on a new term, if one is waiting.
   const releasePause = useRef<(() => void) | null>(null)
   const { navigate } = useRoute()
@@ -120,21 +128,18 @@ export function usePlaySession(sessionId: string) {
   }
 
   /**
-   * Puts a new term in the notebook and shows it over the log. The run
-   * doesn't wait for the player: the scene pauses on the highlighted part
-   * for a moment, or until the entry is closed.
+   * Puts a new term in the notebook and stops the run on it. The scene
+   * waits, on the part it is pointing at, until the player closes the card.
    */
-  const showCard = (id: CardId, vars: Record<string, string | number> = {}) =>
+  const showCard = (id: CardId, vars: Record<string, string | number> = {}, side: PopupSide = 'left') =>
     new Promise<void>((resolve) => {
       const card = EVERY_CARD.find((c) => c.id === id)!
       discover(id, vars)
-      setEntry({ card, vars })
+      setEntry({ card, vars, side })
       const done = () => {
-        window.clearTimeout(timer)
         if (releasePause.current === done) releasePause.current = null
         resolve()
       }
-      const timer = window.setTimeout(done, TERM_PAUSE_MS)
       releasePause.current = done
     })
 
@@ -147,9 +152,9 @@ export function usePlaySession(sessionId: string) {
   const cardsThisRun = useRef(0)
   const milestones: Milestones = {
     isNew: (id) => !foundRef.current.has(id) && cardsThisRun.current < MAX_CARDS_PER_RUN,
-    show: (id, _side, vars) => {
+    show: (id, side, vars) => {
       cardsThisRun.current++
-      return showCard(id, vars)
+      return showCard(id, vars, side)
     },
   }
 
@@ -227,6 +232,7 @@ export function usePlaySession(sessionId: string) {
       return
     }
     setRunning(true)
+    setOutcome(null)
     setLog([])
     const token = ++runToken.current
     cardsThisRun.current = 0
@@ -329,6 +335,7 @@ export function usePlaySession(sessionId: string) {
       setBadges(next)
       store.save({ badges: [...next] })
     }
+    setOutcome(stagePassed ? 'pass' : 'fail')
     setRunning(false)
 
     if (levelDoneNow) {
@@ -393,6 +400,8 @@ export function usePlaySession(sessionId: string) {
 
   // First visit to a session: say what it's about before any blocks, then offer the tour once.
   const [showIntro, setShowIntro] = useState(() => !initial.introSeen.includes(levelId))
+  // Kata introduces itself only before the player's very first session.
+  const firstIntro = showIntro && store.load().introSeen.length === 0
   const [tourSeen, setTourSeen] = useState(() => initial.tourDone)
   const [touring, setTouring] = useState(false)
   useEffect(() => {
@@ -464,6 +473,10 @@ export function usePlaySession(sessionId: string) {
     closeEntry,
     closeIntro,
     confirmStartOver,
+    cycleSpeed,
+    firstIntro,
+    outcome,
+    speed,
     done,
     editor,
     entry,

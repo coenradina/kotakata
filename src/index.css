@@ -96,3 +96,32 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 
 /* The tour's spotlight: a clear box whose huge shadow dims the rest of the screen. */
 .tour-spot { box-shadow: 0 0 0 9999px color-mix(in srgb, var(--color-ink) 62%, transparent); }
+
+/* Kata's speech bubble: a pixel tail on the left that points at Kata. */
+.speech-tail { position: relative; }
+.speech-tail::before, .speech-tail::after { content: ''; position: absolute; top: 18px; width: 0; height: 0; border-style: solid; }
+.speech-tail::before { left: -12px; border-width: 8px 12px 8px 0; border-color: transparent var(--color-ink) transparent transparent; }
+.speech-tail::after { left: -8px; top: 20px; border-width: 6px 9px 6px 0; border-color: transparent var(--color-white) transparent transparent; }
+
+/* Phone play: Blocks sits to the left of Result, and switching slides between them. */
+@keyframes view-in-right { from { transform: translateX(100%) } to { transform: none } }
+@keyframes view-in-left { from { transform: translateX(-100%) } to { transform: none } }
+@keyframes view-out-left { from { transform: none } to { transform: translateX(-100%) } }
+@keyframes view-out-right { from { transform: none } to { transform: translateX(100%) } }
+.view-in-right { animation: view-in-right .26s cubic-bezier(.2, .8, .2, 1) both; }
+.view-in-left { animation: view-in-left .26s cubic-bezier(.2, .8, .2, 1) both; }
+.view-out-left { animation: view-out-left .26s cubic-bezier(.2, .8, .2, 1) both; }
+.view-out-right { animation: view-out-right .26s cubic-bezier(.2, .8, .2, 1) both; }
+/* The highlight under the active half of the Blocks/Result switch. */
+.switch-thumb { transition: transform .26s cubic-bezier(.2, .8, .2, 1); }
+
+/* The notebook counter takes a new word. */
+@keyframes count-bump { 0%, 100% { transform: none } 40% { transform: scale(1.25) } }
+.count-bump { animation: count-bump .4s steps(4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .view-in-right, .view-in-left { animation: pill-in .12s ease-out both; }
+  .view-out-left, .view-out-right { animation: none; opacity: 0; }
+  .switch-thumb { transition: none; }
+  .count-bump { animation: none; }
+}
