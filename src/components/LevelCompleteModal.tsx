@@ -47,7 +47,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
               {cards.map((c) => (
                 <li key={c.id} className={`rounded border-2 border-ink bg-white px-3 py-2 ${found.has(c.id) ? '' : 'opacity-40'}`}>
-                  <div className="type-pixel-sm text-tosca">
+                  <div className="type-pixel-sm text-tosca-dark">
                     {c.icon} {c.term}
                   </div>
                   <p className="mt-1 type-caption text-ink/80">{c.body[lang]}</p>
@@ -80,7 +80,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
                 {t(lang, 'lcNext')}
               </button>
             ) : (
-              <button ref={primary} onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 type-label text-white">
+              <button ref={primary} onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca-dark px-4 py-2 type-label text-white">
                 {t(lang, 'close')}
               </button>
             )}

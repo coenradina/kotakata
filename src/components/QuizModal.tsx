@@ -95,7 +95,7 @@ export default function QuizModal({ question, lang, maxed, onAnswer, explain, on
           {result !== null && (
             <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/10 pt-3" aria-live="polite">
               <div className="min-w-0 flex-1 space-y-1">
-                <p className={`type-body font-bold ${result ? 'text-tosca' : 'text-maroon'}`}>
+                <p className={`type-body font-bold ${result ? 'text-tosca-dark' : 'text-maroon'}`}>
                   {result
                     ? t(lang, allMaxed ? 'quizMaxed' : 'quizCorrect', { terms: termNames })
                     : t(lang, 'quizWrong', { answer: correctAnswer(question, lang) })}
@@ -107,7 +107,7 @@ export default function QuizModal({ question, lang, maxed, onAnswer, explain, on
                   </p>
                 )}
               </div>
-              <button data-autofocus autoFocus onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca px-4 py-2 type-label text-white">
+              <button data-autofocus autoFocus onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca-dark px-4 py-2 type-label text-white">
                 {t(lang, 'quizNext')}
               </button>
             </div>
@@ -134,7 +134,7 @@ function Choice({ question, lang, result, onAnswer }: { question: ChoiceQuestion
           const tone = !reveal
             ? 'bg-white hover:bg-amber/30'
             : o.correct
-              ? 'bg-tosca text-white'
+              ? 'bg-tosca-dark text-white'
               : picked === i
                 ? 'bg-maroon text-white'
                 : 'bg-white opacity-60'

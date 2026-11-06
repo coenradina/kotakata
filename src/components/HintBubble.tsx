@@ -49,7 +49,7 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
         <span
           aria-hidden="true"
           className={`absolute h-3 w-3 rotate-45 border-ink bg-amber ${
-            right ? '-left-[8px] top-6 border-b-2 border-l-2' : side === 'below' ? '-top-[8px] left-6 border-l-2 border-t-2' : '-bottom-[8px] left-6 border-b-2 border-r-2'
+            right ? '-left-[8px] top-6 border-b-2 border-l-2' : side === 'left' ? '-right-[8px] top-6 border-r-2 border-t-2' : side === 'below' ? '-top-[8px] left-6 border-l-2 border-t-2' : '-bottom-[8px] left-6 border-b-2 border-r-2'
           }`}
         />
         <div className="flex items-start justify-between gap-2">
@@ -79,17 +79,19 @@ const BUBBLE_W = 256
 const BUBBLE_H = 110
 
 /**
- * Picks a spot for the bubble: right of the target, else below, else above.
+ * Picks a spot for the bubble: right of the target, else left, below or above.
  * A spot is skipped if it would cover the main controls (anything marked
  * data-hint-avoid) or run off the screen.
  */
-function placeBubble(target: DOMRect, height: number): { side: 'right' | 'below' | 'above'; left: number; top: number } {
+function placeBubble(target: DOMRect, height: number): { side: 'right' | 'left' | 'below' | 'above'; left: number; top: number } {
   const avoid = [...document.querySelectorAll('[data-hint-avoid]')].map((el) => el.getBoundingClientRect())
   const overlaps = (l: number, t: number) =>
     avoid.some((r) => l < r.right && l + BUBBLE_W > r.left && t < r.bottom && t + height > r.top)
   const fits = (l: number, t: number) => l >= 8 && t >= 8 && l + BUBBLE_W <= window.innerWidth - 8 && t + height <= window.innerHeight - 8
   const options = [
     { side: 'right' as const, left: target.right + 18, top: target.top + target.height / 2 - 24 },
+    // Big targets like the mission panel often only have room on their left.
+    { side: 'left' as const, left: target.left - BUBBLE_W - 18, top: target.top + 12 },
     { side: 'below' as const, left: Math.max(8, Math.min(target.left, window.innerWidth - BUBBLE_W - 8)), top: target.bottom + 16 },
     { side: 'above' as const, left: Math.max(8, Math.min(target.left, window.innerWidth - BUBBLE_W - 8)), top: target.top - height - 16 },
   ]

@@ -430,7 +430,7 @@ export default function PlayPage() {
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-cream/90 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca type-pixel text-white">
+          <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca-dark type-pixel text-white">
             KK
           </div>
           <div>
@@ -499,7 +499,7 @@ export default function PlayPage() {
                     title={open ? undefined : t(lang, 'levelLocked')}
                     className={`w-full rounded border-2 border-ink px-3 py-2 text-left disabled:cursor-not-allowed ${
                       current
-                        ? 'pixel-shadow bg-tosca text-white'
+                        ? 'pixel-shadow bg-tosca-dark text-white'
                         : open
                           ? 'bg-white hover:bg-amber/30 disabled:opacity-50 disabled:hover:bg-white'
                           : 'bg-parchment text-ink/60'
@@ -551,7 +551,8 @@ export default function PlayPage() {
 
         {/* Stage, mission and log */}
         <section className="flex min-w-0 flex-col gap-4">
-          <div className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
+          {/* Hints keep off the stage: it shows the result they're about. */}
+          <div data-hint-avoid className="pixel-shadow overflow-hidden rounded-lg border-2 border-ink bg-cream">
             <Stage key={level.id} lang={lang} level={level} ref={stageView} />
           </div>
 
@@ -706,7 +707,7 @@ function StagePanel({
               key={st.id}
               aria-current={isCurrent ? 'step' : undefined}
               className={`rounded border-2 px-2 py-0.5 type-eyebrow ${
-                isDone ? 'border-ink bg-tosca text-white' : isCurrent ? 'border-ink bg-white' : 'border-ink/30 text-ink/50'
+                isDone ? 'border-ink bg-tosca-dark text-white' : isCurrent ? 'border-ink bg-white' : 'border-ink/30 text-ink/50'
               }`}
             >
               {isDone ? '✓ ' : isCurrent ? '▸ ' : ''}
