@@ -1035,6 +1035,7 @@ const dict = {
   phoneMission: { id: 'Misi', en: 'Mission' },
   phoneLanguage: { id: 'Bahasa', en: 'Language' },
   phoneFullscreen: { id: 'Layar penuh', en: 'Full screen' },
+  phoneEnlarge: { id: 'Perbesar', en: 'Enlarge' },
   sheetClose: { id: 'Tutup', en: 'Close' },
   tourP1Title: { id: 'Misimu', en: 'Your mission' },
   tourP1Body: { id: 'Ketuk di sini kapan saja untuk membaca misi tahap ini.', en: "Tap here any time to read this stage's mission." },
@@ -1081,6 +1082,7 @@ const dict = {
   lcTitle: { id: 'Level {n} selesai!', en: 'Level {n} complete!' },
   lcCards: { id: 'Istilah yang kamu kumpulkan', en: 'Terms you collected' },
   lcNext: { id: 'Level berikutnya ▶', en: 'Next level ▶' },
+  lcNextSession: { id: 'Sesi berikutnya ▶', en: 'Next session ▶' },
   lcBonus: { id: 'Coba tantangan bonus ⭐', en: 'Try the bonus ⭐' },
   finTitle: { id: 'Semua level selesai! 🎉', en: 'Every level complete! 🎉' },
   finBody: {

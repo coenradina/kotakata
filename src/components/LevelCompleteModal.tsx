@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { LEVELS, levelById, numberOf, trackOf, type SessionId } from '../levels'
 import { t, type CardId, type Lang } from '../i18n'
+import { backdropClass, panelClass } from './modalFrame'
 
 interface Props {
   lang: Lang
@@ -13,10 +14,12 @@ interface Props {
   onClose: () => void
   /** Opens the certificate for this level. */
   onCertificate: (id: SessionId) => void
+  /** Slide up from the bottom edge, for phones. */
+  sheet?: boolean
 }
 
 /** Celebrates a finished level, and the whole game once every level is done. */
-export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose, onCertificate }: Props) {
+export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose, onCertificate, sheet = false }: Props) {
   const level = levelById(levelId)
   const { list, index, track } = trackOf(levelId)
   const next = list[index + 1]
@@ -35,15 +38,15 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
   const cards = allDone ? LEVELS.flatMap((l) => l.cards) : level.cards
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="card-in max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border-2 border-ink bg-cream shadow-pixel-lg">
-        <div className="bg-ink px-6 py-3">
+    <div className={backdropClass(sheet)} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="done-title" className={panelClass(sheet, 'max-w-2xl')}>
+        <div className={`bg-ink py-3 ${sheet ? 'sticky top-0 z-raised px-4' : 'px-6'}`}>
           <h2 id="done-title" className="type-pixel-lg text-amber">
             {allDone ? t(lang, 'finTitle') : `🎉 ${t(lang, track === 'sessions' ? 'lcTitleSession' : 'lcTitle', { n: numberOf(levelId) })}`}
           </h2>
           <p className="mt-1 type-label text-cream/80">{allDone ? t(lang, 'finBody') : level.title[lang]}</p>
         </div>
-        <div className="space-y-4 p-6">
+        <div className={`space-y-4 ${sheet ? 'p-4' : 'p-6'}`}>
           <div>
             <h3 className="type-eyebrow">{t(lang, 'lcCards')}</h3>
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -71,8 +74,8 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
               ))}
             </div>
           )}
-          <div className="flex flex-wrap justify-end gap-2 pt-1">
-            <button onClick={() => onCertificate(levelId)} className="pixel-btn mr-auto rounded border-2 border-ink bg-amber px-4 py-2 type-label hover:bg-amber-tint">
+          <div className={`flex gap-2 pt-1 ${sheet ? 'flex-col-reverse [&>button]:min-h-11 [&>button]:w-full' : 'flex-wrap justify-end'}`}>
+            <button onClick={() => onCertificate(levelId)} className={`pixel-btn rounded border-2 border-ink bg-amber px-4 py-2 type-label hover:bg-amber-tint ${sheet ? '' : 'mr-auto'}`}>
               {t(lang, 'lcCertificate')}
             </button>
             {hasBonus && !allDone && (
@@ -82,7 +85,7 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
             )}
             {next && !allDone ? (
               <button ref={primary} onClick={() => onNext(next.id)} className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 type-label text-white">
-                {t(lang, 'lcNext')}
+                {t(lang, track === 'sessions' ? 'lcNextSession' : 'lcNext')}
               </button>
             ) : (
               <button ref={primary} onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-tosca-dark px-4 py-2 type-label text-white">

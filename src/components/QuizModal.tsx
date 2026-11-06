@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { t, type CardId, type Lang } from '../i18n'
+import { backdropClass, panelClass } from './modalFrame'
 import { TERM_NAME, type BlankQuestion, type ChoiceQuestion, type Question } from '../quiz/questions'
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   /** The term's plain definition, shown after a wrong answer. */
   explain: string
   onClose: () => void
+  /** Slide up from the bottom edge, for phones. */
+  sheet?: boolean
 }
 
 // Chips use the same colours as the Blockly categories the terms come from.
@@ -39,7 +42,7 @@ const CHIP_COLOUR: Record<string, string> = {
   LLM: 'bg-gold',
 }
 
-export default function QuizModal({ question, lang, maxed, onAnswer, explain, onClose }: Props) {
+export default function QuizModal({ question, lang, maxed, onAnswer, explain, onClose, sheet = false }: Props) {
   const [result, setResult] = useState<boolean | null>(null)
   // Read before answering, so earning the third star doesn't say "already full".
   const [allMaxed] = useState(() => question.terms.every(maxed))
@@ -66,13 +69,13 @@ export default function QuizModal({ question, lang, maxed, onAnswer, explain, on
   const termNames = question.terms.map((id) => TERM_NAME[id]).join(', ')
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-ink/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={backdropClass(sheet)} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={dialog}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quiz-title"
-        className="card-in w-full max-w-lg overflow-hidden rounded-lg border-2 border-ink bg-cream shadow-pixel-lg"
+        className={panelClass(sheet, 'max-w-lg')}
       >
         <div className="flex items-center justify-between bg-ink px-4 py-2">
           <span id="quiz-title" className="type-pixel text-amber">

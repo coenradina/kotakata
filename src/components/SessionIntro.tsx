@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import PixelSprite from './PixelSprite'
 import { t, type Lang } from '../i18n'
+import { backdropClass, panelClass } from './modalFrame'
 
 interface Props {
   lang: Lang
@@ -14,10 +15,12 @@ interface Props {
   offerTour: boolean
   onTour: () => void
   onPlay: () => void
+  /** Slide up from the bottom edge, for phones. */
+  sheet?: boolean
 }
 
 /** The first thing a player sees in a session: what it's about, before any blocks. */
-export default function SessionIntro({ lang, label, title, goal, stages, offerTour, onTour, onPlay }: Props) {
+export default function SessionIntro({ lang, label, title, goal, stages, offerTour, onTour, onPlay, sheet = false }: Props) {
   const primary = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     primary.current?.focus()
@@ -27,8 +30,8 @@ export default function SessionIntro({ lang, label, title, goal, stages, offerTo
   }, [onPlay])
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-ink/60 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="intro-title" className="card-in w-full max-w-xl rounded-lg border-2 border-ink bg-cream p-6 shadow-pixel-lg sm:p-8">
+    <div className={backdropClass(sheet, 'bg-ink/60')}>
+      <div role="dialog" aria-modal="true" aria-labelledby="intro-title" className={`${panelClass(sheet, 'max-w-xl')} ${sheet ? 'p-4' : 'p-6 sm:p-8'}`}>
         <div className="flex items-start gap-4">
           <div className="kata-bob hidden shrink-0 rounded-lg border-2 border-ink bg-white p-3 sm:block">
             <PixelSprite sprite="robot0" scale={5} />
@@ -45,7 +48,7 @@ export default function SessionIntro({ lang, label, title, goal, stages, offerTo
           <p className="mt-1 type-lead font-bold">{goal}</p>
         </div>
         <p className="mt-4 type-body text-ink-soft">{t(lang, 'introHow', { n: stages })}</p>
-        <div className="mt-6 flex flex-wrap justify-end gap-2">
+        <div className={`mt-6 flex flex-wrap justify-end gap-2 ${sheet ? '[&>button]:min-h-11 [&>button]:flex-1' : ''}`}>
           {offerTour ? (
             <>
               <button onClick={onPlay} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 type-button-lg hover:bg-parchment">

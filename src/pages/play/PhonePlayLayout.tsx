@@ -376,13 +376,22 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
               <div style={stageFull ? { width: split ? 'min(100vw, 160dvh)' : 'min(100dvh, 160vw)' } : undefined} className={stageFull ? 'stage-full' : 'w-full'}>
                 <Stage key={level.id} lang={lang} level={level} ref={stageView} />
               </div>
-              <button
-                onClick={() => setStageFull((v) => !v)}
-                aria-label={stageFull ? t(lang, 'sheetClose') : t(lang, 'phoneFullscreen')}
-                className="absolute right-1 top-1 z-raised flex h-10 w-10 items-center justify-center rounded border-2 border-ink/50 bg-white/60 type-button"
-              >
-                {stageFull ? '×' : '⤢'}
-              </button>
+              {stageFull ? (
+                <button
+                  onClick={() => setStageFull(false)}
+                  aria-label={t(lang, 'sheetClose')}
+                  className="absolute right-1 top-1 z-raised flex h-10 w-10 items-center justify-center rounded border-2 border-ink/50 bg-white/60 type-button"
+                >
+                  ×
+                </button>
+              ) : (
+                // Scene text is drawn for a 640px stage, too small to read at phone width, so the whole stage opens full screen.
+                <button onClick={() => setStageFull(true)} aria-label={t(lang, 'phoneFullscreen')} className="absolute inset-0 z-raised flex items-start justify-end p-1">
+                  <span className="flex min-h-8 items-center gap-1 rounded border-2 border-ink/50 bg-white/80 px-2 type-label" aria-hidden="true">
+                    ⤢ {t(lang, 'phoneEnlarge')}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
           {/* On its side, Run sits right under the stage so it never falls off the screen. */}
@@ -504,6 +513,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
           }}
           onClose={() => setLevelDone(null)}
           onCertificate={(id) => navigate(`/sertifikat/${id}`)}
+          sheet
         />
       )}
 
@@ -516,6 +526,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
           onAnswer={handleQuizAnswer}
           explain={EVERY_CARD.find((c) => c.id === quiz.terms[0])?.body[lang] ?? ''}
           onClose={() => setQuiz(null)}
+          sheet
         />
       )}
 
@@ -532,6 +543,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
             setTouring(true)
           }}
           onPlay={closeIntro}
+          sheet
         />
       )}
       {touring && <Tour steps={split ? LANDSCAPE_TOUR : PHONE_TOUR} lang={lang} onDone={finishTour} />}

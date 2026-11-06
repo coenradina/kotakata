@@ -76,7 +76,7 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 .pill-in { animation: pill-in .18s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-in, .hint-ring, .badge-pop { animation: none; }
+  .card-in, .hint-ring, .badge-pop, .sheet-in, .pill-in { animation: none; }
 }
 
 /* Kata bobbing on the landing page: two frames, like the sprite. */

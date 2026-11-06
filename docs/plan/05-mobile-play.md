@@ -166,7 +166,8 @@ All eight steps are in: the layout hook, the collapsible panel, the `usePlaySess
 - **Tap to add** is on for every touch screen, tablets too, not only phones.
 - **Hints.** Hints that point at a block or field keep the pointing bubble in the Blocks view. Hints that point at the mission (hint rung 1) dock as a card above the bottom bar, so they don't cover the stage. While the player watches, a hint about the blocks waits as a pill with "Show me".
 - **Notebook cards** during a run show as a card above the bottom bar, not a half-height sheet. On a phone on its side they stay in the right column.
-- **Not yet sheets:** the session intro, stage complete and quiz are still centred modals. They fit and scroll inside on a 375px screen, but they don't slide up.
+- **Sheets, done later:** the session intro, session complete and quiz take a `sheet` prop and slide up from the bottom on phones, with full-width buttons. The frame classes live in `src/components/modalFrame.ts`.
+- **Scene text:** scenes are drawn at 640×400, so on an upright phone (stage about 370px wide) 14px labels come out near 8px. Fonts stay as they are. Instead, a tap anywhere on the stage opens full screen, where the scale is 0.8 on an iPhone SE and about 1.0 on bigger phones. The corner chip says "⤢ Perbesar".
 - **Landscape:** Run sits right under the stage, and the right column scrolls, so Run stays on screen in sessions with a guess card.
 - **A folded panel bug.** The panel's scrollbar layer covered the folded panel and swallowed taps. It now lets taps through, and only its handle catches them.
 - **Checks run:**
