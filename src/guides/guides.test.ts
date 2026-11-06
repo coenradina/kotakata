@@ -4,8 +4,9 @@ import { CHAT_STAGES } from '../levels/chat/stages'
 import { FAIR_STAGES } from '../levels/fair/stages'
 import { BOARD_STAGES } from '../levels/board/stages'
 import { VISION_STAGES } from '../levels/vision/stages'
+import { EKSKUL_STAGES } from '../levels/ekskul/stages'
 
-const PUZZLES: Record<string, unknown[]> = { s1: CHAT_STAGES, s2: VISION_STAGES, s3: FAIR_STAGES, s5: BOARD_STAGES }
+const PUZZLES: Record<string, unknown[]> = { s1: CHAT_STAGES, s2: VISION_STAGES, s3: FAIR_STAGES, s4: EKSKUL_STAGES, s5: BOARD_STAGES }
 
 /** Every { id, en } pair anywhere in a value. */
 function pairs(v: unknown, path = ''): { path: string; id: unknown; en: unknown }[] {

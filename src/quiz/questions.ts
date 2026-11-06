@@ -76,6 +76,11 @@ export const TERM_NAME: Record<CardId, string> = {
   objectDetection: 'Object Detection',
   sensorFusion: 'Sensor Fusion',
   computerVision: 'Computer Vision',
+  recommender: 'Recommender System',
+  explainability: 'Explainability',
+  treeLearning: 'Decision Tree Learning',
+  historicalBias: 'Historical Bias',
+  pruning: 'Pruning',
 }
 
 const opt = (id: string, en: string, correct = false) => ({ text: { id, en }, correct })

@@ -490,6 +490,18 @@ Session 2 is playable at `/kotakata/main/s2`. Its model is in `src/levels/vision
 
 This session reuses the existing Level 2 tree scene. It adds a tree-learner algorithm (ID3-style, greedy best split).
 
+### As built (November 2026)
+
+Session 4 is playable at `/kotakata/main/s4`. Its model and learner are in `src/levels/ekskul/model.ts`, with balance tests in `src/levels/ekskul/model.test.ts`. It has a new scene (`src/game/EkskulScene.ts`) instead of the Level 2 garden: a survey table on the left, the tree on the right, and the new students under it. Changes from the outline above:
+
+- **The survey.** It has five yes/no questions: likes music, likes team sports, likes building things, free after school, and from class A. The three clubs are basketball, choir and robotics. A new student wants robotics if they like building things, else basketball if they like team sports, else choir.
+- **The learner.** `pelajari pohon dari data` picks, at each node, the question that leaves the tidiest groups (Gini impurity, shown to players as "% tidy"). It stops when a group is all one club. `jangan pakai pertanyaan` bans a question and `paling banyak n pertanyaan berurutan` limits the depth. Both apply wherever they are placed.
+- **P2, explainability,** comes before the learner. Kata's music-first tree tells Dinda choir. `jelaskan untuk Dinda` prints her path, and the stage needs both the fix and the explanation.
+- **P3.** The stage 2 tree (team sports first) fits only 6 of 8 new students, because Raka and Ayu like building things. The learned tree starts with "likes building things" and fits all 8.
+- **P4, historical bias.** In last year's data every basketball member was from class A. The learner asks "from class A?" first and fits 1 of 8 new students. Banning the question fixes it.
+- **P5, pruning.** Six past members joined choir to follow a friend. The full tree gets 90% of past members right but only 6 of 8 new students. A depth limit of 2 is the only one that fits everyone. Banning class doesn't help here.
+- **The sandbox** asks for the shortest fair tree by hand: at most 2 questions, no class question, all 8 new students right.
+
 ## 8. Session 6: Rapat OSIS (Student council meeting), outline
 
 **Big question:** "OSIS mau pasang kamera absen otomatis. Setuju?" (The student council wants to install an automatic attendance camera. Do you agree?)
