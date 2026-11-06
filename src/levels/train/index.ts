@@ -20,7 +20,6 @@ export const trainLevel: Level<Step[]> = {
   cards: LEVEL1_CARDS,
   winKey: 'winBody',
   winCard: 'classification',
-  storageKey: 'kotakata.level1.blocks',
   toolbox: trainToolbox,
   starter: TRAIN_STARTER,
   read: readTrainProgram,

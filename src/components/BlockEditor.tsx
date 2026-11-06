@@ -1,4 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
+import { store } from '../store'
 import * as Blockly from 'blockly/core'
 import { theme } from '../blocks/common'
 import { defineAllBlocks, type Level } from '../levels'
@@ -80,13 +81,7 @@ const EDIT_EVENTS = new Set<string>([
 ])
 
 function loadSaved(level: Level): object {
-  try {
-    const raw = localStorage.getItem(level.storageKey)
-    if (raw) return JSON.parse(raw)
-  } catch {
-    /* ignore broken or blocked storage */
-  }
-  return level.starter
+  return store.loadBlocks(level.id) ?? level.starter
 }
 
 interface Props {
@@ -206,11 +201,7 @@ export default function BlockEditor({ lang, level, ref, onEdit }: Props) {
     const save = (e: Blockly.Events.Abstract) => {
       if (e.isUiEvent) return
       if (EDIT_EVENTS.has(e.type)) onEditRef.current?.()
-      try {
-        localStorage.setItem(level.storageKey, JSON.stringify(Blockly.serialization.workspaces.save(workspace)))
-      } catch {
-        /* not critical */
-      }
+      store.saveBlocks(level.id, Blockly.serialization.workspaces.save(workspace))
     }
     workspace.addChangeListener(save)
     const resize = new ResizeObserver(() => Blockly.svgResize(workspace))

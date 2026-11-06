@@ -61,7 +61,6 @@ export interface Level<P = unknown> {
   winCard: CardId
   /** What the log says on a win. Can use {acc}. */
   winKey: Key
-  storageKey: string
   toolbox: (lang: Lang) => Blockly.utils.toolbox.ToolboxDefinition
   starter: object
   /** Null when there's no "when run" block at all. */

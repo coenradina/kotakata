@@ -6,21 +6,17 @@ import QuizModal from './components/QuizModal'
 import TermPopup from './components/TermPopup'
 import LevelCompleteModal from './components/LevelCompleteModal'
 import type { Milestones, PopupSide } from './game/types'
-import { LEVEL1_CARDS, LEVEL2_CARDS, LEVEL3_CARDS, LEVEL4_CARDS, initialLang, saveLang, t, type CardId, type Key, type Lang, type TermCard } from './i18n'
+import { initialLang, saveLang, t, type CardId, type Key, type Lang, type TermCard } from './i18n'
 import { MAX_REPEATS, type Hint } from './hints'
 import { LEVELS, UPCOMING, levelById, type LevelId } from './levels'
 import type { Level } from './levels/types'
+import { EVERY_CARD, store } from './store'
 import { MAX_STARS, pickQuestion, shouldQuiz, type Question, type RunContext } from './quiz/questions'
 
 type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
-const PROGRESS_KEY = 'kotakata.cards'
 const MAX_CARDS_PER_RUN = 2
-const LEVEL_KEY = 'kotakata.level'
-const PASSED_KEY = 'kotakata.passed'
-const STAGES_KEY = 'kotakata.stages'
-const BADGES_KEY = 'kotakata.badges'
-type StagesDone = Partial<Record<LevelId, string[]>>
+type StagesDone = Record<string, string[]>
 
 /** The stage to play: the first main stage not done, then the bonus. */
 function currentStage(level: Level, done: string[]) {
@@ -37,56 +33,7 @@ interface Toast {
   title: string
   body: string
 }
-const EVERY_CARD = [...LEVEL1_CARDS, ...LEVEL2_CARDS, ...LEVEL3_CARDS, ...LEVEL4_CARDS]
-const ALL_CARDS = EVERY_CARD.map((c) => c.id)
-
-/** Cards found so far. The old format stored 'level1' for "all of them". */
-function loadFound(): Set<CardId> {
-  try {
-    const raw = localStorage.getItem(PROGRESS_KEY)
-    if (raw === 'level1') return new Set(LEVEL1_CARDS.map((c) => c.id))
-    const ids = raw ? (JSON.parse(raw) as unknown) : []
-    return new Set(Array.isArray(ids) ? ids.filter((id): id is CardId => ALL_CARDS.includes(id)) : [])
-  } catch {
-    return new Set()
-  }
-}
-
-function saveFound(found: Set<CardId>) {
-  try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify([...found]))
-  } catch {
-    /* not critical */
-  }
-}
-
-const STARS_KEY = 'kotakata.stars'
-const RECENT_KEY = 'kotakata.quizRecent'
 type Stars = Partial<Record<CardId, number>>
-
-function loadJson<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function saveJson(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    /* not critical */
-  }
-}
-
-/** Levels passed so far. Players from before levels existed passed Level 1 if they found its last card. */
-function loadPassed(found: Set<CardId>): Set<LevelId> {
-  const passed = new Set(loadJson<LevelId[]>(PASSED_KEY, []))
-  if (found.has('classification')) passed.add('train')
-  return passed
-}
 
 interface OpenCard {
   card: TermCard
@@ -95,31 +42,23 @@ interface OpenCard {
   close: () => void
 }
 
-const foundRef0 = () => loadFound()
+const initial = store.load()
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(initialLang)
   const [log, setLog] = useState<LogLine[]>([])
   const [running, setRunning] = useState(false)
-  const [found, setFound] = useState(loadFound)
-  const [passed, setPassed] = useState(() => loadPassed(foundRef0()))
+  const [found, setFound] = useState(() => new Set<CardId>(initial.cards))
+  const [passed, setPassed] = useState(() => new Set<string>(initial.passed))
   const [levelId, setLevelId] = useState<LevelId>(() => {
-    const saved = loadJson<LevelId | null>(LEVEL_KEY, null)
-    return saved && LEVELS.some((l) => l.id === saved) ? saved : 'train'
+    const saved = initial.lastSession
+    return saved && LEVELS.some((l) => l.id === saved) ? (saved as LevelId) : 'train'
   })
   const level = levelById(levelId)
-  const [stagesDone, setStagesDone] = useState<StagesDone>(() => {
-    const saved = loadJson<StagesDone>(STAGES_KEY, {})
-    // Players who passed a level before stages existed have done its main stages.
-    for (const id of loadPassed(loadFound())) {
-      const lv = levelById(id)
-      if (!saved[id]?.length) saved[id] = lv.stages.filter((st) => !st.bonus).map((st) => st.id)
-    }
-    return saved
-  })
+  const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
   const stage = currentStage(level, done)
-  const [badges, setBadges] = useState<Set<string>>(() => new Set(loadJson<string[]>(BADGES_KEY, [])))
+  const [badges, setBadges] = useState<Set<string>>(() => new Set(initial.badges))
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastId = useRef(0)
   const runButton = useRef<HTMLButtonElement>(null)
@@ -130,7 +69,7 @@ export default function App() {
   const [openCard, setOpenCard] = useState<OpenCard | null>(null)
   // The scene asks "is this card new?" mid-run, so it reads a ref, not state.
   const foundRef = useRef(found)
-  const [stars, setStars] = useState<Stars>(() => loadJson<Stars>(STARS_KEY, {}))
+  const [stars, setStars] = useState<Stars>(() => initial.stars)
   const [quiz, setQuiz] = useState<Question | null>(null)
   const lastRun = useRef<RunContext | null>(null)
   const quizzedLastRun = useRef(false)
@@ -157,7 +96,7 @@ export default function App() {
     foundRef.current = next
     setFound(next)
     setFresh(id)
-    saveFound(next)
+    store.save({ cards: [...next] })
   }
 
   const stageCelebrate = () => stageView.current?.celebrate()
@@ -196,14 +135,14 @@ export default function App() {
   }
 
   const openQuiz = () => {
-    const recent = loadJson<string[]>(RECENT_KEY, [])
+    const recent = store.load().quizRecent
     // Prefer questions about this level's terms, once the player has some.
     const here = new Set([...foundRef.current].filter((id) => level.cards.some((c) => c.id === id)))
     const q =
       (here.size >= 2 ? pickQuestion(here, stars, recent, lastRun.current, Math.random) : null) ??
       pickQuestion(foundRef.current, stars, recent, lastRun.current, Math.random)
     if (!q) return
-    saveJson(RECENT_KEY, [q.id, ...recent.filter((id) => id !== q.id)].slice(0, 6))
+    store.save({ quizRecent: [q.id, ...recent.filter((id) => id !== q.id)].slice(0, 6) })
     setQuiz(q)
   }
 
@@ -212,7 +151,7 @@ export default function App() {
     setStars((prev) => {
       const next = { ...prev }
       for (const id of quiz.terms) next[id] = Math.min(MAX_STARS, (next[id] ?? 0) + 1)
-      saveJson(STARS_KEY, next)
+      store.save({ stars: next })
       return next
     })
   }
@@ -301,7 +240,7 @@ export default function App() {
       const doneList = [...nowDone]
       setStagesDone((prev) => {
         const next = { ...prev, [level.id]: doneList }
-        saveJson(STAGES_KEY, next)
+        store.save({ puzzlesDone: next })
         return next
       })
       for (const st of level.stages) {
@@ -317,7 +256,7 @@ export default function App() {
         if (!passed.has(level.id)) {
           const next = new Set(passed).add(level.id)
           setPassed(next)
-          saveJson(PASSED_KEY, [...next])
+          store.save({ passed: [...next] })
           const nextIndex = LEVELS.findIndex((l) => l.id === level.id) + 1
           if (nextIndex < LEVELS.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
         }
@@ -346,7 +285,7 @@ export default function App() {
       if (earned.length === 1) pushToast(earned[0].icon, t(lang, earned[0].titleKey), t(lang, earned[0].descKey))
       else pushToast(earned.map((a) => a.icon).join(''), t(lang, 'newBadges', { n: earned.length }), earned.map((a) => t(lang, a.titleKey)).join(' · '))
       setBadges(next)
-      saveJson(BADGES_KEY, [...next])
+      store.save({ badges: [...next] })
     }
     setRunning(false)
 
@@ -392,7 +331,7 @@ export default function App() {
     handleReset()
     setHint(null)
     setLevelId(id)
-    saveJson(LEVEL_KEY, id)
+    store.save({ lastSession: id })
   }
 
   /** Redraws the live preview (if the level has one) from the current blocks. */
@@ -412,13 +351,7 @@ export default function App() {
     handleReset()
     setQuiz(null)
     setConfirmStartOver(false)
-    for (const key of [PROGRESS_KEY, STARS_KEY, RECENT_KEY, PASSED_KEY, LEVEL_KEY, STAGES_KEY, BADGES_KEY, ...LEVELS.map((l) => l.storageKey)]) {
-      try {
-        localStorage.removeItem(key)
-      } catch {
-        /* not critical */
-      }
-    }
+    store.clear()
     const none = new Set<CardId>()
     foundRef.current = none
     setFound(none)

@@ -14,7 +14,6 @@ export const treeLevel: Level<TreeProgram> = {
   cards: LEVEL2_CARDS,
   winKey: 'winBodyTree',
   winCard: 'decisionTree',
-  storageKey: 'kotakata.level2.blocks',
   toolbox: treeToolbox,
   starter: TREE_STARTER,
   read: readTreeProgram,

@@ -14,7 +14,6 @@ export const tavernLevel: Level<Step[]> = {
   cards: LEVEL4_CARDS,
   winCard: 'llm',
   winKey: 'winBodyTavern',
-  storageKey: 'kotakata.level4.blocks',
   toolbox: tavernToolbox,
   starter: TAVERN_STARTER,
   read: readTavernProgram,

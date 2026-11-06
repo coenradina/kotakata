@@ -14,7 +14,6 @@ export const hillLevel: Level<Step[]> = {
   cards: LEVEL3_CARDS,
   winCard: 'gradientDescent',
   winKey: 'winBodyHill',
-  storageKey: 'kotakata.level3.blocks',
   toolbox: hillToolbox,
   starter: HILL_STARTER,
   read: readHillProgram,
