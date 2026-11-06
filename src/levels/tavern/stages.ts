@@ -33,6 +33,8 @@ const LOOP_DEMO = {
 export const TAVERN_STAGES: Puzzle<Step[]>[] = [
   {
     id: 'first',
+    nudgeKey: 'nTavernFirst',
+    exampleKey: 'xTavernFirst',
     beat: 'introduce',
     firstRunTarget: 0.85,
     titleKey: 's4FirstTitle',
@@ -42,6 +44,8 @@ export const TAVERN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'surprise',
+    nudgeKey: 'nTavernSurprise',
+    exampleKey: 'xTavernSurprise',
     beat: 'develop',
     firstRunTarget: 0.7,
     titleKey: 's4SurpriseTitle',
@@ -51,6 +55,8 @@ export const TAVERN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'context',
+    nudgeKey: 'nTavernContext',
+    exampleKey: 'xTavernContext',
     beat: 'twist',
     firstRunTarget: 0.45,
     prediction: {
@@ -67,6 +73,8 @@ export const TAVERN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'creative',
+    nudgeKey: 'nTavernCreative',
+    exampleKey: 'xTavernCreative',
     beat: 'sandbox',
     firstRunTarget: 0.4,
     titleKey: 's4CreativeTitle',

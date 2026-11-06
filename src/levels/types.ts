@@ -53,6 +53,10 @@ export interface Puzzle<P> {
   bonus?: boolean
   /** Asked before the first run of this puzzle. */
   prediction?: Prediction<P>
+  /** Hint rung 1: a question about the idea, after the first failed run. */
+  nudgeKey: Key
+  /** Hint rung 3: part of a working program, after four failed runs. */
+  exampleKey: Key
   /** Did this run complete the stage? */
   check: (program: P, run: Run) => boolean
   /** What the log says when it didn't. Can use {acc}. */

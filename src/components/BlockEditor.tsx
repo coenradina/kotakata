@@ -104,6 +104,8 @@ function locateIn(workspace: Blockly.WorkspaceSvg, target: HintTarget, reveal: b
     )
     return block?.getSvgRoot().getBoundingClientRect() ?? null
   }
+  // Page elements aren't in the workspace; the page locates those itself.
+  if (target.where === 'element') return null
   const block = target.blockId
     ? workspace.getBlockById(target.blockId)
     : workspace.getAllBlocks(false).find((b) => b.type === target.type && b.isEnabled())

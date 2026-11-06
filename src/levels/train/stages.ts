@@ -21,6 +21,8 @@ const bothLabels = (p: Step[]) => {
 export const TRAIN_STAGES: Puzzle<Step[]>[] = [
   {
     id: 'collect',
+    nudgeKey: 'nTrainCollect',
+    exampleKey: 'xTrainCollect',
     beat: 'introduce',
     firstRunTarget: 0.8,
     titleKey: 's1CollectTitle',
@@ -30,6 +32,8 @@ export const TRAIN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'train',
+    nudgeKey: 'nTrainTrain',
+    exampleKey: 'xTrainTrain',
     beat: 'develop',
     firstRunTarget: 0.6,
     titleKey: 's1TrainTitle',
@@ -39,6 +43,8 @@ export const TRAIN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'test',
+    nudgeKey: 'nTrainTest',
+    exampleKey: 'xTrainTest',
     beat: 'develop',
     firstRunTarget: 0.5,
     prediction: {
@@ -61,6 +67,8 @@ export const TRAIN_STAGES: Puzzle<Step[]>[] = [
   },
   {
     id: 'perfect',
+    nudgeKey: 'nTrainPerfect',
+    exampleKey: 'xTrainPerfect',
     beat: 'sandbox',
     firstRunTarget: 0.3,
     titleKey: 's1PerfectTitle',

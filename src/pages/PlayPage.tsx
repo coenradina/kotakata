@@ -7,7 +7,7 @@ import NotebookToast, { type NotebookEntry } from '../components/NotebookToast'
 import LevelCompleteModal from '../components/LevelCompleteModal'
 import type { Milestones } from '../game/types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
-import { MAX_REPEATS, type Hint } from '../hints'
+import { MAX_REPEATS, MISSION_ANCHOR, ladderHint, rungFor, type Hint } from '../hints'
 import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
 import type { Prediction, Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
@@ -68,6 +68,10 @@ export default function PlayPage() {
   const [guesses, setGuesses] = useState<Record<string, { choice: number | null; outcome?: number | null }>>({})
   /** Runs per puzzle, for impact data. */
   const runsOn = useRef<Record<string, number>>({})
+  /** Failed runs per puzzle since it was last passed: they set the hint rung. */
+  const failsOn = useRef<Record<string, number>>({})
+  /** The strongest hint rung each puzzle has shown, for impact data. */
+  const rungOn = useRef<Record<string, 0 | 1 | 2 | 3>>({})
   /** Which level just finished, for the level-complete card. */
   const [levelDone, setLevelDone] = useState<SessionId | null>(null)
   const [entry, setEntry] = useState<NotebookEntry | null>(null)
@@ -176,15 +180,21 @@ export default function PlayPage() {
       return false
     }
     const streak = hintStreak.current
-    const n = streak.key === next.key ? streak.n + 1 : 1
-    hintStreak.current = { key: next.key, n }
+    // A stronger rung counts as a new hint, so it always gets shown.
+    const key = `${next.key}:${next.rung ?? 0}`
+    const n = streak.key === key ? streak.n + 1 : 1
+    hintStreak.current = { key, n }
     if (n > MAX_REPEATS) return false
     setHint(next)
     return true
   }
 
   const locateHint = useCallback(
-    (reveal: boolean) => (hint ? (editor.current?.locate(hint.target, reveal) ?? null) : null),
+    (reveal: boolean) => {
+      if (!hint) return null
+      if (hint.target.where === 'element') return document.querySelector(`[data-hint-anchor="${hint.target.id}"]`)?.getBoundingClientRect() ?? null
+      return editor.current?.locate(hint.target, reveal) ?? null
+    },
     [hint],
   )
 
@@ -235,8 +245,9 @@ export default function PlayPage() {
     if (!demo) {
       const n = (runsOn.current[puzzleKey] ?? 0) + 1
       runsOn.current[puzzleKey] = n
-      track({ t: 'run', session: level.id, puzzle: stage.id, n, passed: stagePassed, prediction: answering ? guess.choice : null, outcome, hint: 0 })
-      if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint: 0 })
+      const hint = rungOn.current[puzzleKey] ?? 0
+      track({ t: 'run', session: level.id, puzzle: stage.id, n, passed: stagePassed, prediction: answering ? guess.choice : null, outcome, hint })
+      if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint })
     }
     let levelDoneNow = false
     let demoNext: { blocks: object; messageKey: Key } | undefined
@@ -338,11 +349,22 @@ export default function PlayPage() {
       return
     }
 
-    // A failed run gets one pointer at what to change. The quiz no longer
-    // pops up by itself: guesses before runs do that job inside the game.
-    offerHint(
-      stagePassed ? null : loose.length ? { key: 'loose', target: { where: 'block', blockId: loose[0] } } : level.hint(program, result, stage.id),
-    )
+    // A failed run gets one hint, stronger the longer the player is stuck.
+    // The quiz no longer pops up by itself: guesses before runs do that job.
+    if (demo) return
+    if (stagePassed) {
+      failsOn.current[puzzleKey] = 0
+      offerHint(null)
+      return
+    }
+    if (loose.length) {
+      offerHint({ key: 'loose', target: { where: 'block', blockId: loose[0] } })
+      return
+    }
+    const fails = (failsOn.current[puzzleKey] ?? 0) + 1
+    failsOn.current[puzzleKey] = fails
+    const next = ladderHint(rungFor(fails), stage, level.hint(program, result, stage.id))
+    if (offerHint(next) && next.rung) rungOn.current[puzzleKey] = Math.max(rungOn.current[puzzleKey] ?? 0, next.rung) as 1 | 2 | 3
   }
 
   /** A level is open once the one before it is passed. */
@@ -383,6 +405,8 @@ export default function PlayPage() {
     hintStreak.current = { key: '', n: 0 }
     setGuesses({})
     runsOn.current = {}
+    failsOn.current = {}
+    rungOn.current = {}
     setPassed(new Set())
     setStagesDone({})
     setBadges(new Set())
@@ -671,7 +695,7 @@ function StagePanel({
   const stage = level.puzzles.find((st) => st.id === current)!
   let n = 0
   return (
-    <div className="rounded-lg border-2 border-ink bg-amber/30 p-4">
+    <div data-hint-anchor={MISSION_ANCHOR} className="rounded-lg border-2 border-ink bg-amber/30 p-4">
       <ol className="flex flex-wrap gap-1.5" aria-label={t(lang, 'goal')}>
         {level.puzzles.map((st) => {
           const label = st.bonus ? `⭐ ${t(lang, 'bonusLabel')}` : t(lang, 'stageLabel', { n: ++n })

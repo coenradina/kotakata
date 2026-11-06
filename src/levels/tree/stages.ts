@@ -18,9 +18,11 @@ const lean = (p: TreeProgram) => {
 }
 
 export const TREE_STAGES: Puzzle<TreeProgram>[] = [
-  { id: 'pair', beat: 'introduce', firstRunTarget: 0.7, titleKey: 's2PairTitle', missionKey: 's2PairMission', check: (_p, r) => raw(r).passed, failKey: () => 'tryAgainTree' },
+  { id: 'pair', nudgeKey: 'nTreePair', exampleKey: 'xTreePair', beat: 'introduce', firstRunTarget: 0.7, titleKey: 's2PairTitle', missionKey: 's2PairMission', check: (_p, r) => raw(r).passed, failKey: () => 'tryAgainTree' },
   {
     id: 'all',
+    nudgeKey: 'nTreeAll',
+    exampleKey: 'xTreeAll',
     beat: 'twist',
     firstRunTarget: 0.4,
     titleKey: 's2AllTitle',
@@ -35,6 +37,8 @@ export const TREE_STAGES: Puzzle<TreeProgram>[] = [
   },
   {
     id: 'lean',
+    nudgeKey: 'nTreeLean',
+    exampleKey: 'xTreeLean',
     beat: 'sandbox',
     firstRunTarget: 0.3,
     titleKey: 's2LeanTitle',

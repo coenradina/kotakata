@@ -34,7 +34,7 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
 
   if (!rect) return null
   const pad = 6
-  const { side, left, top } = placeBubble(rect)
+  const { side, left, top } = placeBubble(rect, hint.exampleKey ? 220 : hint.rung ? 150 : BUBBLE_H)
   const right = side === 'right'
   const bubbleStyle = { left, top }
 
@@ -58,7 +58,18 @@ export default function HintBubble({ hint, lang, locate, onClose }: Props) {
             ×
           </button>
         </div>
-        <p className="mt-1 type-body font-bold">{t(lang, `hint_${hint.key}` as Key)}</p>
+        <p className="mt-1 type-body font-bold">{t(lang, hint.textKey ?? (`hint_${hint.key}` as Key))}</p>
+        {hint.exampleKey && <p className="mt-2 rounded border border-ink/20 bg-white px-2 py-1.5 type-caption">{t(lang, hint.exampleKey)}</p>}
+        {hint.rung && (
+          <p className="mt-2 flex items-center gap-1 type-micro" aria-label={t(lang, 'hintRung', { n: hint.rung })}>
+            {[1, 2, 3].map((r) => (
+              <span key={r} aria-hidden="true" className={`h-2 w-2 rounded-full border border-ink ${r <= hint.rung! ? 'bg-ink' : 'bg-white'}`} />
+            ))}
+            <span className="ml-1" aria-hidden="true">
+              {t(lang, 'hintRung', { n: hint.rung })}
+            </span>
+          </p>
+        )}
       </div>
     </>
   )
@@ -72,15 +83,15 @@ const BUBBLE_H = 110
  * A spot is skipped if it would cover the main controls (anything marked
  * data-hint-avoid) or run off the screen.
  */
-function placeBubble(target: DOMRect): { side: 'right' | 'below' | 'above'; left: number; top: number } {
+function placeBubble(target: DOMRect, height: number): { side: 'right' | 'below' | 'above'; left: number; top: number } {
   const avoid = [...document.querySelectorAll('[data-hint-avoid]')].map((el) => el.getBoundingClientRect())
   const overlaps = (l: number, t: number) =>
-    avoid.some((r) => l < r.right && l + BUBBLE_W > r.left && t < r.bottom && t + BUBBLE_H > r.top)
-  const fits = (l: number, t: number) => l >= 8 && t >= 8 && l + BUBBLE_W <= window.innerWidth - 8 && t + BUBBLE_H <= window.innerHeight - 8
+    avoid.some((r) => l < r.right && l + BUBBLE_W > r.left && t < r.bottom && t + height > r.top)
+  const fits = (l: number, t: number) => l >= 8 && t >= 8 && l + BUBBLE_W <= window.innerWidth - 8 && t + height <= window.innerHeight - 8
   const options = [
     { side: 'right' as const, left: target.right + 18, top: target.top + target.height / 2 - 24 },
     { side: 'below' as const, left: Math.max(8, Math.min(target.left, window.innerWidth - BUBBLE_W - 8)), top: target.bottom + 16 },
-    { side: 'above' as const, left: Math.max(8, Math.min(target.left, window.innerWidth - BUBBLE_W - 8)), top: target.top - BUBBLE_H - 16 },
+    { side: 'above' as const, left: Math.max(8, Math.min(target.left, window.innerWidth - BUBBLE_W - 8)), top: target.top - height - 16 },
   ]
   return options.find((o) => fits(o.left, o.top) && !overlaps(o.left, o.top)) ?? options.find((o) => fits(o.left, o.top)) ?? options[1]
 }
