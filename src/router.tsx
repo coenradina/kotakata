@@ -49,3 +49,20 @@ export function Link({ to, className, children, ...rest }: { to: string; classNa
     </a>
   )
 }
+
+export type Page =
+  | { name: 'landing' }
+  | { name: 'map' }
+  | { name: 'play'; id: string }
+  | { name: 'notebook' }
+  | { name: 'certificate'; id: string }
+
+/** Which page a route shows. Unknown routes go to the landing page. */
+export function matchRoute(route: string): Page {
+  const parts = route.split('/').filter(Boolean)
+  if (parts.length === 0) return { name: 'landing' }
+  if (parts[0] === 'main') return parts[1] ? { name: 'play', id: parts[1] } : { name: 'map' }
+  if (parts[0] === 'buku' && parts.length === 1) return { name: 'notebook' }
+  if (parts[0] === 'sertifikat' && parts[1]) return { name: 'certificate', id: parts[1] }
+  return { name: 'landing' }
+}

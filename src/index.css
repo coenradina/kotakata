@@ -53,3 +53,17 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 @media (prefers-reduced-motion: reduce) {
   .card-in, .hint-ring, .badge-pop { animation: none; }
 }
+
+/* Kata bobbing on the landing page: two frames, like the sprite. */
+@keyframes kata-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+.kata-bob { animation: kata-bob 1s steps(2) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .kata-bob { animation: none; }
+}
+
+/* Printing a certificate: only the sheet, filling one A4 landscape page. */
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  body:has(.cert-sheet) * { visibility: hidden; }
+  body:has(.cert-sheet) .cert-sheet { visibility: visible; position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+}

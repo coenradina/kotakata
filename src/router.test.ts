@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toRoute } from './router'
+import { matchRoute, toRoute } from './router'
 
 describe('toRoute', () => {
   const base = '/kotakata'
@@ -14,5 +14,19 @@ describe('toRoute', () => {
   })
   it('sends paths outside the base home', () => {
     expect(toRoute('/elsewhere', base)).toBe('/')
+  })
+})
+
+describe('matchRoute', () => {
+  it('maps each route to its page', () => {
+    expect(matchRoute('/')).toEqual({ name: 'landing' })
+    expect(matchRoute('/main')).toEqual({ name: 'map' })
+    expect(matchRoute('/main/tree')).toEqual({ name: 'play', id: 'tree' })
+    expect(matchRoute('/buku')).toEqual({ name: 'notebook' })
+    expect(matchRoute('/sertifikat/train')).toEqual({ name: 'certificate', id: 'train' })
+  })
+  it('sends unknown routes to the landing page', () => {
+    expect(matchRoute('/nope')).toEqual({ name: 'landing' })
+    expect(matchRoute('/sertifikat')).toEqual({ name: 'landing' })
   })
 })

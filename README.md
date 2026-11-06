@@ -30,6 +30,18 @@ In code a stage is a `Puzzle` and a level a `Session`, the names the plan uses. 
 
 New terms go into **Kata's notebook** (`/buku`), with the moment the player found them. They show briefly over the log and don't stop the run.
 
+## Pages
+
+| Path | Page |
+| --- | --- |
+| `/kotakata/` | Landing page: what Kotakata is, the sessions on the way, the classic levels |
+| `/kotakata/main` | The school map: one room per session |
+| `/kotakata/main/<id>` | The game for one level |
+| `/kotakata/buku` | Kata's notebook |
+| `/kotakata/sertifikat/<id>` | Certificate for a finished level, as PNG or print. The name typed on it stays in the page and is never saved. |
+
+The build copies `index.html` to `404.html`, so GitHub Pages serves the app for every path.
+
 ## How Level 1 works
 
 The robot is a real nearest-centroid classifier (`src/levels/train/model.ts`). Each fruit has two features, colour and shape. Training moves the robot's guess for each label halfway towards the average of its examples, once per round. The robot starts with its guesses swapped, so one round of training isn't enough. That's the lesson. The plot on the right shows the data, the moving centroids, and which label the robot would pick in each region.

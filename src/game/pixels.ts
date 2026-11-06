@@ -3,7 +3,7 @@ import { css } from '../theme'
 
 // Sprites are drawn as text grids: one character per pixel.
 // Palette follows aastr.id (ink, tosca, maroon, amber, cream) plus fruit colours.
-const PALETTE: Record<string, string> = {
+export const PALETTE: Record<string, string> = {
   k: css('ink'), // ink outline
   t: css('tosca'), // tosca
   T: css('tosca-deep'), // dark tosca
@@ -189,6 +189,18 @@ function binRows(c: string) {
     '..kbbbbbbbbbbbbk..',
     '..kkkkkkkkkkkkkk..',
   ].map(b)
+}
+
+/** Paints a sprite grid onto any 2D canvas, `scale` canvas pixels per sprite pixel. */
+export function paintSprite(ctx: CanvasRenderingContext2D, rows: string[], x: number, y: number, scale: number) {
+  rows.forEach((row, ry) => {
+    ;[...row].forEach((ch, rx) => {
+      const colour = PALETTE[ch]
+      if (!colour) return
+      ctx.fillStyle = colour
+      ctx.fillRect(x + rx * scale, y + ry * scale, scale, scale)
+    })
+  })
 }
 
 /** Turns every sprite grid into a Phaser texture. Short rows are padded. */

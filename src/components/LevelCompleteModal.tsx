@@ -11,10 +11,12 @@ interface Props {
   allDone: boolean
   onNext: (id: SessionId) => void
   onClose: () => void
+  /** Opens the certificate for this level. */
+  onCertificate: (id: SessionId) => void
 }
 
 /** Celebrates a finished level, and the whole game once every level is done. */
-export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose }: Props) {
+export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose, onCertificate }: Props) {
   const level = levelById(levelId)
   const index = LEVELS.findIndex((l) => l.id === levelId)
   const next = LEVELS[index + 1]
@@ -70,6 +72,9 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
             </div>
           )}
           <div className="flex flex-wrap justify-end gap-2 pt-1">
+            <button onClick={() => onCertificate(levelId)} className="pixel-btn mr-auto rounded border-2 border-ink bg-amber px-4 py-2 type-label hover:bg-amber-tint">
+              {t(lang, 'lcCertificate')}
+            </button>
             {hasBonus && !allDone && (
               <button onClick={onClose} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 type-label">
                 {t(lang, 'lcBonus')}

@@ -12,7 +12,7 @@ import { LEVELS, UPCOMING, levelById, type SessionId } from '../levels'
 import type { Prediction, Session } from '../levels/types'
 import { EVERY_CARD, store } from '../store'
 import { useLang } from '../lang'
-import { useRoute } from '../router'
+import { Link, useRoute } from '../router'
 import { MAX_STARS, pickQuestion, type Question, type RunContext } from '../quiz/questions'
 import PredictionCard from '../components/PredictionCard'
 import { track } from '../impact/track'
@@ -44,17 +44,16 @@ type Stars = Partial<Record<CardId, number>>
 
 const initial = store.load()
 
-export default function PlayPage() {
+export default function PlayPage({ sessionId }: { sessionId: string }) {
   const { lang, setLang } = useLang()
   const [log, setLog] = useState<LogLine[]>([])
   const [running, setRunning] = useState(false)
   const [found, setFound] = useState(() => new Set<CardId>(initial.cards))
   const [passed, setPassed] = useState(() => new Set<string>(initial.passed))
-  const [levelId, setLevelId] = useState<SessionId>(() => {
-    const saved = initial.lastSession
-    return saved && LEVELS.some((l) => l.id === saved) ? (saved as SessionId) : 'train'
-  })
+  // The route says which session; the router only sends ids that exist.
+  const levelId = sessionId as SessionId
   const level = levelById(levelId)
+  useEffect(() => store.save({ lastSession: levelId }), [levelId])
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
   const stage = currentStage(level, done)
@@ -374,8 +373,7 @@ export default function PlayPage() {
     if (id === levelId) return
     handleReset()
     setHint(null)
-    setLevelId(id)
-    store.save({ lastSession: id })
+    navigate(`/main/${id}`)
   }
 
   /** Redraws the live preview (if the level has one) from the current blocks. */
@@ -412,7 +410,7 @@ export default function PlayPage() {
     setBadges(new Set())
     // Back to Level 1. Loading the starter blocks also saves them over the old program.
     if (levelId === 'train') editor.current?.resetToStarter()
-    else setLevelId('train')
+    else navigate('/main/train')
   }
 
   const handleReset = () => {
@@ -429,7 +427,7 @@ export default function PlayPage() {
     <div className="flex min-h-full flex-col">
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-cream/90 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="pixel-shadow flex h-10 w-10 items-center justify-center rounded border-2 border-ink bg-tosca-dark type-pixel text-white">
             KK
           </div>
@@ -437,7 +435,7 @@ export default function PlayPage() {
             <h1 className="type-heading">Kotakata</h1>
             <p className="mt-1 type-micro text-maroon">{t(lang, 'tagline')}</p>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
           <div className="flex overflow-hidden rounded border-2 border-ink type-label" role="group" aria-label="Language">
             {(['id', 'en'] as Lang[]).map((l) => (
@@ -474,9 +472,9 @@ export default function PlayPage() {
               </div>
             )}
           </div>
-          <a href="https://aastr.id" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30">
-            {t(lang, 'back')}
-          </a>
+          <Link to="/main" className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber/30">
+            ← {t(lang, 'navMap')}
+          </Link>
         </div>
       </header>
 
@@ -654,6 +652,7 @@ export default function PlayPage() {
             switchLevel(id)
           }}
           onClose={() => setLevelDone(null)}
+          onCertificate={(id) => navigate(`/sertifikat/${id}`)}
         />
       )}
 

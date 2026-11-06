@@ -209,7 +209,7 @@ Logged as described in 03, section 6:
 
 ## 4. Session 3: Data yang Adil (Fair data)
 
-**Big question:** "Kenapa Kata jadi bodoh di kelas sepupuku?" (Why does Kata get so dumb in my cousin's class?)
+**Big question:** "Kenapa Kata jadi kacau di kelas sepupuku?" (Why does Kata get it so wrong in my cousin's class?)
 **Learning points:** LP4, LP5, LP3. **KKA:** VIII "Data Latih", IX "Kualitas Data", CP "bias".
 **Hook:** Sari's cousin goes to school in Surabaya, and the cousin's class 8C wants Kata too. Kata arrives already trained on 8A's chat.
 **Recap:** "Ingat? Dari mana Kata tahu kata 'bsk' itu penting?" (Remember? How did Kata know "bsk" is important?)

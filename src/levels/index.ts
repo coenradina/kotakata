@@ -16,6 +16,12 @@ export const LEVELS: Session[] = [trainLevel as Session, treeLevel as Session, h
 /** Shown in the level list as "coming soon". */
 export const UPCOMING: { title: Record<Lang, string>; topic: Record<Lang, string> }[] = []
 
+/** A level is open once the one before it is passed. */
+export function isUnlocked(id: string, passed: ReadonlySet<string>): boolean {
+  const i = LEVELS.findIndex((l) => l.id === id)
+  return i === 0 || (i > 0 && passed.has(LEVELS[i - 1].id))
+}
+
 export function levelById(id: SessionId): Session {
   return LEVELS.find((l) => l.id === id) ?? LEVELS[0]
 }
