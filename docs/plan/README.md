@@ -26,7 +26,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | Gold | `--color-gold` changed from `#b58900` to `#8a6a00` in both repos, so gold text passes AA | 6 Nov 2026 |
 | Names | The school is SMP Kotakata. The friends are Dinda, Raka, Sari and Bimo. | 6 Nov 2026 |
 | Kata's look | Kata keeps its current robot sprite | 6 Nov 2026 |
-| Backend | A new Firebase project on the Blaze plan in asia-southeast2 (Jakarta), with a USD 10 a month budget alert. It gets created at build step 4. | 6 Nov 2026 |
+| Backend | A new Firebase project on the Blaze plan in asia-southeast2 (Jakarta), with a USD 10 a month budget alert. Created 8 Nov 2026 as `kotakata-prod`, with its Firestore database in asia-southeast2 and delete protection on. `kotakata-dev` is not created yet. | 6 Nov 2026 |
 
 ## Still open
 

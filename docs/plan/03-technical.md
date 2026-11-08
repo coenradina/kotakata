@@ -13,7 +13,7 @@ This document covers architecture, roles, data, the impact pipeline, privacy, qu
 | i18n | `src/i18n.ts`, Indonesian and English |
 | Design | `src/styles/tokens.css` and `src/styles/art.css`. `scripts/check-design.mjs` runs before every build. |
 | Hosting | GitHub Pages at `aastr.id/kotakata`. Every push to `main` deploys. |
-| Backend | None. The portfolio has its own Firebase project, used by the contact Cloud Function. |
+| Backend | Firebase project `kotakata-prod`, created 8 Nov 2026. It has an empty Firestore database in asia-southeast2 with closed rules and delete protection on. The app doesn't use it yet. The portfolio's project, `aastr-portfolio`, is separate. |
 
 ## 2. Architecture
 
