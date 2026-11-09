@@ -354,6 +354,9 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
                   {t(lang, 'menuQuiz')}
                 </button>
               )}
+              <Link to={`/survei?s=${levelId}`} className="block w-full rounded px-3 py-3 text-left type-button hover:bg-parchment">
+                {t(lang, 'navSurvey')}
+              </Link>
               {!running && (
                 <button
                   onClick={() => {

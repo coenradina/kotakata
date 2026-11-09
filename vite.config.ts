@@ -17,7 +17,8 @@ function productionCsp(): Plugin {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob:",
-    "connect-src 'self' data: blob:",
+    // Firestore, for survey answers (src/survey/send.ts).
+    "connect-src 'self' data: blob: https://firestore.googleapis.com",
     "media-src 'self' data: blob:",
     "worker-src 'self' blob:",
     "object-src 'none'",

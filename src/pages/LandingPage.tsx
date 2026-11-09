@@ -2,7 +2,7 @@ import PixelSprite from '../components/PixelSprite'
 import SiteHeader from '../components/SiteHeader'
 import { t } from '../i18n'
 import { useLang } from '../lang'
-import { ALL, LEVELS, SESSIONS, isUnlocked } from '../levels'
+import { LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
@@ -16,9 +16,12 @@ export default function LandingPage() {
   const { lang } = useLang()
   const progress = store.load()
   const passed = new Set(progress.passed)
-  // Pick up where the player left off; a first visit starts at Level 1.
-  // A first visit starts at Session 1, the one that works as an Hour of Code.
-  const resume = progress.lastSession && ALL.some((l) => l.id === progress.lastSession) ? progress.lastSession : SESSIONS[0].id
+  // Pick up the last session played. The old version saved classic levels
+  // under the same key, so a classic id there goes to the first unfinished
+  // session instead. A first visit starts at Session 1.
+  const resume = SESSIONS.some((s) => s.id === progress.lastSession)
+    ? progress.lastSession!
+    : (SESSIONS.find((s) => !passed.has(s.id)) ?? SESSIONS[0]).id
 
   return (
     <div className="min-h-full bg-cream">

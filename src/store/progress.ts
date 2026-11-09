@@ -33,6 +33,8 @@ export interface Progress {
   paletteOpen: boolean
   /** How fast the stage plays: 0.5, 1 or 2. */
   speed: number
+  /** The player has sent the feedback survey, so the map stops asking. */
+  surveyDone: boolean
 }
 
 export const EMPTY: Progress = {
@@ -48,6 +50,7 @@ export const EMPTY: Progress = {
   introSeen: [],
   paletteOpen: true,
   speed: 1,
+  surveyDone: false,
 }
 
 export interface ProgressStore {
@@ -81,6 +84,7 @@ const KEYS = {
   introSeen: 'kotakata.introSeen',
   paletteOpen: 'kotakata.paletteOpen',
   speed: 'kotakata.speed',
+  surveyDone: 'kotakata.surveyDone',
 } satisfies Record<keyof Progress, string>
 
 /** Where each session's blocks live. Level 1 kept its own older key name. */
@@ -156,6 +160,7 @@ export function createLocalStore(kv: KeyValue, legacy: Legacy, validCards: reado
         introSeen: read(KEYS.introSeen, []),
         paletteOpen: read(KEYS.paletteOpen, true),
         speed: [0.5, 1, 2].includes(read(KEYS.speed, 1)) ? read(KEYS.speed, 1) : 1,
+        surveyDone: read<boolean>(KEYS.surveyDone, false) === true,
       }
     },
     save(patch) {

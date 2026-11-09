@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { LEVELS, levelById, numberOf, trackOf, type SessionId } from '../levels'
 import { t, type CardId, type Lang } from '../i18n'
+import { Link } from '../router'
 import { backdropClass, panelClass } from './modalFrame'
 
 interface Props {
@@ -72,6 +73,14 @@ export default function LevelCompleteModal({ lang, levelId, found, badges, allDo
                   {a.icon}
                 </span>
               ))}
+            </div>
+          )}
+          {track === 'sessions' && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded border-2 border-ink bg-parchment px-3 py-2">
+              <p className="type-caption">{t(lang, 'svInvite')}</p>
+              <Link to={`/survei?s=${levelId}`} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label hover:bg-amber-tint">
+                {t(lang, 'lcSurvey')}
+              </Link>
             </div>
           )}
           <div className={`flex gap-2 pt-1 ${sheet ? 'flex-col-reverse [&>button]:min-h-11 [&>button]:w-full' : 'flex-wrap justify-end'}`}>

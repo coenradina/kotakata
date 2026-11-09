@@ -139,6 +139,9 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
                   {t(lang, 'menuQuiz')}
                 </button>
               )}
+              <Link to={`/survei?s=${levelId}`} className="block w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
+                {t(lang, 'navSurvey')}
+              </Link>
               {!confirmStartOver ? (
                 <button onClick={() => setConfirmStartOver(true)} className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
                   {t(lang, 'startOver')}

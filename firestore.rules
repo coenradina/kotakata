@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Browsers may only add survey answers (src/survey/questions.ts). Nobody can
+// read, change or delete anything from the browser; answers are read in the
+// Firebase console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /feedback/{id} {
+      allow create: if validAnswer(request.resource.data);
+    }
+  }
+
+  function scale(n) {
+    return n is int && n >= 1 && n <= 5;
+  }
+
+  function validAnswer(d) {
+    return d.keys().hasOnly(['v', 'role', 'session', 'fun', 'clear', 'stuck', 'again', 'essay', 'lang', 'device', 'at'])
+      && d.keys().hasAll(['v', 'role', 'session', 'fun', 'clear', 'stuck', 'again', 'essay', 'lang', 'device', 'at'])
+      && d.v == 1
+      && d.role in ['student', 'teacher', 'parent', 'other']
+      && (d.session == null || (d.session is string && d.session.size() <= 12))
+      && scale(d.fun)
+      && scale(d.clear)
+      && d.stuck is list && d.stuck.size() <= 6
+      && d.stuck.hasOnly(['mission', 'blocks', 'run', 'result', 'words', 'none'])
+      && d.again in ['yes', 'maybe', 'no']
+      && d.essay is string && d.essay.size() <= 600
+      && d.lang in ['id', 'en']
+      && d.device in ['phone', 'wide']
+      && d.at == request.time;
+  }
+}

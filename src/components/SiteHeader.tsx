@@ -10,6 +10,7 @@ export default function SiteHeader() {
     { to: '/main', label: t(lang, 'navMap') },
     { to: '/buku', label: t(lang, 'navNotebook') },
     { to: '/panduan', label: t(lang, 'gIndexTitle') },
+    { to: '/survei', label: t(lang, 'navSurvey') },
   ]
   return (
     <header className="z-nav border-b-2 border-ink bg-cream">

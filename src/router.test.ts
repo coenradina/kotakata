@@ -23,6 +23,7 @@ describe('matchRoute', () => {
     expect(matchRoute('/main')).toEqual({ name: 'map' })
     expect(matchRoute('/main/tree')).toEqual({ name: 'play', id: 'tree' })
     expect(matchRoute('/buku')).toEqual({ name: 'notebook' })
+    expect(matchRoute('/survei')).toEqual({ name: 'survey' })
     expect(matchRoute('/sertifikat/train')).toEqual({ name: 'certificate', id: 'train' })
     expect(matchRoute('/panduan')).toEqual({ name: 'guides' })
     expect(matchRoute('/panduan/guru/s1')).toEqual({ name: 'guide', role: 'guru', id: 's1' })

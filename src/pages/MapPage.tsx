@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import SiteHeader from '../components/SiteHeader'
 import { t } from '../i18n'
 import { useLang } from '../lang'
@@ -15,7 +15,11 @@ import { store } from '../store'
  */
 export default function MapPage() {
   const { lang } = useLang()
-  const passed = new Set(store.load().passed)
+  const progress = store.load()
+  const passed = new Set(progress.passed)
+  // Ask for feedback once the player has done at least one stage, until they answer.
+  const played = Object.values(progress.puzzlesDone).some((p) => p.length > 0)
+  const [invite, setInvite] = useState(played && !progress.surveyDone)
 
   return (
     <div className="min-h-full bg-cream">
@@ -25,6 +29,20 @@ export default function MapPage() {
           <h1 className="type-title">🏫 {t(lang, 'mapTitle')}</h1>
           <p className="type-lead text-ink-soft">{t(lang, 'mapLead')}</p>
         </div>
+
+        {invite && (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border-2 border-ink bg-amber-tint p-4 shadow-pixel-sm">
+            <p className="w-full type-label sm:w-auto sm:flex-1">💬 {t(lang, 'svInvite')}</p>
+            <div className="ml-auto flex gap-2">
+              <button onClick={() => setInvite(false)} className="min-h-11 rounded px-3 py-2 type-label underline hover:text-maroon">
+                {t(lang, 'svInviteLater')}
+              </button>
+              <Link to="/survei" className="pixel-btn flex min-h-11 items-center rounded border-2 border-ink bg-maroon px-4 py-2 type-label text-white hover:bg-maroon-dark">
+                {t(lang, 'svInviteGo')}
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="mx-auto max-w-5xl">
           {/* Stepped pixel roof with the school's sign */}
