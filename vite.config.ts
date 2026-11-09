@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { STATIC_ROUTES } from './src/staticRoutes'
 
 // Served from https://aastr.id/kotakata/ via GitHub Pages.
 export default defineConfig({
@@ -36,9 +37,10 @@ function productionCsp(): Plugin {
 }
 
 /**
- * GitHub Pages answers unknown paths with 404.html. A copy of index.html
- * there lets deep links such as /kotakata/buku boot the app, which then
- * reads the path and shows the right page.
+ * GitHub Pages serves files only. Each route in STATIC_ROUTES gets its own
+ * copy of index.html, so a link such as /kotakata/survei answers 200 and the
+ * app reads the path to show the right page. Other paths still get 404.html,
+ * which boots the app too, with a 404 status.
  */
 function spaFallback(): Plugin {
   return {
@@ -47,7 +49,13 @@ function spaFallback(): Plugin {
     enforce: 'post',
     generateBundle(_options, bundle) {
       const html = bundle['index.html']
-      if (html?.type === 'asset') this.emitFile({ type: 'asset', fileName: '404.html', source: html.source })
+      if (html?.type !== 'asset') return
+      this.emitFile({ type: 'asset', fileName: '404.html', source: html.source })
+      // Pages serves /survei from survei.html with no redirect, and /survei/ from survei/index.html.
+      for (const route of STATIC_ROUTES.filter(Boolean)) {
+        this.emitFile({ type: 'asset', fileName: `${route}.html`, source: html.source })
+        this.emitFile({ type: 'asset', fileName: `${route}/index.html`, source: html.source })
+      }
     },
   }
 }

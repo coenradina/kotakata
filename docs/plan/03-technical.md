@@ -13,7 +13,7 @@ This document covers architecture, roles, data, the impact pipeline, privacy, qu
 | i18n | `src/i18n.ts`, Indonesian and English |
 | Design | `src/styles/tokens.css` and `src/styles/art.css`. `scripts/check-design.mjs` runs before every build. |
 | Hosting | GitHub Pages at `aastr.id/kotakata`. Every push to `main` deploys. |
-| Backend | Firebase project `kotakata-prod`, created 8 Nov 2026. It has an empty Firestore database in asia-southeast2 with closed rules and delete protection on. The app doesn't use it yet. The portfolio's project, `aastr-portfolio`, is separate. |
+| Backend | Firebase project `kotakata-prod`, created 8 Nov 2026, with its Firestore database in asia-southeast2 and delete protection on. Since 9 Nov 2026 it stores feedback survey answers (section 6, "Feedback survey"). The portfolio's project, `aastr-portfolio`, is separate. |
 
 ## 2. Architecture
 
@@ -157,6 +157,17 @@ Rules for what goes in, enforced by `ingestImpact`:
 `researchKey` lives in Secret Manager. Only the functions' service account can read it, not the admin dashboard. An admin reading impact data can therefore not join it to nicknames or groups through the app.
 
 The data is still **pseudonymous, not anonymous**. Someone with project-owner access could, in principle, recompute the HMACs. So it is handled as personal data: protected, kept for a limited time, and covered in the privacy notice. Section 9 has the details.
+
+### Feedback survey
+
+Added 9 Nov 2026, before the impact pipeline, to hear what players find confusing before changing the sessions.
+
+- **Where.** `/survei`, linked from the site header, the ⋯ menu while playing, the session-complete card, and a banner on the map once a stage is done (until the player answers).
+- **What it asks.** Role, the last session played, fun (1 to 5), clarity (1 to 5), which parts were confusing (a fixed list), whether they'd play the next session, and an optional essay of up to 600 characters. No name, account or device id.
+- **Where it goes.** Firestore `feedback` in `kotakata-prod`, written from the browser. `firestore.rules` allows creating an answer of exactly that shape with a server timestamp, and nothing else: no reads, updates or deletes from a browser. Answers are read in the Firebase console.
+- **Key.** The Firebase web key in `src/survey/send.ts` is public by design. It is restricted to `aastr.id` and `localhost` and to the Firestore API. The rules protect the data, not the key.
+- **Not done yet.** App Check and a rate limit. A flood of answers is possible but costs little at Firestore prices, and each answer is capped in size by the rules.
+- **Exception to "no free text".** The essay is free text from children. The form tells them not to write names, schools or phone numbers, but it can't stop them. The legal review (section 9) needs to cover this, including how long answers are kept and who can read them.
 
 ### Consent
 
@@ -334,8 +345,8 @@ Existing `localStorage` progress is migrated once, so that notebook cards a play
 
 ### Content safety
 
-- Students never upload chats, photos, voice or free text.
-- The only free text a student can type is the Session 1 rule word, which stays on the device.
+- Students never upload chats, photos or voice. The only free text they send is the optional survey essay.
+- The only free text a student can type is the Session 1 rule word, which stays on the device, and the optional essay in the feedback survey (section 6), which is sent.
 - Challenges carry only block data that refers to built-in content.
 - Every in-game message, face and post is fictional and written by us.
 - No brand look-alikes. The in-game chat app, feed and filter are invented designs (04, section 7).

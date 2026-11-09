@@ -27,10 +27,11 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | Names | The school is SMP Kotakata. The friends are Dinda, Raka, Sari and Bimo. | 6 Nov 2026 |
 | Kata's look | Kata keeps its current robot sprite | 6 Nov 2026 |
 | Backend | A new Firebase project on the Blaze plan in asia-southeast2 (Jakarta), with a USD 10 a month budget alert. Created 8 Nov 2026 as `kotakata-prod`, with its Firestore database in asia-southeast2 and delete protection on. `kotakata-dev` is not created yet. | 6 Nov 2026 |
+| Feedback first | A 2-minute survey at `/survei` collects what players find confusing before the sessions are changed. Answers go to Firestore `feedback`. | 9 Nov 2026 |
 
 ## Still open
 
-1. A legal review of the privacy approach before the pilot (see 03, section 9).
+1. A legal review of the privacy approach before the pilot (see 03, section 9). It also needs to cover the free-text essay in the feedback survey (03, section 6).
 
 ## Research behind the plan
 
