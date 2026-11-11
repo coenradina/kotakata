@@ -14,10 +14,13 @@
 
 export const SIZE = 12
 export type Grid = number[][]
+/** What a pixel shows, so the scene can draw the photo in colour before it turns into numbers. */
+export type Part = 'wall' | 'hair' | 'skin' | 'eye' | 'mouth' | 'mole' | 'spot'
 
 export interface Photo {
   id: string
   brightness: Grid
+  parts: Part[][]
   /** 1 where something is near the camera, 0 where it's far. */
   depth: Grid
   /** Where the eyes really are, or null when there is no real face (a poster). */
@@ -58,34 +61,47 @@ export function makeFace(o: FaceOptions): Photo {
   const hair = o.hair ?? 2
   const b: Grid = []
   const d: Grid = []
+  const parts: Part[][] = []
   for (let r = 0; r < SIZE; r++) {
     b.push([])
     d.push([])
+    parts.push([])
     for (let c = 0; c < SIZE; c++) {
       // A light wall with a faint texture, so "any change at all" is not an edge.
       let v = (r + c) % 2 ? 9 : 8
       let near = 0
+      let part: Part = 'wall'
       if (inHair(r, c)) {
         v = hair
         near = 1
+        part = 'hair'
       }
       if (inFace(r, c)) {
         v = o.skin
         near = 1
+        part = 'skin'
       }
       b[r].push(v)
       d[r].push(o.picture ? 0 : near)
+      parts[r].push(part)
     }
   }
-  for (const [r, c] of EYES) b[r][c] = 0
-  b[8][5] = b[8][6] = Math.max(1, o.skin - 2) // mouth
-  if (o.mole) b[6][3] = b[7][3] = 0
+  const set = (r: number, c: number, v: number, part: Part) => {
+    b[r][c] = v
+    parts[r][c] = part
+  }
+  for (const [r, c] of EYES) set(r, c, 0, 'eye')
+  const mouth = Math.max(1, o.skin - 2)
+  set(8, 5, mouth, 'mouth')
+  set(8, 6, mouth, 'mouth')
+  if (o.mole) set(6, 3, 0, 'mole'), set(7, 3, 0, 'mole')
   // Close enough to look like a pair of eyes, and above the face so they're found first.
-  if (o.poster) b[0][1] = b[0][4] = 0
+  if (o.poster) set(0, 1, 0, 'spot'), set(0, 4, 0, 'spot')
   if (o.dark) for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) b[r][c] = Math.round(b[r][c] * 0.3)
   return {
     id: o.id,
     brightness: b,
+    parts,
     depth: d,
     eyes: o.picture ? null : EYES,
     top: o.picture ? null : 3,

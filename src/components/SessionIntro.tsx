@@ -91,18 +91,22 @@ export default function SessionIntro({ lang, label, title, goal, stages, firstTi
               <span className="invisible">{line.text.slice(shown.length)}</span>
             </p>
             {done && line.extra}
-            {done && !last && <p className="mt-2 text-right type-micro text-ink-muted">{t(lang, 'kataTap')} ▸</p>}
           </KataSays>
         </button>
 
         <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
           {lines.map((_, n) => (
-            <span key={n} className={`h-1.5 w-4 rounded-full ${n <= i ? 'bg-maroon' : 'bg-stone'}`} />
+            <span key={n} className={`h-1.5 w-4 rounded-full ${n <= i ? 'bg-maroon' : 'bg-ink/20'}`} />
           ))}
         </div>
 
-        <div className={`mt-6 flex flex-wrap justify-end gap-2 ${sheet ? '[&>button]:min-h-11 [&>button]:flex-1' : ''} ${last && done ? '' : 'invisible'}`}>
-          {offerTour ? (
+        {/* Always one row of buttons: Next while Kata talks, then the way in. */}
+        <div className={`mt-6 flex flex-wrap justify-end gap-2 ${sheet ? '[&>button]:min-h-11 [&>button]:flex-1' : ''}`}>
+          {!last ? (
+            <button onClick={advance} tabIndex={-1} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 type-button-lg hover:bg-parchment">
+              {t(lang, 'tourNext')}
+            </button>
+          ) : offerTour ? (
             <>
               <button onClick={onPlay} className="pixel-btn rounded border-2 border-ink bg-white px-4 py-2 type-button-lg hover:bg-parchment">
                 {t(lang, 'introSkip')}

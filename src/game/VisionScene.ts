@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
-import { PHOTOS, SIZE, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
+import { PHOTOS, SIZE, type Grid, type Part, type Photo, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
@@ -38,6 +38,45 @@ function grey(v: number) {
   return Phaser.Display.Color.GetColor(m.r, m.g, m.b)
 }
 
+const channels = (n: number) => [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+const fromChannels = ([r, g, b]: number[]) => (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)
+const luma = ([r, g, b]: number[]) => 0.299 * r + 0.587 * g + 0.114 * b
+/** Blends two colours: t = 0 is `a`, t = 1 is `b`. */
+const mix = (a: number, b: number, t: number) => {
+  const [x, y] = [channels(a), channels(b)]
+  return fromChannels(x.map((v, i) => v + (y[i] - v) * t))
+}
+
+/** The colour each part of a photo is, before Kata turns it into numbers. */
+const PART_HUE: Record<Part, Parameters<typeof hex>[0]> = {
+  wall: 'tosca-tint',
+  hair: 'wood-dark',
+  skin: 'skin',
+  eye: 'ink',
+  mouth: 'apple',
+  mole: 'wood-dark',
+  spot: 'ink',
+}
+
+/**
+ * A part's colour, made exactly as bright as its number. So the colour
+ * photo and its grey version are the same picture, and the grey is just
+ * the colour with the hue taken out.
+ */
+function colourOf(part: Part, v: number) {
+  const want = luma(channels(grey(v)))
+  const hue = channels(hex(PART_HUE[part]))
+  let c = hue.map((x) => (x * want) / Math.max(1, luma(hue)))
+  if (Math.max(...c) > 255) {
+    // Too bright to scale up: clip, then lift towards white until it matches.
+    c = c.map((x) => Math.min(255, x))
+    const l = luma(c)
+    const t = l >= 255 ? 0 : (want - l) / (255 - l)
+    c = c.map((x) => x + (255 - x) * Math.max(0, t))
+  }
+  return fromChannels(c)
+}
+
 /**
  * Session 2: the photo as a grid of brightness numbers on the left, with
  * each detector's marks drawn over it in turn. On the right, every photo
@@ -46,6 +85,10 @@ function grey(v: number) {
 export class VisionScene extends Phaser.Scene implements SessionScene {
   private lang: Lang = 'id'
   private grid!: Phaser.GameObjects.Container
+  /** The numbers, above the detectors' marks so a mark never hides one. */
+  private digits!: Phaser.GameObjects.Container
+  private legendKey: Key = 'vSceneNumbers'
+  private cells: { rect: Phaser.GameObjects.Rectangle; text: Phaser.GameObjects.Text }[] = []
   private marks!: Phaser.GameObjects.Container
   private thumbs!: Phaser.GameObjects.Container
   private title!: Phaser.GameObjects.Text
@@ -79,6 +122,7 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     this.legend = this.add.text(GRID.x + size, 10, '', { ...FONT, fontSize: '14px', color: css('ink-muted') }).setOrigin(1, 0)
     this.grid = this.add.container(0, 0)
     this.marks = this.add.container(0, 0).setDepth(5)
+    this.digits = this.add.container(0, 0).setDepth(6)
     this.thumbsTitle = this.add.text(THUMB.x, 12, '', { ...FONT, fontSize: '18px' })
     this.thumbs = this.add.container(0, 0)
     this.sensor = this.add.text(GRID.x + size / 2, GRID.y + size + 6, '', { ...FONT, fontSize: '14px', color: css('white'), backgroundColor: css('tosca-dark'), padding: { x: 6, y: 2 } }).setOrigin(0.5, 0)
@@ -93,7 +137,7 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
 
   setLang(lang: Lang) {
     this.lang = lang
-    this.legend?.setText(t(lang, 'vSceneNumbers'))
+    this.legend?.setText(t(lang, this.legendKey))
     this.thumbsTitle?.setText(t(lang, 'vScenePhotos'))
     this.idle?.setText(t(lang, 'vSceneIdle'))
   }
@@ -102,16 +146,65 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     return { x: GRID.x + c * CELL, y: GRID.y + r * CELL }
   }
 
-  /** The photo as numbers: each cell is shaded by its brightness. */
-  private drawGrid(seen: number[][]) {
+  private setLegend(key: Key) {
+    this.legendKey = key
+    this.legend.setText(t(this.lang, key))
+  }
+
+  private setDigit(k: number, v: number) {
+    this.cells[k].text.setText(String(v)).setColor(css(v < 5 ? 'white' : 'ink'))
+  }
+
+  /** Blends every cell from one colour to another. */
+  private async blend(from: (k: number) => number, to: (k: number) => number, duration: number, run: number) {
+    const p = { t: 0 }
+    await this.tween({
+      targets: p,
+      t: 1,
+      duration,
+      onUpdate: () => {
+        if (run === this.runId) this.cells.forEach((cell, k) => cell.rect.setFillStyle(mix(from(k), to(k), p.t)))
+      },
+    })
+  }
+
+  /**
+   * The photo as the camera took it, in colour. Then the colour drains away
+   * to grey, and each grey becomes the number Kata reads. If auto brightness
+   * changed the numbers, that happens last. The first photo of a run takes
+   * its time; the rest go quickly.
+   */
+  private async drawGrid(photo: Photo, seen: Grid, slow: boolean, run: number) {
     this.grid.removeAll(true)
-    for (let r = 0; r < SIZE; r++)
-      for (let c = 0; c < SIZE; c++) {
-        const v = seen[r][c]
-        const { x, y } = this.at(r, c)
-        this.grid.add(this.add.rectangle(x, y, CELL, CELL, grey(v)).setOrigin(0, 0))
-        this.grid.add(this.add.text(x + CELL / 2, y + CELL / 2, String(v), { ...FONT, fontSize: '18px', color: css(v < 5 ? 'white' : 'ink') }).setOrigin(0.5))
-      }
+    this.digits.removeAll(true)
+    this.cells = []
+    const b = photo.brightness
+    const at = (k: number) => cellOf(k)
+    const colour = (k: number) => colourOf(photo.parts[at(k).r][at(k).c], b[at(k).r][at(k).c])
+    const original = (k: number) => grey(b[at(k).r][at(k).c])
+    for (let k = 0; k < SIZE * SIZE; k++) {
+      const { x, y } = this.at(at(k).r, at(k).c)
+      const rect = this.add.rectangle(x, y, CELL, CELL, colour(k)).setOrigin(0, 0)
+      const text = this.add.text(x + CELL / 2, y + CELL / 2, '', { ...FONT, fontSize: '18px' }).setOrigin(0.5)
+      this.grid.add(rect)
+      this.digits.add(text)
+      this.cells.push({ rect, text })
+      this.setDigit(k, b[at(k).r][at(k).c])
+    }
+    this.digits.setAlpha(0)
+    this.setLegend('vScenePhoto')
+    await this.wait(slow ? 900 : 200)
+    if (run !== this.runId) return
+    this.setLegend('vSceneNumbers')
+    await this.blend(colour, original, slow ? 900 : 250, run)
+    if (run !== this.runId) return
+    await this.tween({ targets: this.digits, alpha: 1, duration: slow ? 400 : 120 })
+    const changed = seen.some((row, r) => row.some((v, c) => v !== b[r][c]))
+    if (!changed || run !== this.runId) return
+    await this.wait(slow ? 500 : 150)
+    if (run !== this.runId) return
+    this.cells.forEach((_, k) => this.setDigit(k, seen[at(k).r][at(k).c]))
+    await this.blend(original, (k) => grey(seen[at(k).r][at(k).c]), slow ? 600 : 200, run)
   }
 
   private drawThumbs(ids: PhotoId[]) {
@@ -120,7 +213,7 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
       const { x, y } = this.thumbPos(i)
       const b = PHOTOS[id].brightness
       const g = this.add.graphics()
-      for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) g.fillStyle(grey(b[r][c])).fillRect(x + c * THUMB.cell, y + r * THUMB.cell, THUMB.cell, THUMB.cell)
+      for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) g.fillStyle(colourOf(PHOTOS[id].parts[r][c], b[r][c])).fillRect(x + c * THUMB.cell, y + r * THUMB.cell, THUMB.cell, THUMB.cell)
       g.lineStyle(2, INK).strokeRect(x, y, SIZE * THUMB.cell, SIZE * THUMB.cell)
       const name = this.add.text(x + (SIZE * THUMB.cell) / 2, y + SIZE * THUMB.cell + 4, t(this.lang, PHOTO_KEY[id]), { ...FONT, fontSize: '14px', align: 'center', wordWrap: { width: THUMB.gapX } }).setOrigin(0.5, 0)
       this.thumbs.add([g, name])
@@ -149,6 +242,12 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     return new Promise<void>((resolve) => this.time.delayedCall(ms / this.speed, resolve))
   }
 
+  private tween(config: Phaser.Types.Tweens.TweenBuilderConfig) {
+    return new Promise<void>((resolve) => {
+      this.tweens.add({ ...config, duration: (Number(config.duration) || 300) / this.speed, onComplete: () => resolve() })
+    })
+  }
+
   private highlight(rect: Rect | null) {
     this.focusBox?.destroy()
     this.focusBox = undefined
@@ -172,6 +271,8 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     this.idle?.setVisible(false)
     if (!this.grid) return
     this.grid.removeAll(true)
+    this.digits.removeAll(true)
+    this.cells = []
     this.marks.removeAll(true)
     this.thumbs.removeAll(true)
     this.currentBox?.destroy()
@@ -185,8 +286,9 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     const L = this.lang
     this.marks.removeAll(true)
     this.title.setText(t(L, PHOTO_KEY[p.photo]))
-    this.drawGrid(p.seen)
     this.sensor.setVisible(false)
+    await this.drawGrid(PHOTOS[p.photo], p.seen, first, run)
+    if (run !== this.runId) return
     const full: Rect = { x: GRID.x - 4, y: GRID.y - 4, w: CELL * SIZE + 8, h: CELL * SIZE + 8 }
     if (first) {
       const eyes = PHOTOS[p.photo].eyes
@@ -216,12 +318,13 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
       await this.wait(400)
       if (first && res.uses.has('edges')) await this.milestone('edgeDetection', 'left', full, run, { over: res.over ?? 1 })
     }
-    // Dark cells: kept ones solid, filtered-out ones faint.
+    // Dark cells: kept ones solid, filtered-out ones faint. The dot sits in
+    // the corner, so the number it was picked for stays readable.
     if (p.dark && run === this.runId) {
       for (const k of p.dark) {
         const { r, c } = cellOf(k)
         const { x, y } = this.at(r, c)
-        const dot = this.add.rectangle(x + CELL / 2, y + CELL / 2, 10, 10, hex('amber')).setStrokeStyle(1, INK)
+        const dot = this.add.rectangle(x + 2, y + 2, 7, 7, hex('amber')).setOrigin(0, 0).setStrokeStyle(1, INK)
         if (!p.kept.has(k)) dot.setAlpha(0.3)
         this.marks.add(dot)
       }
@@ -241,6 +344,8 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
       const b = this.at(row, Math.max(...xs))
       g.fillRect(a.x + CELL, a.y + CELL / 2 - 2, b.x - a.x - CELL, 4)
       this.marks.add(g)
+      // The lenses are ink: light numbers on them, whatever the cell was.
+      for (const [r, c] of p.glasses) this.cells[r * SIZE + c]?.text.setColor(css('white'))
     }
     if (p.hat !== null) {
       const top = Math.max(0, p.hat - 1)
