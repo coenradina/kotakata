@@ -58,8 +58,8 @@ export interface ProgressStore {
   save(patch: Partial<Progress>): void
   loadBlocks(sessionId: string): object | null
   saveBlocks(sessionId: string, blocks: object): void
-  /** Forgets everything: progress and every session's blocks. */
-  clear(): void
+  /** Forgets everything: progress, and the blocks of the classic levels and of the sessions given. */
+  clear(sessionIds?: string[]): void
 }
 
 /** The subset of Web Storage the store needs, so tests can pass a Map. */
@@ -172,8 +172,8 @@ export function createLocalStore(kv: KeyValue, legacy: Legacy, validCards: reado
     saveBlocks(sessionId, blocks) {
       write(blocksKey(sessionId), blocks)
     },
-    clear() {
-      for (const key of [...Object.values(KEYS), ...Object.values(BLOCKS_KEYS)]) {
+    clear(sessionIds = []) {
+      for (const key of [...Object.values(KEYS), ...Object.values(BLOCKS_KEYS), ...sessionIds.map(blocksKey)]) {
         try {
           kv.removeItem(key)
         } catch {

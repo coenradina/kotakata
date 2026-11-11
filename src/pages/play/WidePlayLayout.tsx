@@ -36,7 +36,6 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
     badges,
     closeEntry,
     closeIntro,
-    confirmStartOver,
     cycleSpeed,
     firstIntro,
     speed,
@@ -70,7 +69,6 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
     refreshPreview,
     runButton,
     running,
-    setConfirmStartOver,
     setGuesses,
     setHint,
     setLevelDone,
@@ -81,7 +79,6 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
     stage,
     stageView,
     stars,
-    startOver,
     switchLang,
     switchLevel,
     toasts,
@@ -217,29 +214,6 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
               <Link to={`/survei?s=${levelId}`} className="block w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
                 {t(lang, 'navSurvey')}
               </Link>
-              {!confirmStartOver ? (
-                <button onClick={() => setConfirmStartOver(true)} className="w-full rounded px-3 py-2 text-left type-button hover:bg-parchment">
-                  {t(lang, 'startOver')}
-                </button>
-              ) : (
-                <div role="alertdialog" aria-labelledby="start-over-text" className="space-y-3 p-2">
-                  <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
-                  <div className="flex justify-end gap-2">
-                    <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
-                      {t(lang, 'cancel')}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false)
-                        startOver()
-                      }}
-                      className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white"
-                    >
-                      {t(lang, 'startOverYes')}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

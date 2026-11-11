@@ -85,9 +85,6 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     switchLang,
     menuOpen,
     setMenuOpen,
-    confirmStartOver,
-    setConfirmStartOver,
-    startOver,
     openQuiz,
     showIntro,
     closeIntro,
@@ -382,31 +379,6 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
                 >
                   {t(lang, 'clear')}
                 </button>
-              )}
-              {!confirmStartOver ? (
-                <button onClick={() => setConfirmStartOver(true)} className="w-full rounded px-3 py-3 text-left type-button hover:bg-parchment">
-                  {t(lang, 'startOver')}
-                </button>
-              ) : (
-                <div role="alertdialog" aria-labelledby="start-over-text" className="space-y-3 p-2">
-                  <p id="start-over-text" className="type-caption">
-                    {t(lang, 'startOverConfirm')}
-                  </p>
-                  <div className="flex justify-end gap-2">
-                    <button autoFocus onClick={() => setConfirmStartOver(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-2 type-label">
-                      {t(lang, 'cancel')}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false)
-                        startOver()
-                      }}
-                      className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-2 type-label text-white"
-                    >
-                      {t(lang, 'startOverYes')}
-                    </button>
-                  </div>
-                </div>
               )}
             </div>
           )}
