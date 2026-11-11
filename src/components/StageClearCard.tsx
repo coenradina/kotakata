@@ -64,7 +64,7 @@ export default function StageClearCard({ lang, level, stageId, nextId, done, onN
           </p>
         </div>
 
-        <div className={`mt-5 flex justify-end ${sheet ? '[&>button]:min-h-11 [&>button]:flex-1' : ''}`}>
+        <div className={`mt-6 flex justify-end ${sheet ? '[&>button]:min-h-11 [&>button]:flex-1' : ''}`}>
           <button ref={go} onClick={onNext} className="pixel-btn rounded border-2 border-ink bg-maroon px-4 py-2 type-button-lg text-white hover:bg-maroon-dark">
             {next.bonus ? t(lang, 'stageClearGoBonus') : t(lang, 'stageClearGo', { n: nextN })}
           </button>
