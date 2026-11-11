@@ -4,7 +4,7 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn
 import { t, type CardId, type Lang } from '../i18n'
 import { depth, type Creature, type Critter, type Tree, type TreeEvent, type Walk } from '../levels/tree/model'
 import { questionText } from '../levels/tree/blocks'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 /** Events the tree scene plays: the tree to draw, then the level's own events. */
 export type TreeSceneEvent = { kind: 'tree'; tree: Tree | null } | TreeEvent
@@ -16,7 +16,7 @@ const PATH = hex('path')
 const GATE = { x: 46, y: 46 }
 const PEN_Y = 326
 const TOP_Y = 92
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const PEN_ICON: Record<Critter, string> = { bird: 'bird-brown', bee: 'bee', frog: 'frog-green' }
 
 interface Placed {

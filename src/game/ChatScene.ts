@@ -3,18 +3,28 @@ import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
 import type { ChatEvent, ChatResult, Label, Sorted } from '../levels/chat/model'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const PHONE = { x: 14, y: 14, w: 240, h: H - 28 }
 const FEED = { x: PHONE.x + 10, top: PHONE.y + 44, bottom: PHONE.y + PHONE.h - 12, w: PHONE.w - 20 }
 const PIVOT = { x: 446, y: 108 }
 const ARM = 118
 const PAN_DROP = 64
 const PANEL = { x: 270, y: 236, w: W - 284, h: H - 250 }
+/** The phone's screen, where the feed shows through. */
+const SCREEN = { x: PHONE.x + 6, y: PHONE.y + 34, w: PHONE.w - 12, h: PHONE.h - 40 }
+/** Older bubbles than this are dropped, so a long run doesn't keep growing the scene. */
+const MAX_BUBBLES = 80
+/**
+ * The feed lives this far off to the side, where the main camera never
+ * looks; a second camera the size of the screen shows it. That clips the
+ * feed to the screen on every renderer (a geometry mask does nothing in WebGL).
+ */
+const FEED_OFFSET = 10000
 
 const LABEL_COLOUR: Record<Label, number> = { penting: hex('maroon'), santai: hex('tosca') }
 const labelText = (lang: Lang, l: Label) => t(lang, l === 'penting' ? 'cPenting' : 'cSantai')
@@ -31,6 +41,11 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   protected lang: Lang = 'id'
   protected feed!: Phaser.GameObjects.Container
   protected bubbles: Phaser.GameObjects.Container[] = []
+  /** How far the feed is pulled down to show older messages; 0 keeps the newest at the bottom. */
+  protected scrollY = 0
+  protected scrollbar!: Phaser.GameObjects.Graphics
+  protected drag: { y: number; from: number } | null = null
+  protected chipH?: number
   protected beam!: Phaser.GameObjects.Container
   protected pans!: Record<Label, Phaser.GameObjects.Container>
   protected chips!: Phaser.GameObjects.Container
@@ -59,11 +74,12 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     // The phone
     g.fillStyle(INK).fillRoundedRect(PHONE.x + 4, PHONE.y + 4, PHONE.w, PHONE.h, 16)
     g.fillStyle(hex('ink')).fillRoundedRect(PHONE.x, PHONE.y, PHONE.w, PHONE.h, 16)
-    g.fillStyle(hex('parchment')).fillRoundedRect(PHONE.x + 6, PHONE.y + 34, PHONE.w - 12, PHONE.h - 40, 10)
+    g.fillStyle(hex('parchment')).fillRoundedRect(SCREEN.x, SCREEN.y, SCREEN.w, SCREEN.h, 10)
     this.chatTitle = this.add.text(PHONE.x + PHONE.w / 2, PHONE.y + 18, '', { ...FONT, fontSize: '18px', color: css('cream') }).setOrigin(0.5)
-    this.feed = this.add.container(0, 0)
-    const mask = this.make.graphics({}).fillRect(PHONE.x + 6, PHONE.y + 34, PHONE.w - 12, PHONE.h - 40)
-    this.feed.setMask(mask.createGeometryMask())
+    this.feed = this.add.container(FEED_OFFSET, 0)
+    this.cameras.add(SCREEN.x, SCREEN.y, SCREEN.w, SCREEN.h).setScroll(FEED_OFFSET + SCREEN.x, SCREEN.y)
+    this.scrollbar = this.add.graphics()
+    this.enableFeedScroll()
 
     // The balance: a post, a beam that tilts, and a pan hanging from each end
     g.fillStyle(INK).fillRect(PIVOT.x - 4, PIVOT.y, 8, 112)
@@ -129,20 +145,90 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
 
   // --- the phone -------------------------------------------------------------
 
+  protected onScreen(x: number, y: number) {
+    return x >= SCREEN.x && x <= SCREEN.x + SCREEN.w && y >= SCREEN.y && y <= SCREEN.y + SCREEN.h
+  }
+
+  /** How far the feed can be pulled down before its oldest bubble reaches the top. */
+  protected maxScroll() {
+    const oldest = this.bubbles[0]
+    return oldest ? Math.max(0, FEED.top - oldest.y) : 0
+  }
+
+  /** Moves the feed and redraws the scrollbar. Returns whether the feed moved. */
+  protected setScroll(v: number) {
+    const max = this.maxScroll()
+    const next = Phaser.Math.Clamp(v, 0, max)
+    const moved = next !== this.scrollY
+    this.scrollY = next
+    this.feed.y = next
+    this.scrollbar.clear()
+    if (max > 0) {
+      // A thumb on the right edge: at the bottom when showing the newest message.
+      const track = { x: SCREEN.x + SCREEN.w - 6, top: FEED.top, h: FEED.bottom - FEED.top }
+      const thumb = Math.max(16, (track.h * track.h) / (track.h + max))
+      const y = track.top + (track.h - thumb) * (1 - next / max)
+      this.scrollbar.fillStyle(INK, 0.15).fillRect(track.x, track.top, 4, track.h)
+      this.scrollbar.fillStyle(INK, 0.6).fillRect(track.x, y, 4, thumb)
+    }
+    return moved
+  }
+
+  /**
+   * Lets the player scroll back through the feed: the mouse wheel on a
+   * computer, a drag with a finger or the mouse anywhere.
+   */
+  protected enableFeedScroll() {
+    // Phaser listens to the wheel passively, so it can't stop the page from
+    // scrolling too. A listener of our own can, and only does while the feed
+    // still has somewhere to go, so the page scrolls on past either end.
+    const canvas = this.game.canvas
+    const onWheel = (e: WheelEvent) => {
+      if (!this.onScreen(this.scale.transformX(e.pageX), this.scale.transformY(e.pageY))) return
+      const step = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? SCREEN.h : 1
+      if (this.setScroll(this.scrollY - e.deltaY * step * this.scale.displayScale.y)) e.preventDefault()
+    }
+    canvas.addEventListener('wheel', onWheel, { passive: false })
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => canvas.removeEventListener('wheel', onWheel))
+
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (this.onScreen(p.x, p.y)) this.drag = { y: p.y, from: this.scrollY }
+    })
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (this.drag && p.isDown) this.setScroll(this.drag.from + p.y - this.drag.y)
+    })
+    const stop = () => (this.drag = null)
+    this.input.on('pointerup', stop)
+    this.input.on('pointerupoutside', stop)
+  }
+
+  protected chipStyle(label: Label | null): Phaser.Types.GameObjects.Text.TextStyle {
+    return { ...FONT, fontSize: '14px', color: css('white'), backgroundColor: label ? css(label === 'penting' ? 'maroon' : 'tosca-dark') : css('ink-muted'), padding: { x: 4, y: 1 } }
+  }
+
   /** Adds a message bubble at the bottom of the feed and scrolls the rest up. */
   protected async addBubble(text: string) {
     const label = this.add.text(10, 6, text, { ...FONT, fontSize: '18px', wordWrap: { width: FEED.w - 24 } })
-    // Room under the text for the verdict tag
-    const h = label.height + 26
+    // Room under the text for the verdict tag, as tall as the tag really is
+    this.chipH ??= (() => {
+      const probe = this.add.text(0, 0, labelText(this.lang, 'penting'), this.chipStyle('penting'))
+      const h = probe.height
+      probe.destroy()
+      return h
+    })()
+    const h = label.height + this.chipH + 8
     const bg = this.add.graphics()
     bg.fillStyle(hex('white')).fillRoundedRect(0, 0, FEED.w - 4, h, 8)
     bg.lineStyle(2, INK).strokeRoundedRect(0, 0, FEED.w - 4, h, 8)
     const bubble = this.add.container(FEED.x, FEED.bottom - h, [bg, label])
     bubble.setData('h', h)
     this.feed.add(bubble)
-    // Push older bubbles up; forget the ones that scrolled away.
+    // Push older bubbles up. They stay, so the player can scroll back to them.
     for (const b of this.bubbles) b.y -= h + 8
-    this.bubbles = [...this.bubbles.filter((b) => b.y + (b.getData('h') as number) > FEED.top - 40 || (b.destroy(), false)), bubble]
+    this.bubbles.push(bubble)
+    while (this.bubbles.length > MAX_BUBBLES) this.bubbles.shift()!.destroy()
+    // Someone reading older messages keeps their place; otherwise follow the newest.
+    this.setScroll(this.scrollY > 0 ? this.scrollY + h + 8 : 0)
     bubble.setAlpha(0)
     await this.tween({ targets: bubble, alpha: 1, duration: 160 })
     return bubble
@@ -152,13 +238,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   protected tag(bubble: Phaser.GameObjects.Container, label: Label | null, right: boolean) {
     const h = bubble.getData('h') as number
     const text = label ? `${labelText(this.lang, label)} ${right ? '✓' : '✗'}` : `? ${t(this.lang, 'cSceneNoRule')} ✗`
-    const chip = this.add.text(FEED.w - 10, h - 4, text, {
-      ...FONT,
-      fontSize: '14px',
-      color: css('white'),
-      backgroundColor: label ? css(label === 'penting' ? 'maroon' : 'tosca-dark') : css('ink-muted'),
-      padding: { x: 4, y: 1 },
-    })
+    const chip = this.add.text(FEED.w - 10, h - 4, text, this.chipStyle(label))
     chip.setOrigin(1, 1)
     bubble.add(chip)
     if (!right) {
@@ -275,6 +355,8 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     if (!this.feed) return
     this.feed.removeAll(true)
     this.bubbles = []
+    this.drag = null
+    this.setScroll(0)
     this.chips.removeAll(true)
     this.panel.removeAll(true)
     this.header.setText('')

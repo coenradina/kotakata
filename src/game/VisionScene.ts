@@ -3,12 +3,12 @@ import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
 import { PHOTOS, SIZE, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const CELL = 28
 const GRID = { x: 14, y: 36 }
 const THUMB = { x: 370, y: 46, cell: 5, gapX: 66, gapY: 100 }

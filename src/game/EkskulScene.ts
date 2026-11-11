@@ -4,7 +4,7 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, 
 import { t, type CardId, type Lang } from '../i18n'
 import { PUZZLE_DATA, depthOf, splitsOf, type Ekskul, type EkskulResult, type Feature, type Student, type Tree, type Walk } from '../levels/ekskul/model'
 import { EKSKUL_ICON, EKSKUL_KEY, FEATURE_KEY, FEATURE_SHORT, NAME_KEY } from '../levels/ekskul/blocks'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 /** The run result, plus which puzzle it was for. */
 export type EkskulEvent = EkskulResult & { puzzle: string; maxDepth: number | null }
@@ -12,7 +12,7 @@ export type EkskulEvent = EkskulResult & { puzzle: string; maxDepth: number | nu
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const TABLE = { x: 10, y: 10, w: 258, h: H - 20 }
 const TREE = { x: 280, y: 34, w: W - 290, bottom: 268 }
 const CHIPS = { x: 280, y: 300, w: 86, h: 42, gap: 4 }

@@ -3,6 +3,7 @@
 // uses. tokens.css and art.css stay the only place a colour is written.
 import tokensCss from './styles/tokens.css?raw'
 import artCss from './styles/art.css?raw'
+import iconCodepoints from './icons/codepoints.json'
 
 const vars = new Map<string, string>()
 for (const m of `${tokensCss}\n${artCss}`.matchAll(/--([a-z0-9-]+):\s*([^;]+);/g)) vars.set(m[1], m[2].trim())
@@ -35,4 +36,16 @@ export const FONTS = {
   sans: vars.get('font-sans') ?? 'sans-serif',
   mono: vars.get('font-mono') ?? 'monospace',
   pixel: vars.get('font-pixel') ?? 'monospace',
+}
+
+/**
+ * The base style for Phaser text. Phaser sizes a text's canvas from how far
+ * the ink of a sample string reaches above and below the baseline. Its
+ * default sample is letters only, and the KK Icons glyphs stand taller than
+ * VT323's letters, so any icon in a label had its top cut off. Measuring
+ * every icon as well gives each line room for whichever one it holds.
+ */
+export const PIXEL_TEXT = {
+  fontFamily: FONTS.pixel,
+  testString: '|MÉqgy' + String.fromCodePoint(...iconCodepoints.map((u) => parseInt(u.slice(2), 16)).filter((cp) => cp !== 0x200d && cp !== 0xfe0f)),
 }

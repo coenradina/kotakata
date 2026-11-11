@@ -4,12 +4,12 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, 
 import { t, type CardId, type Key, type Lang } from '../i18n'
 import { CARES, PEOPLE, moodOf, type MeterId, type OsisResult, type PersonId, type PlanId, type PlanResult } from '../levels/osis/model'
 import { METER_KEY, PERSON_KEY } from '../levels/osis/stages'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const WEEK = { x: 14, y: 36, cell: 28, cols: 10 }
 const BARS = { x: 14, y: 196, rowH: 40, labelW: 150, barW: 110 }
 const MATRIX = { x: 338, y: 36, w: W - 350, rowH: 52 }

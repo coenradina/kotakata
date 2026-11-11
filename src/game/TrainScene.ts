@@ -3,14 +3,14 @@ import { registerPixelTextures } from './pixels'
 import { predict, type Centroids, type Event, type Label, type Point } from '../levels/train/model'
 import { t, type CardId, type Lang } from '../i18n'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const WIDTH = STAGE_WIDTH
 const HEIGHT = STAGE_HEIGHT
 const PX = 3 // every sprite pixel becomes a 3x3 block
 const INK = hex('ink')
 const LABEL_COLOUR: Record<Label, number> = { apple: hex('apple'), banana: hex('banana') }
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 
 // "Robot brain": a 2D plot of the two features the robot looks at.
 const PLOT = { x: 412, y: 64, size: 208 }

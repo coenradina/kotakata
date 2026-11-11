@@ -3,12 +3,12 @@ import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { num, t, type CardId, type Key, type Lang } from '../i18n'
 import { END, QUESTIONS, firstWord, type Answer, type BoardResult, type Pick } from '../levels/board/model'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const BOARD = { x: 14, y: 14, w: 246, h: H - 28 }
 const STRIP = { x: 276, y: 14, w: W - 290, h: 86 }
 const BARS = { x: 280, y: 156, rowH: 30, labelW: 108, barW: 150 }
