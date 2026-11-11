@@ -6,6 +6,7 @@ import QuizModal from '../../components/QuizModal'
 import TermMoment from '../../components/TermMoment'
 import SpeedButton from '../../components/SpeedButton'
 import LevelCompleteModal from '../../components/LevelCompleteModal'
+import StageClearCard from '../../components/StageClearCard'
 import BottomSheet from '../../components/BottomSheet'
 import PredictionCard from '../../components/PredictionCard'
 import MissionBar from '../../components/MissionBar'
@@ -74,6 +75,8 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     refreshPreview,
     locateHint,
     levelDone,
+    cleared,
+    continueStage,
     setLevelDone,
     passed,
     TRACK,
@@ -183,6 +186,18 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hint])
 
+  // A stage whose data shows before any run (the chat, the photos) says so
+  // once, after its mission has been read: the preview sits on the Result
+  // tab, out of sight while the player is on the blocks.
+  const previewOffered = useRef<string | null>(null)
+  useEffect(() => {
+    if (!level.previewIsData || split || previewOffered.current === puzzleKey) return
+    if (showIntro || touring || missionOpen || missionPending || cleared || running || view !== 'build') return
+    previewOffered.current = puzzleKey
+    pushPill({ icon: '👀', text: t(lang, 'phonePreviewReady'), tone: 'info', action: { label: t(lang, 'phonePeek'), run: () => goTo('watch') } }, 7000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleKey, showIntro, touring, missionOpen, missionPending, cleared, running, view, split])
+
   // Run: guess first if the stage asks, then watch.
   const run = () => {
     if (running) {
@@ -274,7 +289,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
 
   // One thing at a time: a pill waits while a card, sheet or new word is open,
   // and its clock only starts once it is on screen.
-  const busy = Boolean(entry || levelDone || quiz || missionOpen || guessOpen || touring || showIntro || stageFull)
+  const busy = Boolean(entry || levelDone || cleared || quiz || missionOpen || guessOpen || touring || showIntro || stageFull)
   const pill = !busy && !(hint && !pointsAtBlocks) ? pills[0] : undefined
   useEffect(() => {
     if (!pill) return
@@ -588,6 +603,10 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
             }}
           />
         </BottomSheet>
+      )}
+
+      {cleared && !levelDone && !entry && (
+        <StageClearCard sheet lang={lang} level={level} stageId={cleared.stageId} nextId={cleared.nextId} done={done} onNext={continueStage} />
       )}
 
       {levelDone && (

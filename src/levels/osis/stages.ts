@@ -32,6 +32,7 @@ export const OSIS_STAGES: Puzzle<Program>[] = [
     exampleKey: 'xO1',
     titleKey: 's6o1Title',
     missionKey: 's6o1Mission',
+    clearKey: 's6o1Clear',
     prediction: { questionKey: 'pO1Q', choices: ['pO1Yes', 'pO1No'], outcome: (p, r) => (p.attend === 'camera' || p.attend === undefined ? (ok(r) ? 0 : 1) : null) },
     check: (_p, r) => ok(r),
     failKey,
@@ -44,6 +45,7 @@ export const OSIS_STAGES: Puzzle<Program>[] = [
     exampleKey: 'xO2',
     titleKey: 's6o2Title',
     missionKey: 's6o2Mission',
+    clearKey: 's6o2Clear',
     demo: { blocks: PROPOSALS.p2, messageKey: 'demoO2', autoRun: false },
     prediction: {
       questionKey: 'pO2Q',
@@ -64,6 +66,7 @@ export const OSIS_STAGES: Puzzle<Program>[] = [
     exampleKey: 'xO3',
     titleKey: 's6o3Title',
     missionKey: 's6o3Mission',
+    clearKey: 's6o3Clear',
     demo: { blocks: STAGE2, messageKey: 'demoO3', autoRun: false },
     prediction: { questionKey: 'pO3Q', choices: ['pO3Yes', 'pO3No'], outcome: (_p, r) => ((plan(r, 'essay2')?.meters.find((m) => m.id === 'fairness')?.value ?? 0) >= 50 ? 0 : 1) },
     check: (_p, r) => ok(r),
@@ -77,6 +80,7 @@ export const OSIS_STAGES: Puzzle<Program>[] = [
     exampleKey: 'xO4',
     titleKey: 's6o4Title',
     missionKey: 's6o4Mission',
+    clearKey: 's6o4Clear',
     demo: { blocks: PROPOSALS.p4, messageKey: 'demoO4', autoRun: false },
     prediction: { questionKey: 'pO4Q', choices: ['pO4None', 'pO4Some'], outcome: (_p, r) => ((plan(r, 'chat')?.facts.wrong ?? 0) > 0 ? 1 : 0) },
     check: (_p, r) => ok(r),
@@ -90,6 +94,7 @@ export const OSIS_STAGES: Puzzle<Program>[] = [
     exampleKey: 'xO5',
     titleKey: 's6o5Title',
     missionKey: 's6o5Mission',
+    clearKey: 's6o5Clear',
     demo: { blocks: PROPOSALS.p5, messageKey: 'demoO5', autoRun: false },
     // Who is most upset: the character watching the lowest meter.
     prediction: {

@@ -32,6 +32,9 @@ export const boardSession: Session<Step[]> = {
     // The new notice only goes up in the sandbox.
     return toRun(runBoard(p, seed, lang, stageId === 'sandbox'), lang)
   },
+  // Before a run, the notice board Kata learns from is already up.
+  previewIsData: true,
+  previewData: () => null,
   hint: (p, r, stageId) => chooseBoardHint(p, r ? (r as BoardRun).raw : null, stageId, r ? (r as BoardRun).lang : lastLang),
   createScene: () => new WordScene(),
 }

@@ -2,7 +2,9 @@ import { ChatScene } from './ChatScene'
 import { NO_MILESTONES, STAGE_WIDTH, type LogFn, type Milestones } from './types'
 import { t, type Key } from '../i18n'
 import type { ChatResult, Sorted } from '../levels/chat/model'
-import { SENDERS, type FairResult, type Judged, type Sender } from '../levels/fair/model'
+import { SENDERS, type FairResult, type Judged, type Sender, type TestSet } from '../levels/fair/model'
+import { CORPUS } from '../levels/chat/messages'
+import { FAIR_CORPUS } from '../levels/fair/messages'
 import { setName, sourceName } from '../levels/fair/blocks'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
@@ -60,10 +62,28 @@ export class FairScene extends ChatScene {
     this.panel.add(this.add.text(10, 34, String(n), { ...FONT, fontSize: '48px' }))
   }
 
+  /**
+   * Before a run, the phone shows the chat the program will test on: the
+   * home class (8A) or the cousin's class (8C), slang and all. A test on
+   * Kata's own examples or the set-aside ones has nothing to show until the
+   * run picks them, so the phone stays as it is.
+   */
+  async preview(data: unknown) {
+    await this.readyPromise
+    const { on } = data as { on: TestSet | null }
+    if (this.showingRun) return
+    const set: TestSet = on ?? '8c'
+    if (set !== '8a' && set !== '8c') return
+    const messages = set === '8a' ? CORPUS[this.lang].test : FAIR_CORPUS[this.lang].cousin.test
+    this.chatTitle.setText(t(this.lang, set === '8a' ? 'cSceneChat' : 'fSceneChat8C'))
+    this.previewFeed(`${this.lang}:${set}`, messages, t(this.lang, 'fScenePreview', { set: setName(this.lang, set), n: messages.length }).toUpperCase())
+  }
+
   async play(rawEvents: unknown[], log: LogFn, milestones: Milestones = NO_MILESTONES): Promise<void> {
     await this.readyPromise
     const res = rawEvents[0] as FairResult
     this.reset()
+    this.showingRun = true
     const run = this.runId
     this.milestones = milestones
     const L = this.lang
@@ -110,6 +130,8 @@ export class FairScene extends ChatScene {
         await this.wait(500)
       } else if (e.kind === 'test') {
         this.header.setText(setName(L, e.on).toUpperCase())
+        // The phone is the chat being tested: the cousin's class when it's 8C.
+        this.chatTitle.setText(t(L, e.on === '8c' ? 'fSceneChat8C' : 'cSceneChat'))
         await this.sortBatch(asSorted(e.judged), NO_RULES, firstTest ? 3 : 0, run, (n) => this.score.setText(`${n}/${e.judged.length}`))
         firstTest = false
         log(t(L, 'fLogTest', { set: setName(L, e.on), n: e.right, total: e.judged.length }), e.right / e.judged.length >= 0.85 ? 'good' : 'bad')

@@ -38,6 +38,15 @@ canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 .blocklyTreeLabel, .blocklyToolboxCategoryLabel { font-family: var(--font-mono) !important; font-weight: 700; }
 .blocklyText, .blocklyHtmlInput { font-family: var(--font-mono) !important; font-weight: 700 !important; }
 .blocklyFlyoutBackground { fill: var(--color-parchment) !important; fill-opacity: 1 !important; }
+/* On phones and tablets Blockly edits a number or text field in a <dialog> rather than on the
+   block. Tailwind's base styles zero every element's margin and padding, which removes the
+   browser's margin: auto that centres a modal dialog, so it sat in the top-left corner with
+   a borderless input. Put back the centring and spacing (16px text so iOS doesn't zoom in). */
+.blocklyDialog { margin: auto; padding: 1rem; background: var(--color-cream); color: var(--color-ink); border: 2px solid var(--color-ink); border-radius: 0.5rem; box-shadow: var(--shadow-pixel); font-family: var(--font-sans); font-weight: 700; }
+.blocklyDialog::backdrop { background: color-mix(in srgb, var(--color-ink) 40%, transparent); }
+.blocklyDialogInput { border: 2px solid var(--color-ink); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; font-family: var(--font-mono); background: var(--color-white); }
+.blocklyDialogButtonRow button { min-height: 2.75rem; border: 2px solid var(--color-ink); border-radius: 0.25rem; padding: 0.25rem 1rem; cursor: pointer; background: var(--color-white); box-shadow: var(--shadow-pixel-sm); font-weight: 700; }
+.blocklyDialogButtonRow .blocklyDialogConfirmButton { background: var(--color-maroon); color: var(--color-white); }
 .blocklyFlyout { border-right: 2px solid var(--color-ink); }
 /* The panel's scrollbar layer covers the whole panel when it's folded narrow; only its handle should catch taps. */
 .blocklyFlyoutScrollbar { pointer-events: none; }

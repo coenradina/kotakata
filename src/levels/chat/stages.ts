@@ -70,6 +70,7 @@ export const CHAT_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xC1',
     titleKey: 's5x1Title',
     missionKey: 's5x1Mission',
+    clearKey: 's5x1Clear',
     check: (_p, r) => rules(r) === 4,
     failKey: (_p, r) => (raw(r).lastTest ? 'cFailP1' : 'cFailNoTest'),
     failVars,
@@ -82,6 +83,7 @@ export const CHAT_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xC2',
     titleKey: 's5x2Title',
     missionKey: 's5x2Mission',
+    clearKey: 's5x2Clear',
     // The lesson is the struggle, not the score: six rules is enough to move on.
     check: (p, r) => (rules(r) ?? 0) >= 15 || (raw(r).lastTest !== null && ruleCount(p) >= 6),
     failKey: (_p, r) => (raw(r).lastTest ? 'cFailP2' : 'cFailNoTest'),
@@ -103,6 +105,7 @@ export const CHAT_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xC3',
     titleKey: 's5x3Title',
     missionKey: 's5x3Mission',
+    clearKey: 's5x3Clear',
     demo: EXAMPLES_DEMO,
     check: (_p, r) => {
       const k = kata(r)
@@ -130,6 +133,7 @@ export const CHAT_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xC4',
     titleKey: 's5x4Title',
     missionKey: 's5x4Mission',
+    clearKey: 's5x4Clear',
     demo: FEW_DEMO,
     check: (_p, r) => (kata(r) ?? 0) >= 17,
     failKey: (_p, r) => (!raw(r).lastTest ? 'cFailNoTest' : trainedAndTested(r) ? 'cFailP4' : 'cFailP3'),
@@ -143,6 +147,7 @@ export const CHAT_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xC5',
     titleKey: 's5x5Title',
     missionKey: 's5x5Mission',
+    clearKey: 's5x5Clear',
     demo: WORK_DEMO,
     check: (_p, r) => p5Passes(raw(r)),
     failKey: (_p, r) => {

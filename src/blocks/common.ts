@@ -44,6 +44,9 @@ export const theme = Blockly.Theme.defineTheme('kotakata', {
 /** Blockly's own UI text (context menus and so on) in the player's language. */
 export function setBlocklyLocale(lang: Lang) {
   Blockly.setLocale((lang === 'id' ? MsgId : MsgEn) as unknown as Record<string, string>)
+  // The prompt that edits a number or word on phones. Blockly's own "Ubah nilai:" reads like a school grade.
+  Blockly.Msg['CHANGE_VALUE_TITLE'] = t(lang, 'blkChangeTitle')
+  Blockly.Msg['DIALOG_OK'] = t(lang, 'blkChangeOk')
 }
 
 /** Defines blocks from JSON, replacing any earlier definition of the same type. */
