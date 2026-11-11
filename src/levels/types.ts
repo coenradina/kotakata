@@ -50,6 +50,8 @@ export interface Puzzle<P> {
   firstRunTarget: number
   titleKey: Key
   missionKey: Key
+  /** What Kata says on the stage-clear card: what this stage showed. Defaults to a generic well done. */
+  clearKey?: Key
   bonus?: boolean
   /** Asked before the first run of this puzzle. */
   prediction?: Prediction<P>

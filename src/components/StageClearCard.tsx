@@ -54,7 +54,7 @@ export default function StageClearCard({ lang, level, stageId, nextId, done, onN
         </ol>
 
         <KataSays className="mt-4" scale={sheet ? 3 : 4}>
-          <p className="type-lead">{t(lang, 'stageClearKata')}</p>
+          <p className="type-lead">{t(lang, stage.clearKey ?? 'stageClearKata')}</p>
         </KataSays>
 
         <div className="mt-4 rounded border-2 border-ink bg-amber-tint p-3">

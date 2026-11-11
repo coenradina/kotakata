@@ -16,8 +16,8 @@ const THREE = visionProgram(['kk_v_dark', { N: '2' }], ['kk_v_edges', { N: '1' }
 const FOUR = visionProgram(['kk_v_exposure'], ['kk_v_dark', { N: '2' }], ['kk_v_edges', { N: '1' }], ['kk_v_inside'], ['kk_v_pair'], ['kk_v_glasses'])
 
 export const VISION_STAGES: Puzzle<Step[]>[] = [
-  { id: 'p1', beat: 'introduce', firstRunTarget: 0.6, nudgeKey: 'nV1', exampleKey: 'xV1', titleKey: 's2v1Title', missionKey: 's2v1Mission', check: (_p, r) => all(r), failKey, failVars },
-  { id: 'p2', beat: 'develop', firstRunTarget: 0.45, nudgeKey: 'nV2', exampleKey: 'xV2', titleKey: 's2v2Title', missionKey: 's2v2Mission', check: (_p, r) => all(r), failKey, failVars },
+  { id: 'p1', beat: 'introduce', firstRunTarget: 0.6, nudgeKey: 'nV1', exampleKey: 'xV1', titleKey: 's2v1Title', missionKey: 's2v1Mission', clearKey: 's2v1Clear', check: (_p, r) => all(r), failKey, failVars },
+  { id: 'p2', beat: 'develop', firstRunTarget: 0.45, nudgeKey: 'nV2', exampleKey: 'xV2', titleKey: 's2v2Title', missionKey: 's2v2Mission', clearKey: 's2v2Clear', check: (_p, r) => all(r), failKey, failVars },
   {
     id: 'p3',
     beat: 'twist',
@@ -26,6 +26,7 @@ export const VISION_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xV3',
     titleKey: 's2v3Title',
     missionKey: 's2v3Mission',
+    clearKey: 's2v3Clear',
     // The stage-2 filter loads and waits for the guess, then breaks on the mole.
     demo: { blocks: TWO, messageKey: 'demoV3' as const, autoRun: false },
     check: (_p, r) => all(r),
@@ -41,6 +42,7 @@ export const VISION_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xV4',
     titleKey: 's2v4Title',
     missionKey: 's2v4Mission',
+    clearKey: 's2v4Clear',
     demo: { blocks: THREE, messageKey: 'demoV4' as const, autoRun: false },
     check: (_p, r) => all(r),
     failKey,
@@ -55,6 +57,7 @@ export const VISION_STAGES: Puzzle<Step[]>[] = [
     exampleKey: 'xV5',
     titleKey: 's2v5Title',
     missionKey: 's2v5Mission',
+    clearKey: 's2v5Clear',
     demo: { blocks: FOUR, messageKey: 'demoV5' as const, autoRun: false },
     check: (_p, r) => all(r),
     failKey,
