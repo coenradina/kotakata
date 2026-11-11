@@ -186,6 +186,18 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hint])
 
+  // A stage whose data shows before any run (the chat, the photos) says so
+  // once, after its mission has been read: the preview sits on the Result
+  // tab, out of sight while the player is on the blocks.
+  const previewOffered = useRef<string | null>(null)
+  useEffect(() => {
+    if (!level.previewIsData || split || previewOffered.current === puzzleKey) return
+    if (showIntro || touring || missionOpen || missionPending || cleared || running || view !== 'build') return
+    previewOffered.current = puzzleKey
+    pushPill({ icon: '👀', text: t(lang, 'phonePreviewReady'), tone: 'info', action: { label: t(lang, 'phonePeek'), run: () => goTo('watch') } }, 7000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleKey, showIntro, touring, missionOpen, missionPending, cleared, running, view, split])
+
   // Run: guess first if the stage asks, then watch.
   const run = () => {
     if (running) {

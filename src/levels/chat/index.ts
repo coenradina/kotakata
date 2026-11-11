@@ -32,6 +32,7 @@ export const chatSession: Session<Step[]> = {
   badgeDefs: CHAT_BADGES,
   run: (p, seed, stageId, lang) => toRun(runChat(p, seed, lang, TEST_SIZE[stageId] ?? 20)),
   // Before a run, the phone shows the messages the test will sort, and the rules as they're built.
+  previewIsData: true,
   previewData: (p, stageId): ChatPreview => ({
     size: TEST_SIZE[stageId] ?? 20,
     rules: (p ?? []).filter((s): s is Extract<Step, { kind: 'rule' }> => s.kind === 'rule'),

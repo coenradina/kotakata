@@ -114,4 +114,6 @@ export interface Session<P = unknown> {
   createScene: () => SessionScene
   /** What the scene's live preview should show for the current blocks and stage. */
   previewData?: (program: P | null, stageId: string) => unknown
+  /** The preview shows what the run will be tested on (not the player's own build), so it's worth a look before building. */
+  previewIsData?: boolean
 }

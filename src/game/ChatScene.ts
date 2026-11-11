@@ -387,19 +387,22 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     await this.readyPromise
     const d = data as ChatPreview
     if (this.showingRun) return
-    const key = `${this.lang}:${d.size}`
-    if (this.previewed !== key) {
-      this.previewed = key
-      this.idle?.setVisible(false)
-      this.feed.removeAll(true)
-      this.bubbles = []
-      this.setScroll(0)
-      for (const m of CORPUS[this.lang].test.slice(0, d.size)) void this.addBubble(m.text)
-      this.setScroll(this.maxScroll())
-      this.header.setText(t(this.lang, 'cScenePreview', { n: d.size }))
-    }
+    this.previewFeed(`${this.lang}:${d.size}`, CORPUS[this.lang].test.slice(0, d.size), t(this.lang, 'cScenePreview', { n: d.size }))
     if (d.rules.length || d.fallback) this.showRules(d.rules, d.fallback, null)
     else this.panel.removeAll(true)
+  }
+
+  /** Fills the phone with messages to read, oldest at the top. `key` says which, so the same ones aren't redrawn. */
+  protected previewFeed(key: string, messages: { text: string }[], header: string) {
+    if (this.previewed === key) return
+    this.previewed = key
+    this.idle?.setVisible(false)
+    this.feed.removeAll(true)
+    this.bubbles = []
+    this.setScroll(0)
+    for (const m of messages) void this.addBubble(m.text)
+    this.setScroll(this.maxScroll())
+    this.header.setText(header)
   }
 
   /** Sorts a batch of messages: slowly for the first few, then fast. */

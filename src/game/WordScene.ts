@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { num, t, type CardId, type Key, type Lang } from '../i18n'
-import { END, QUESTIONS, firstWord, type Answer, type BoardResult, type Pick } from '../levels/board/model'
+import { BOARD as BOARD_TEXT, END, QUESTIONS, firstWord, type Answer, type BoardResult, type Pick } from '../levels/board/model'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
@@ -38,6 +38,8 @@ export class WordScene extends Phaser.Scene implements SessionScene {
   private focusBox?: Phaser.GameObjects.Graphics
   private milestones: Milestones = NO_MILESTONES
   private runId = 0
+  /** A run is playing or its result is on screen, so the preview keeps out of the way. */
+  private showingRun = false
   private speed = 1
   readyPromise: Promise<void>
   private resolveReady!: () => void
@@ -98,6 +100,14 @@ export class WordScene extends Phaser.Scene implements SessionScene {
       if (isNew) this.notes.add(this.add.text(BOARD.x + BOARD.w - 18, y + 3, t(this.lang, 'wSceneNew'), { ...FONT, fontSize: '14px', color: css('maroon') }).setOrigin(1, 0))
       this.noteRects.push({ text: s, rect: { x: BOARD.x + 12, y: y - 2, w: BOARD.w - 24, h } })
     })
+  }
+
+  /** Before a run, the board Kata will learn from is already up, so the player can pick prompt words from it. */
+  async preview() {
+    await this.readyPromise
+    if (this.showingRun) return
+    this.drawBoard(BOARD_TEXT[this.lang], null)
+    this.idle?.setVisible(true)
   }
 
   private addChip(word: string, kind: 'prompt' | 'word' | 'end') {
@@ -163,6 +173,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
 
   reset() {
     this.runId++
+    this.showingRun = false
     this.highlight(null)
     this.idle?.setVisible(false)
     if (!this.chips) return
@@ -245,6 +256,7 @@ export class WordScene extends Phaser.Scene implements SessionScene {
     await this.readyPromise
     const res = rawEvents[0] as BoardResult
     this.reset()
+    this.showingRun = true
     const run = this.runId
     this.milestones = milestones
     const L = this.lang

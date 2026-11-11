@@ -29,6 +29,9 @@ export const fairSession: Session<Step[]> = {
   runGroup: (id) => id,
   badgeDefs: FAIR_BADGES,
   run: (p, seed, _stageId, lang) => toRun(runFair(p, seed, lang)),
+  // Before a run, the phone shows the class chat the program tests on.
+  previewIsData: true,
+  previewData: (p) => ({ on: [...(p ?? [])].reverse().find((s) => s.kind === 'test')?.on ?? null }),
   hint: (p, r, stageId) => chooseFairHint(p, r ? (r as FairRun).raw : null, stageId),
   createScene: () => new FairScene(),
 }
