@@ -4,12 +4,12 @@ import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn
 import { num, t, type CardId, type Lang } from '../i18n'
 import type { Pick, TavernResult, Token } from '../levels/tavern/model'
 import { tokenWord } from '../levels/tavern/blocks'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const SCROLL = { x: 16, y: 12, w: W - 32, h: 86 }
 const BARS = { x: 266, y: 128, rowH: 36, labelW: 96, barW: 170 }
 const THERMO = { x: 216, top: 140, bottom: 300 }

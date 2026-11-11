@@ -3,12 +3,12 @@ import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type SessionScene, type LogFn, type Milestones, type PopupSide } from './types'
 import { num, t, type CardId, type Lang } from '../i18n'
 import { EDGE, GOAL, HILLS, START_X, loss, overshot, type HillId, type HillResult, type Move } from '../levels/hill/model'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
 const H = STAGE_HEIGHT
 const INK = hex('ink')
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 // Both hills share one height scale, so the steep one really looks steeper.
 const MAX_LOSS = 2.5 * EDGE * EDGE
 const GROUND_TOP = 108

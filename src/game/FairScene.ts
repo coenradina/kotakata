@@ -4,9 +4,9 @@ import { t, type Key } from '../i18n'
 import type { ChatResult, Sorted } from '../levels/chat/model'
 import { SENDERS, type FairResult, type Judged, type Sender } from '../levels/fair/model'
 import { setName, sourceName } from '../levels/fair/blocks'
-import { FONTS, css, hex } from '../theme'
+import { PIXEL_TEXT, css, hex } from '../theme'
 
-const FONT = { fontFamily: FONTS.pixel, color: css('ink') }
+const FONT = { ...PIXEL_TEXT, color: css('ink') }
 const PANEL = { x: 270, y: 236, w: STAGE_WIDTH - 284 }
 const SENDER_KEY: Record<Sender, Key> = { dinda: 'senderDinda', raka: 'senderRaka', ayu: 'senderAyu', bimo: 'senderBimo' }
 const NO_RULES = { rules: [], fallback: null } as unknown as ChatResult
