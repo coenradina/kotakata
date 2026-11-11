@@ -40,13 +40,16 @@ export interface Toast {
 type Stars = Partial<Record<CardId, number>>
 
 
-const initial = store.load()
 
 /**
  * Everything the play screen knows and does, without any markup, so the
  * wide and phone layouts share one game (docs/plan/05-mobile-play.md, step 3).
  */
 export function usePlaySession(sessionId: string) {
+  // Read what's saved each time the play screen opens. A copy read once when
+  // the app loaded would be stale after the player finished a session and came
+  // back through the map, and saving from it would wipe that session's progress.
+  const [initial] = useState(() => store.load())
   const { lang, setLang } = useLang()
   // Before the first run, Kata says what to do, so the log is never an empty box.
   const [log, setLog] = useState<LogLine[]>(() => [{ text: t(lang, 'kataReady'), tone: 'info' }])
@@ -124,7 +127,8 @@ export function usePlaySession(sessionId: string) {
     foundRef.current = next
     setFound(next)
     const progress = store.load()
-    store.save({ cards: [...next], moments: vars ? { ...progress.moments, [id]: vars } : progress.moments })
+    // Merge with what's saved, so cards found elsewhere (another session, another tab) stay.
+    store.save({ cards: [...new Set([...progress.cards, ...next])], moments: vars ? { ...progress.moments, [id]: vars } : progress.moments })
   }
 
   const stageCelebrate = () => stageView.current?.celebrate()
@@ -181,7 +185,7 @@ export function usePlaySession(sessionId: string) {
   const handleQuizAnswer = (correct: boolean) => {
     if (!correct || !quiz) return
     setStars((prev) => {
-      const next = { ...prev }
+      const next = { ...prev, ...store.load().stars }
       for (const id of quiz.terms) next[id] = Math.min(MAX_STARS, (next[id] ?? 0) + 1)
       store.save({ stars: next })
       return next
@@ -294,7 +298,8 @@ export function usePlaySession(sessionId: string) {
       }
       const doneList = [...nowDone]
       setStagesDone((prev) => {
-        const next = { ...prev, [level.id]: doneList }
+        // Only this session's stages change; every other session keeps what's saved.
+        const next = { ...prev, ...store.load().puzzlesDone, [level.id]: doneList }
         store.save({ puzzlesDone: next })
         return next
       })
@@ -309,7 +314,7 @@ export function usePlaySession(sessionId: string) {
         stageCelebrate()
         if (!foundRef.current.has(level.winCard)) await showCard(level.winCard)
         if (!passed.has(level.id)) {
-          const next = new Set(passed).add(level.id)
+          const next = new Set([...store.load().passed, ...passed]).add(level.id)
           setPassed(next)
           store.save({ passed: [...next] })
           const nextIndex = TRACK.findIndex((l) => l.id === level.id) + 1
@@ -336,7 +341,7 @@ export function usePlaySession(sessionId: string) {
     // Badge toasts come last, after any win card, so they aren't missed.
     // Several at once become one toast.
     if (earned.length) {
-      const next = new Set(badges)
+      const next = new Set([...store.load().badges, ...badges])
       for (const a of earned) next.add(`${level.id}:${a.id}`)
       if (earned.length === 1) pushToast(earned[0].icon, t(lang, earned[0].titleKey), t(lang, earned[0].descKey))
       else pushToast(earned.map((a) => a.icon).join(''), t(lang, 'newBadges', { n: earned.length }), earned.map((a) => t(lang, a.titleKey)).join(' · '))
@@ -410,7 +415,6 @@ export function usePlaySession(sessionId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelId, lang, stage.id])
 
-  const [confirmStartOver, setConfirmStartOver] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   // First visit to a session: say what it's about before any blocks, then offer the tour once.
@@ -447,32 +451,6 @@ export function usePlaySession(sessionId: string) {
     return () => window.clearTimeout(timer)
   }, [levelId, stage.id])
 
-  /** Clears blocks, cards, stars and quiz history, so the level plays like the first time. */
-  const startOver = () => {
-    handleReset()
-    setQuiz(null)
-    setConfirmStartOver(false)
-    store.clear()
-    const none = new Set<CardId>()
-    foundRef.current = none
-    setFound(none)
-    setEntry(null)
-    setStars({})
-    lastRun.current = null
-    hintStreak.current = { key: '', n: 0 }
-    setGuesses({})
-    runsOn.current = {}
-    failsOn.current = {}
-    rungOn.current = {}
-    setPassed(new Set())
-    setStagesDone({})
-    setCleared(null)
-    setBadges(new Set())
-    // Back to Level 1. Loading the starter blocks also saves them over the old program.
-    if (levelId === 'train') editor.current?.resetToStarter()
-    else navigate('/main/train')
-  }
-
   const handleReset = () => {
     // Closing an open card lets the paused run finish; reset then stops it.
     runToken.current++
@@ -492,7 +470,6 @@ export function usePlaySession(sessionId: string) {
     closeEntry,
     closeIntro,
     continueStage,
-    confirmStartOver,
     cycleSpeed,
     firstIntro,
     outcome,
@@ -525,7 +502,6 @@ export function usePlaySession(sessionId: string) {
     refreshPreview,
     runButton,
     running,
-    setConfirmStartOver,
     setGuesses,
     setHint,
     setLevelDone,
@@ -536,7 +512,6 @@ export function usePlaySession(sessionId: string) {
     stage,
     stageView,
     stars,
-    startOver,
     switchLang,
     switchLevel,
     toasts,

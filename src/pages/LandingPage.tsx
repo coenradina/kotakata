@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import PixelSprite from '../components/PixelSprite'
 import SiteHeader from '../components/SiteHeader'
-import { t } from '../i18n'
+import { t, type Lang } from '../i18n'
 import { useLang } from '../lang'
-import { LEVELS, SESSIONS, isUnlocked } from '../levels'
+import { ALL, LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
@@ -14,6 +15,8 @@ import { store } from '../store'
  */
 export default function LandingPage() {
   const { lang } = useLang()
+  // Bumped after a reset, so the page reads the (now empty) progress again.
+  const [, setResets] = useState(0)
   const progress = store.load()
   const passed = new Set(progress.passed)
   // Pick up the last session played. The old version saved classic levels
@@ -160,6 +163,7 @@ export default function LandingPage() {
                   <div className="p-6">
                     <h3 className="type-heading">{t(lang, title)}</h3>
                     <p className="mt-2 type-body text-ink-soft">{t(lang, body)}</p>
+                    {title === 'forStudents' && <ResetProgress lang={lang} finished={passed.size} onCleared={() => setResets((n) => n + 1)} />}
                     {title !== 'forStudents' && (
                       <Link to="/panduan" className="mt-3 inline-block type-label underline hover:text-maroon">
                         {t(lang, title === 'forTeachers' ? 'gForGuru' : 'gForOrtu')} →
@@ -192,4 +196,46 @@ export default function LandingPage() {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return <span className="rounded border border-ink bg-parchment px-2 py-0.5 type-micro">{children}</span>
+}
+
+/**
+ * The one place progress can be cleared. Progress otherwise stays across
+ * sessions and visits; the play screen has no reset of its own.
+ */
+function ResetProgress({ lang, finished, onCleared }: { lang: Lang; finished: number; onCleared: () => void }) {
+  const [asking, setAsking] = useState(false)
+  const [done, setDone] = useState(false)
+  const anything = finished > 0 || store.load().cards.length > 0 || Object.values(store.load().puzzlesDone).some((p) => p.length > 0)
+  if (done) return <p className="mt-3 type-label text-tosca-dark" aria-live="polite">✓ {t(lang, 'startOverDone')}</p>
+  if (!anything) return null
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="type-caption text-ink-muted">{t(lang, 'progressSaved', { n: finished })}</p>
+      {!asking ? (
+        <button onClick={() => setAsking(true)} className="type-label underline hover:text-maroon">
+          {t(lang, 'startOver')}
+        </button>
+      ) : (
+        <div role="alertdialog" aria-labelledby="start-over-text" className="space-y-2 rounded border-2 border-ink bg-maroon-tint p-3">
+          <p id="start-over-text" className="type-caption">{t(lang, 'startOverConfirm')}</p>
+          <div className="flex justify-end gap-2">
+            <button autoFocus onClick={() => setAsking(false)} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-label">
+              {t(lang, 'cancel')}
+            </button>
+            <button
+              onClick={() => {
+                store.clear(ALL.map((s) => s.id))
+                setAsking(false)
+                setDone(true)
+                onCleared()
+              }}
+              className="pixel-btn rounded border-2 border-ink bg-maroon px-3 py-1.5 type-label text-white"
+            >
+              {t(lang, 'startOverYes')}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

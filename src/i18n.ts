@@ -42,6 +42,8 @@ const dict = {
     en: 'Start again from zero? Your blocks, level progress, term cards, stars and badges will be cleared, and every explanation will show again.',
   },
   startOverYes: { id: 'Ya, mulai lagi', en: 'Yes, start over' },
+  startOverDone: { id: 'Progres sudah dihapus. Selamat mulai lagi!', en: 'Progress cleared. Have fun starting again!' },
+  progressSaved: { id: 'Sesi selesai: {n}. Progres ini tetap tersimpan sampai kamu menghapusnya di sini.', en: 'Sessions finished: {n}. This progress stays until you clear it here.' },
   cancel: { id: 'Batal', en: 'Cancel' },
   goal: { id: 'Misi', en: 'Mission' },
   log: { id: 'Log', en: 'Log' },
