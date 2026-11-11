@@ -14,10 +14,13 @@
 
 export const SIZE = 12
 export type Grid = number[][]
+/** What a pixel shows, so the scene can draw the photo in colour before it turns into numbers. */
+export type Part = 'wall' | 'hair' | 'skin' | 'eye' | 'mouth' | 'mole' | 'spot' | 'hijab'
 
 export interface Photo {
   id: string
   brightness: Grid
+  parts: Part[][]
   /** 1 where something is near the camera, 0 where it's far. */
   depth: Grid
   /** Where the eyes really are, or null when there is no real face (a poster). */
@@ -52,40 +55,62 @@ interface FaceOptions {
   dark?: boolean
   /** It's a picture of a face, not a face: flat, so the depth sensor sees nothing near. */
   picture?: boolean
+  /** The head, drawn as 12 rows of 12: . wall, h hair, s skin, j hijab. Eyes, mouth, mole and wall dots go on top. */
+  look?: string[]
+  hijab?: number
 }
 
 export function makeFace(o: FaceOptions): Photo {
   const hair = o.hair ?? 2
   const b: Grid = []
   const d: Grid = []
+  const parts: Part[][] = []
   for (let r = 0; r < SIZE; r++) {
     b.push([])
     d.push([])
+    parts.push([])
     for (let c = 0; c < SIZE; c++) {
       // A light wall with a faint texture, so "any change at all" is not an edge.
       let v = (r + c) % 2 ? 9 : 8
       let near = 0
-      if (inHair(r, c)) {
+      let part: Part = 'wall'
+      const ch = o.look ? o.look[r][c] : inFace(r, c) ? 's' : inHair(r, c) ? 'h' : '.'
+      if (ch === 'h') {
         v = hair
         near = 1
+        part = 'hair'
       }
-      if (inFace(r, c)) {
+      if (ch === 'j') {
+        v = o.hijab ?? 7
+        near = 1
+        part = 'hijab'
+      }
+      if (ch === 's') {
         v = o.skin
         near = 1
+        part = 'skin'
       }
       b[r].push(v)
       d[r].push(o.picture ? 0 : near)
+      parts[r].push(part)
     }
   }
-  for (const [r, c] of EYES) b[r][c] = 0
-  b[8][5] = b[8][6] = Math.max(1, o.skin - 2) // mouth
-  if (o.mole) b[6][3] = b[7][3] = 0
+  const set = (r: number, c: number, v: number, part: Part) => {
+    b[r][c] = v
+    parts[r][c] = part
+  }
+  for (const [r, c] of EYES) set(r, c, 0, 'eye')
+  const mouth = Math.max(1, o.skin - 2)
+  set(8, 5, mouth, 'mouth')
+  set(8, 6, mouth, 'mouth')
+  if (o.mole) set(6, 3, 0, 'mole'), set(7, 3, 0, 'mole')
   // Close enough to look like a pair of eyes, and above the face so they're found first.
-  if (o.poster) b[0][1] = b[0][4] = 0
+  if (o.poster) set(0, 1, 0, 'spot'), set(0, 4, 0, 'spot')
   if (o.dark) for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) b[r][c] = Math.round(b[r][c] * 0.3)
   return {
     id: o.id,
     brightness: b,
+    parts,
     depth: d,
     eyes: o.picture ? null : EYES,
     top: o.picture ? null : 3,
@@ -94,15 +119,109 @@ export function makeFace(o: FaceOptions): Photo {
 }
 
 /** The photos, from the friends' phones. Each puzzle adds the ones its idea is about. */
+// prettier-ignore
+const LOOKS = {
+  // Long straight hair with a fringe, down to the shoulders.
+  dinda: [
+    '............',
+    '...hhhhhh...',
+    '..hhhhhhhh..',
+    '..hhhhhhhh..',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hhsssshhh.',
+    '..hh....hh..',
+  ],
+  // Short spiky hair, ears showing.
+  raka: [
+    '............',
+    '...h.hh.h...',
+    '...hhhhhh...',
+    '...hssssh...',
+    '...ssssss...',
+    '..ssssssss..',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // A hijab framing the face and falling to the shoulders.
+  sari: [
+    '............',
+    '...jjjjjj...',
+    '..jjjjjjjj..',
+    '..jjssssjj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jjssssjj..',
+    '.jjjjjjjjjj.',
+  ],
+  // A short buzz cut.
+  bimo: [
+    '............',
+    '............',
+    '...hhhhhh...',
+    '...hssssh...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // Two pigtails.
+  ayu: [
+    '............',
+    '...hhhhhh...',
+    '..hhhhhhhh..',
+    'hhh.ssss.hhh',
+    'hh.ssssss.hh',
+    '.h.ssssss.h.',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // A singer on a poster: hair swept to one side.
+  poster: [
+    '............',
+    '...hhhhhhh..',
+    '..hhhhhhhhh.',
+    '..hhhsssshh.',
+    '...sssssshh.',
+    '...ssssssh..',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+}
+
 export const PHOTOS = {
-  dinda: makeFace({ id: 'dinda', skin: 6 }),
-  raka: makeFace({ id: 'raka', skin: 5, poster: true }),
-  sari: makeFace({ id: 'sari', skin: 4, mole: true }),
-  bimo: makeFace({ id: 'bimo', skin: 3, hair: 1 }),
-  ayu: makeFace({ id: 'ayu', skin: 6, poster: true, mole: true }),
-  dindaDark: makeFace({ id: 'dindaDark', skin: 6, dark: true }),
-  bimoDark: makeFace({ id: 'bimoDark', skin: 3, hair: 1, dark: true }),
-  poster: makeFace({ id: 'poster', skin: 5, picture: true }),
+  dinda: makeFace({ id: 'dinda', skin: 6, look: LOOKS.dinda }),
+  raka: makeFace({ id: 'raka', skin: 5, poster: true, look: LOOKS.raka }),
+  sari: makeFace({ id: 'sari', skin: 4, mole: true, look: LOOKS.sari }),
+  bimo: makeFace({ id: 'bimo', skin: 3, hair: 1, look: LOOKS.bimo }),
+  ayu: makeFace({ id: 'ayu', skin: 6, poster: true, mole: true, look: LOOKS.ayu }),
+  dindaDark: makeFace({ id: 'dindaDark', skin: 6, dark: true, look: LOOKS.dinda }),
+  bimoDark: makeFace({ id: 'bimoDark', skin: 3, hair: 1, dark: true, look: LOOKS.bimo }),
+  poster: makeFace({ id: 'poster', skin: 5, hair: 3, picture: true, look: LOOKS.poster }),
 }
 export type PhotoId = keyof typeof PHOTOS
 

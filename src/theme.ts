@@ -15,7 +15,7 @@ export type Token =
   | 'amber' | 'amber-tint' | 'gold'
 export type Art =
   | 'apple' | 'apple-dark' | 'banana' | 'banana-dark' | 'leaf' | 'leaf-dark'
-  | 'wood' | 'wood-dark' | 'grass' | 'path' | 'plank' | 'stone' | 'tosca-deep' | 'spark' | 'skin'
+  | 'wood' | 'wood-dark' | 'grass' | 'path' | 'plank' | 'stone' | 'tosca-deep' | 'spark' | 'skin' | 'hair'
   | 'block-events-2' | 'block-data-2' | 'block-model-2'
 
 function read(name: string): string {
