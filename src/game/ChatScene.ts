@@ -367,6 +367,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     this.highlight(null)
     this.idle?.setVisible(false)
     if (!this.feed) return
+    this.chatTitle.setText(t(this.lang, 'cSceneChat'))
     this.feed.removeAll(true)
     this.bubbles = []
     this.drag = null

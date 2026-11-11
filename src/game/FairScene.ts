@@ -75,6 +75,7 @@ export class FairScene extends ChatScene {
     const set: TestSet = on ?? '8c'
     if (set !== '8a' && set !== '8c') return
     const messages = set === '8a' ? CORPUS[this.lang].test : FAIR_CORPUS[this.lang].cousin.test
+    this.chatTitle.setText(t(this.lang, set === '8a' ? 'cSceneChat' : 'fSceneChat8C'))
     this.previewFeed(`${this.lang}:${set}`, messages, t(this.lang, 'fScenePreview', { set: setName(this.lang, set), n: messages.length }).toUpperCase())
   }
 
@@ -129,6 +130,8 @@ export class FairScene extends ChatScene {
         await this.wait(500)
       } else if (e.kind === 'test') {
         this.header.setText(setName(L, e.on).toUpperCase())
+        // The phone is the chat being tested: the cousin's class when it's 8C.
+        this.chatTitle.setText(t(L, e.on === '8c' ? 'fSceneChat8C' : 'cSceneChat'))
         await this.sortBatch(asSorted(e.judged), NO_RULES, firstTest ? 3 : 0, run, (n) => this.score.setText(`${n}/${e.judged.length}`))
         firstTest = false
         log(t(L, 'fLogTest', { set: setName(L, e.on), n: e.right, total: e.judged.length }), e.right / e.judged.length >= 0.85 ? 'good' : 'bad')

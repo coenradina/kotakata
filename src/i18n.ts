@@ -355,6 +355,7 @@ const dict = {
   aCChampTitle: { id: 'Juara Aturan', en: 'Rule Champion' },
   aCChampDesc: { id: 'Aturanmu benar 18 dari 20 pesan.', en: 'Your rules got 18 of 20 messages right.' },
   cSceneChat: { id: 'CHAT KELAS 8A', en: 'CLASS 8A CHAT' },
+  fSceneChat8C: { id: 'CHAT KELAS 8C', en: 'CLASS 8C CHAT' },
   cSceneBrain: { id: 'OTAK KATA', en: "KATA'S BRAIN" },
   cSceneRules: { id: 'ATURAN', en: 'RULES' },
   cSceneDay: { id: 'HARI {d}', en: 'DAY {d}' },
