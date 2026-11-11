@@ -15,6 +15,8 @@ import { Link } from '../../router'
 import { MAX_STARS } from '../../quiz/questions'
 import PredictionCard from '../../components/PredictionCard'
 import MissionBar from '../../components/MissionBar'
+import MissionCard from '../../components/MissionCard'
+import { useEffect, useState } from 'react'
 import SessionIntro from '../../components/SessionIntro'
 import Tour, { type TourStep } from '../../components/Tour'
 import { LangSwitch } from '../../components/SiteHeader'
@@ -23,8 +25,12 @@ import type { PlaySession } from './usePlaySession'
 /** Tablets get tap to add too. */
 const TOUCH = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
-/** Tablets and laptops: the mission across the top, blocks on the left, Kata and the run button on the right. */
-export default function WidePlayLayout({ s }: { s: PlaySession }) {
+/**
+ * Laptops, desktops and tablets, in one window that never scrolls: the
+ * mission across the top, then the blocks beside the stage column (or, on
+ * an upright tablet, under the stage row). See the .play-* rules in index.css.
+ */
+export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; tall?: boolean }) {
   const {
     TRACK,
     badges,
@@ -83,6 +89,12 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
     touring,
     trackName,
   } = s
+  // The mission bar shows two lines; the whole task opens on a card when a new stage starts.
+  const [missionOpen, setMissionOpen] = useState(false)
+  useEffect(() => {
+    if (freshStage) setMissionOpen(true)
+  }, [freshStage])
+
   const intro = showIntro ? (
     <SessionIntro
       lang={lang}
@@ -100,10 +112,70 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
     />
   ) : null
 
+  // Hints keep off the stage: it shows the result they're about.
+  const stageBox = (
+    <div data-hint-avoid data-tour="stage" className="play-stage pixel-shadow rounded-lg border-2 border-ink bg-cream">
+      <Stage key={level.id} lang={lang} level={level} speed={speed} fill ref={stageView}>
+        {entry && <TermMoment key={entry.card.id} entry={entry} lang={lang} onClose={closeEntry} />}
+      </Stage>
+    </div>
+  )
+  const runBar = (
+    <div data-hint-avoid data-tour="run" className="flex h-12 shrink-0 items-stretch gap-2">
+      <button
+        ref={runButton}
+        onClick={handleRun}
+        disabled={running}
+        aria-disabled={mustGuess || undefined}
+        title={mustGuess ? t(lang, 'predictNeed') : undefined}
+        className={`pixel-btn min-w-0 flex-1 whitespace-nowrap rounded border-2 border-ink bg-maroon px-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
+      >
+        {running ? t(lang, 'running') : t(lang, 'run')}
+      </button>
+      {/* An upright tablet's side column is narrow: Clear and Stop keep only their icon. */}
+      <button
+        onClick={handleReset}
+        title={running ? t(lang, 'stop') : t(lang, 'clearTitle')}
+        aria-label={running ? t(lang, 'stop') : t(lang, 'clear')}
+        className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-white px-3 type-button-lg"
+      >
+        {tall ? (running ? '■' : '↺') : running ? t(lang, 'stop') : t(lang, 'clear')}
+      </button>
+      <SpeedButton lang={lang} speed={speed} onCycle={cycleSpeed} className="pixel-btn border-2 border-ink bg-white type-button-lg" />
+    </div>
+  )
+  // Kata's dock: the guess first while it's open (then one line), and the log in the rest. It scrolls inside.
+  const dock = (
+    <div data-tour="log" className="play-dock flex flex-col overflow-hidden rounded-lg border-2 border-ink bg-ink text-cream">
+      {stage.prediction && (
+        <PredictionCard
+          key={puzzleKey}
+          compact
+          prediction={stage.prediction as Prediction<unknown>}
+          lang={lang}
+          choice={guess?.choice ?? null}
+          outcome={guess?.outcome}
+          disabled={running}
+          onChoose={(choice) => setGuesses((g) => ({ ...g, [puzzleKey]: { choice } }))}
+        />
+      )}
+      <div className="flex min-h-0 flex-1 flex-col px-3 py-2" aria-live="polite">
+        <h2 className="type-eyebrow text-amber">🤖 {t(lang, 'kataSays')}</h2>
+        <ul ref={logBox} className="mt-1 min-h-0 flex-1 space-y-1 overflow-y-auto type-mono">
+          {log.map((line, i) => (
+            <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
+              › {line.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+
   return (
-    <div className="flex min-h-full flex-col">
+    <div className={`play-shell ${tall ? 'play-tall' : 'play-wide'}`}>
       {/* A slim header: where you are, and a few tools. Everything else lives on the map or in the menu. */}
-      <header className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-cream px-4 py-2 sm:gap-3 sm:px-6">
+      <header className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-cream px-4 py-1.5 sm:gap-3 sm:px-6">
         <Link to="/main" className="pixel-btn min-h-10 rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
           ← {t(lang, 'navMap')}
         </Link>
@@ -173,15 +245,24 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
         </div>
       </header>
 
-      {/* The task comes first, full width, where the eye lands. */}
-      <div className="px-4 pt-4 sm:px-6">
-        <MissionBar lang={lang} level={level} done={done} current={stage.id} fresh={freshStage} />
+      {/* The task comes first, full width, where the eye lands: two lines, the rest on a card. */}
+      <div className="px-4 pt-2 sm:px-6">
+        <MissionBar lang={lang} level={level} done={done} current={stage.id} fresh={freshStage} compact onOpen={() => setMissionOpen(true)} />
       </div>
 
-      {/* Two things below it: the blocks, and Kata with the run button. */}
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <section data-tour="editor" className="pixel-shadow flex min-h-[460px] flex-col overflow-hidden rounded-lg border-2 border-ink bg-white lg:min-h-0">
-          <div className="relative min-h-[440px] flex-1">
+      {/* The play area: everything in it sizes from the space left, not from its content. */}
+      <main className="play-area px-4 pb-3 pt-3 sm:px-6">
+        <div className="play-grid">
+          {tall ? (
+            <div className="play-top">
+              {stageBox}
+              <div className="play-side">
+                {runBar}
+                {dock}
+              </div>
+            </div>
+          ) : null}
+          <section data-tour="editor" className="pixel-shadow relative min-h-0 min-w-0 overflow-hidden rounded-lg border-2 border-ink bg-white">
             <div className="absolute inset-0">
               <BlockEditor
                 lang={lang}
@@ -195,61 +276,15 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
                 }}
               />
             </div>
-          </div>
-        </section>
-
-        <section className="flex min-w-0 flex-col gap-3">
-          {/* Hints keep off the stage: it shows the result they're about. */}
-          <div data-hint-avoid data-tour="stage" className="pixel-shadow rounded-lg border-2 border-ink bg-cream">
-            <Stage key={level.id} lang={lang} level={level} speed={speed} ref={stageView}>
-              {entry && <TermMoment key={entry.card.id} entry={entry} lang={lang} onClose={closeEntry} />}
-            </Stage>
-          </div>
-
-          {stage.prediction && (
-            <PredictionCard
-              key={puzzleKey}
-              prediction={stage.prediction as Prediction<unknown>}
-              lang={lang}
-              choice={guess?.choice ?? null}
-              outcome={guess?.outcome}
-              disabled={running}
-              onChoose={(choice) => setGuesses((g) => ({ ...g, [puzzleKey]: { choice } }))}
-            />
+          </section>
+          {!tall && (
+            <div className="play-side">
+              {stageBox}
+              {runBar}
+              {dock}
+            </div>
           )}
-
-          <div data-hint-avoid data-tour="run" className="sticky bottom-0 z-float -mx-1 flex items-center gap-2 bg-cream/90 px-1 py-2 sm:gap-3 lg:static lg:bg-transparent lg:py-0">
-            <button
-              ref={runButton}
-              onClick={handleRun}
-              disabled={running}
-              aria-disabled={mustGuess || undefined}
-              title={mustGuess ? t(lang, 'predictNeed') : undefined}
-              className={`pixel-btn flex-1 whitespace-nowrap rounded border-2 border-ink bg-maroon px-4 py-3 type-button-lg text-white ${mustGuess ? 'opacity-50' : ''}`}
-            >
-              {running ? t(lang, 'running') : t(lang, 'run')}
-            </button>
-            <button
-              onClick={handleReset}
-              title={running ? undefined : t(lang, 'clearTitle')}
-              className="pixel-btn whitespace-nowrap rounded border-2 border-ink bg-white px-3 py-3 type-button-lg"
-            >
-              {running ? t(lang, 'stop') : t(lang, 'clear')}
-            </button>
-            <SpeedButton lang={lang} speed={speed} onCycle={cycleSpeed} className="pixel-btn border-2 border-ink bg-white py-3 type-button-lg" />
-          </div>
-
-          <div data-tour="log" className="relative min-h-28 rounded-lg border-2 border-ink bg-ink p-3 text-cream" aria-live="polite">
-            <h2 className="type-eyebrow text-amber">🤖 {t(lang, 'kataSays')}</h2>
-            <ul ref={logBox} className="mt-1.5 max-h-32 space-y-1 overflow-y-auto type-mono">
-              {log.map((line, i) => (
-                <li key={i} className={line.tone === 'good' ? 'text-tosca-light' : line.tone === 'bad' ? 'text-maroon-tint' : ''}>
-                  › {line.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        </div>
       </main>
 
       {/* Bottom left, over the block palette: away from the stage and the run controls */}
@@ -268,9 +303,11 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
         ))}
       </div>
 
-      {hint && !quiz && !running && !touring && !showIntro && !entry && !levelDone && (
+      {hint && !quiz && !running && !touring && !showIntro && !entry && !levelDone && !missionOpen && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
       )}
+
+      {missionOpen && !cleared && !levelDone && <MissionCard lang={lang} level={level} done={done} current={stage.id} onClose={() => setMissionOpen(false)} />}
 
       {cleared && !levelDone && !entry && (
         <StageClearCard lang={lang} level={level} stageId={cleared.stageId} nextId={cleared.nextId} done={done} onNext={continueStage} />

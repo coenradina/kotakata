@@ -22,8 +22,12 @@ function applySpeed(scene: SessionScene | null, speed: number) {
   scene.tweens.timeScale = speed
 }
 
-/** One Phaser game per level: give this component a `key` of the level id. */
-export default function Stage({ lang, level, speed = 1, ref, children }: { lang: Lang; level: Session; speed?: number; ref: Ref<StageHandle>; children?: ReactNode }) {
+/**
+ * One Phaser game per level: give this component a `key` of the level id.
+ * `fill` makes it fill a box the layout has already sized (16:10); otherwise
+ * it sizes itself from its width.
+ */
+export default function Stage({ lang, level, speed = 1, fill = false, ref, children }: { lang: Lang; level: Session; speed?: number; fill?: boolean; ref: Ref<StageHandle>; children?: ReactNode }) {
   const speedRef = useRef(speed)
   speedRef.current = speed
   const host = useRef<HTMLDivElement>(null)
@@ -66,6 +70,11 @@ export default function Stage({ lang, level, speed = 1, ref, children }: { lang:
         scene: s,
       })
       game.canvas?.classList.add('pixel')
+      // Phaser refits on window resizes only; the layout can resize the stage's box without one.
+      const g = game
+      const fit = new ResizeObserver(() => g.scale?.refresh())
+      fit.observe(host.current)
+      g.events.once('destroy', () => fit.disconnect())
       s.setLang(lang)
       // The scene's clock exists once Phaser has booted it.
       void s.readyPromise?.then(() => applySpeed(s, speedRef.current))
@@ -87,8 +96,8 @@ export default function Stage({ lang, level, speed = 1, ref, children }: { lang:
   useEffect(() => applySpeed(scene.current, speed), [speed])
 
   return (
-    <div className="relative">
-      <div ref={host} className="aspect-[8/5] w-full overflow-hidden rounded" />
+    <div className={`relative ${fill ? 'h-full' : ''}`}>
+      <div ref={host} className={`${fill ? 'h-full' : 'aspect-[8/5]'} w-full overflow-hidden rounded`} />
       {children}
     </div>
   )

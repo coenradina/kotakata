@@ -7,7 +7,7 @@ import PhonePlayLayout from './play/PhonePlayLayout'
 export default function PlayPage({ sessionId }: { sessionId: string }) {
   const s = usePlaySession(sessionId)
   const layout = useLayout()
-  if (layout === 'wide') return <WidePlayLayout s={s} />
+  if (layout === 'wide' || layout === 'tall') return <WidePlayLayout s={s} tall={layout === 'tall'} />
   // One phone component for both orientations, so turning the phone doesn't restart the stage.
   return <PhonePlayLayout s={s} landscape={layout === 'phone-landscape'} />
 }

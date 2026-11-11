@@ -26,6 +26,24 @@ body {
 
 canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
 
+/* The wide play screen is one window: header, mission, then a play area that takes the rest.
+   Everything inside sizes from the play area (a size container), never from its content, so
+   the page doesn't scroll. Below 400px of play area (a short window, a big zoom) the page
+   scrolls instead of shrinking the stage further. */
+.play-shell { height: 100dvh; display: grid; grid-template-rows: auto auto minmax(400px, 1fr); overflow-y: auto; }
+.play-area { container: play / size; min-height: 0; }
+.play-side { display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; min-width: 0; }
+.play-stage { aspect-ratio: 16 / 10; max-width: 100%; min-width: 0; }
+.play-dock { flex: 1 1 0; min-height: 0; }
+/* Landscape: blocks | stage column. The stage is as wide as the height allows once Run (48px)
+   and Kata's dock (at least 120px) have their room. */
+.play-wide .play-grid { height: 100%; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr) min(50cqw, 880px, calc((100cqh - 48px - 120px - 1.5rem) * 1.6)); }
+.play-wide .play-stage { width: 100%; flex: none; }
+/* Upright tablet: the stage and its controls on top, at most 42% of the height; blocks below. */
+.play-tall .play-grid { height: 100%; display: grid; gap: 0.75rem; grid-template-rows: min(42cqh, calc((100cqw - 252px) / 1.6)) minmax(0, 1fr); }
+.play-tall .play-top { display: grid; gap: 0.75rem; grid-template-columns: auto minmax(240px, 1fr); min-height: 0; }
+.play-tall .play-stage { height: 100%; }
+
 @keyframes card-in { from { transform: translateY(12px) rotate(-3deg); opacity: 0 } to { transform: none; opacity: 1 } }
 .card-in { animation: card-in .4s steps(6) both; }
 
