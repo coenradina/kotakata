@@ -5,6 +5,7 @@ import QuizModal from '../../components/QuizModal'
 import TermMoment from '../../components/TermMoment'
 import SpeedButton from '../../components/SpeedButton'
 import LevelCompleteModal from '../../components/LevelCompleteModal'
+import StageClearCard from '../../components/StageClearCard'
 import { t } from '../../i18n'
 import { numberOf } from '../../levels'
 import { PLANNED } from '../../sessions/catalog'
@@ -47,6 +48,8 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
     lang,
     level,
     levelDone,
+    cleared,
+    continueStage,
     levelId,
     locateHint,
     log,
@@ -267,6 +270,10 @@ export default function WidePlayLayout({ s }: { s: PlaySession }) {
 
       {hint && !quiz && !running && !touring && !showIntro && !entry && !levelDone && (
         <HintBubble key={hint.key} hint={hint} lang={lang} locate={locateHint} onClose={() => setHint(null)} />
+      )}
+
+      {cleared && !levelDone && !entry && (
+        <StageClearCard lang={lang} level={level} stageId={cleared.stageId} nextId={cleared.nextId} done={done} onNext={continueStage} />
       )}
 
       {levelDone && (

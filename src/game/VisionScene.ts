@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
-import { PHOTOS, SIZE, type Grid, type Part, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
+import { PHOTOS, PUZZLE_PHOTOS, SIZE, type Grid, type Part, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
@@ -104,6 +104,10 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
   /** The numbers, above the detectors' marks so a mark never hides one. */
   private digits!: Phaser.GameObjects.Container
   private legendKey: Key = 'vSceneNumbers'
+  /** A run is playing or its result is on screen, so the preview keeps out of the way. */
+  private showingRun = false
+  /** The stage (and language) the preview last drew, so editing blocks doesn't replay it. */
+  private previewed: string | null = null
   private cells: { rect: Phaser.GameObjects.Rectangle; text: Phaser.GameObjects.Text }[] = []
   private marks!: Phaser.GameObjects.Container
   private thumbs!: Phaser.GameObjects.Container
@@ -283,6 +287,8 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
 
   reset() {
     this.runId++
+    this.showingRun = false
+    this.previewed = null
     this.highlight(null)
     this.idle?.setVisible(false)
     if (!this.grid) return
@@ -295,6 +301,30 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     this.currentBox = undefined
     this.title.setText('')
     this.sensor.setText('').setVisible(false)
+  }
+
+  /**
+   * Before a run, the stage already shows this stage's photos, and the
+   * first one turns from a colour photo into numbers, so the player can
+   * read the numbers and pick a threshold without running first.
+   */
+  async preview(data: unknown) {
+    await this.readyPromise
+    const { stageId } = data as { stageId: string }
+    const key = `${this.lang}:${stageId}`
+    if (this.showingRun || this.previewed === key) return
+    this.previewed = key
+    this.runId++
+    const run = this.runId
+    this.idle?.setVisible(false)
+    this.marks.removeAll(true)
+    this.sensor.setVisible(false)
+    const ids = PUZZLE_PHOTOS[stageId] ?? PUZZLE_PHOTOS.p1
+    this.drawThumbs(ids)
+    this.markThumb(0, false, true)
+    this.title.setText(t(this.lang, PHOTO_KEY[ids[0]]))
+    this.speed = 1
+    await this.drawGrid(ids[0], PHOTOS[ids[0]].brightness, true, run)
   }
 
   /** One photo: numbers first, then each detector's marks, then the sunglasses or the hat. */
@@ -377,6 +407,7 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     await this.readyPromise
     const res = rawEvents[0] as VisionEvent
     this.reset()
+    this.showingRun = true
     const run = this.runId
     this.milestones = milestones
     const L = this.lang

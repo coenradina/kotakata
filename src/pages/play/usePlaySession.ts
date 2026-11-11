@@ -7,6 +7,8 @@ import { t, type CardId, type Lang } from '../../i18n'
 import { MAX_REPEATS, ladderHint, rungFor, type Hint } from '../../hints'
 import { levelById, trackOf, type SessionId } from '../../levels'
 import type { Puzzle, Session } from '../../levels/types'
+
+type Demo = NonNullable<Puzzle<unknown>['demo']>
 import { EVERY_CARD, store } from '../../store'
 import { useLang } from '../../lang'
 import { useRoute } from '../../router'
@@ -59,7 +61,13 @@ export function usePlaySession(sessionId: string) {
   useEffect(() => store.save({ lastSession: levelId }), [levelId])
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
-  const stage = currentStage(level, done)
+  /**
+   * A stage the player just cleared, held on screen until they press Next:
+   * first the well done, then the next task. Its demo, if any, waits too.
+   */
+  const [cleared, setCleared] = useState<{ stageId: string; nextId: string; demo?: Demo } | null>(null)
+  useEffect(() => setCleared(null), [levelId])
+  const stage = cleared ? level.puzzles.find((p) => p.id === cleared.stageId)! : currentStage(level, done)
   const [badges, setBadges] = useState<Set<string>>(() => new Set(initial.badges))
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastId = useRef(0)
@@ -258,7 +266,6 @@ export function usePlaySession(sessionId: string) {
       if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint })
     }
     let levelDoneNow = false
-    let demoNext: NonNullable<Puzzle<unknown>["demo"]> | undefined
 
     // Badges for anything nice this run did
     const earned = level.badgeDefs.filter((a) => !badges.has(`${level.id}:${a.id}`) && a.check(program, result, stage, stagePassed))
@@ -318,7 +325,8 @@ export function usePlaySession(sessionId: string) {
         if (gotBonus) setLog((l) => [...l, { text: t(lang, 'bonusToo'), tone: 'good' }])
         if (!nowDone.has(upcoming.id)) {
           setLog((l) => [...l, { text: t(lang, 'stageNext', { title: t(lang, upcoming.titleKey) }), tone: 'info' }])
-          if (upcoming.demo) demoNext = upcoming.demo
+          // Hold this stage until the player has seen the well done; Next opens the new task.
+          setCleared({ stageId: stage.id, nextId: upcoming.id, demo: upcoming.demo })
         } else if (stage.bonus) setLog((l) => [...l, { text: t(lang, 'allDone'), tone: 'good' }])
       }
     } else {
@@ -343,21 +351,7 @@ export function usePlaySession(sessionId: string) {
       setLevelDone(level.id)
       return
     }
-    // A new stage whose lesson is easy to miss starts by playing the problem once.
-    if (demoNext) {
-      const demo = demoNext
-      window.setTimeout(() => {
-        // Blockly's loader wants the blocks wrapped in { blocks: … }
-        editor.current?.loadBlocks({ blocks: typeof demo.blocks === 'function' ? demo.blocks(lang) : demo.blocks })
-        setLog([{ text: t(lang, demo.messageKey), tone: 'info' }])
-        if (demo.autoRun === false) return
-        window.setTimeout(() => {
-          demoRun.current = true
-          runButton.current?.click()
-        }, 900)
-      }, earned.length ? 1800 : 900)
-      return
-    }
+
 
     // A failed run gets one hint, stronger the longer the player is stuck.
     // The quiz no longer pops up by itself: guesses before runs do that job.
@@ -377,6 +371,27 @@ export function usePlaySession(sessionId: string) {
     if (offerHint(next) && next.rung) rungOn.current[puzzleKey] = Math.max(rungOn.current[puzzleKey] ?? 0, next.rung) as 1 | 2 | 3
   }
 
+
+  /** A new stage whose lesson is easy to miss starts by playing the problem once. */
+  const playDemo = (demo: Demo) => {
+    // Blockly's loader wants the blocks wrapped in { blocks: … }
+    editor.current?.loadBlocks({ blocks: typeof demo.blocks === 'function' ? demo.blocks(lang) : demo.blocks })
+    setLog([{ text: t(lang, demo.messageKey), tone: 'info' }])
+    if (demo.autoRun === false) return
+    window.setTimeout(() => {
+      demoRun.current = true
+      runButton.current?.click()
+    }, 900)
+  }
+
+  /** The player read the well done: show the next stage's task, then its demo. */
+  const continueStage = () => {
+    const demo = cleared?.demo
+    // The new stage starts on a clear stage, so its preview (if any) can show.
+    stageView.current?.reset()
+    setCleared(null)
+    if (demo) window.setTimeout(() => playDemo(demo), 600)
+  }
 
   const switchLevel = (id: SessionId) => {
     if (id === levelId) return
@@ -451,6 +466,7 @@ export function usePlaySession(sessionId: string) {
     rungOn.current = {}
     setPassed(new Set())
     setStagesDone({})
+    setCleared(null)
     setBadges(new Set())
     // Back to Level 1. Loading the starter blocks also saves them over the old program.
     if (levelId === 'train') editor.current?.resetToStarter()
@@ -463,6 +479,8 @@ export function usePlaySession(sessionId: string) {
     setHint(null)
     closeEntry()
     stageView.current?.reset()
+    // With the stage clear again, a level with a preview shows it.
+    refreshPreview()
     setLog(running ? [{ text: t(lang, 'logStopped'), tone: 'info' }] : [])
     setRunning(false)
   }
@@ -470,8 +488,10 @@ export function usePlaySession(sessionId: string) {
   return {
     TRACK,
     badges,
+    cleared,
     closeEntry,
     closeIntro,
+    continueStage,
     confirmStartOver,
     cycleSpeed,
     firstIntro,

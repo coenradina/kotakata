@@ -2,7 +2,8 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
-import type { ChatEvent, ChatResult, Label, Sorted } from '../levels/chat/model'
+import type { ChatEvent, ChatResult, Label, Sorted, Step } from '../levels/chat/model'
+import { CORPUS } from '../levels/chat/messages'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
@@ -31,6 +32,13 @@ const labelText = (lang: Lang, l: Label) => t(lang, l === 'penting' ? 'cPenting'
 
 type Rect = { x: number; y: number; w: number; h: number }
 
+/** What the chat shows before a run: the messages the test will sort, and the rules so far. */
+export interface ChatPreview {
+  size: number
+  rules: Extract<Step, { kind: 'rule' }>[]
+  fallback: Label | null
+}
+
 /**
  * Session 1: the class chat on a phone, on the left. On the right, a
  * balance: every word of a message drops onto the side it pushes Kata
@@ -46,6 +54,10 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
   protected scrollbar!: Phaser.GameObjects.Graphics
   protected drag: { y: number; from: number } | null = null
   protected chipH?: number
+  /** A run is playing or its result is on screen, so the preview keeps out of the way. */
+  protected showingRun = false
+  /** Which messages the feed holds as a preview (size and language), so editing blocks doesn't redraw them. */
+  protected previewed: string | null = null
   protected beam!: Phaser.GameObjects.Container
   protected pans!: Record<Label, Phaser.GameObjects.Container>
   protected chips!: Phaser.GameObjects.Container
@@ -350,6 +362,8 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
 
   reset() {
     this.runId++
+    this.showingRun = false
+    this.previewed = null
     this.highlight(null)
     this.idle?.setVisible(false)
     if (!this.feed) return
@@ -362,6 +376,30 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     this.header.setText('')
     this.score.setText('')
     this.positionPans(0)
+  }
+
+  /**
+   * Before a run, the phone already shows the messages the test will sort,
+   * oldest at the top, so the player can read them and pick words for
+   * rules without running first. The panel shows the rules as they're built.
+   */
+  async preview(data: unknown) {
+    await this.readyPromise
+    const d = data as ChatPreview
+    if (this.showingRun) return
+    const key = `${this.lang}:${d.size}`
+    if (this.previewed !== key) {
+      this.previewed = key
+      this.idle?.setVisible(false)
+      this.feed.removeAll(true)
+      this.bubbles = []
+      this.setScroll(0)
+      for (const m of CORPUS[this.lang].test.slice(0, d.size)) void this.addBubble(m.text)
+      this.setScroll(this.maxScroll())
+      this.header.setText(t(this.lang, 'cScenePreview', { n: d.size }))
+    }
+    if (d.rules.length || d.fallback) this.showRules(d.rules, d.fallback, null)
+    else this.panel.removeAll(true)
   }
 
   /** Sorts a batch of messages: slowly for the first few, then fast. */
@@ -391,6 +429,7 @@ export class ChatScene extends Phaser.Scene implements SessionScene {
     await this.readyPromise
     const res = rawEvents[0] as ChatResult
     this.reset()
+    this.showingRun = true
     const run = this.runId
     this.milestones = milestones
     const L = this.lang

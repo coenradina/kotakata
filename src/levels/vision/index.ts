@@ -27,6 +27,8 @@ export const visionSession: Session<Step[]> = {
     const edges = p.find((s) => s.kind === 'edges')
     return { raw, events: [{ ...raw, over: edges && edges.kind === 'edges' ? edges.over : 1 }], accuracy: raw.right / raw.total, passed: false, context: null }
   },
+  // Before a run, the stage shows this stage's photos and the first one's numbers.
+  previewData: (_p, stageId) => ({ stageId }),
   hint: (p, r, stageId) => chooseVisionHint(p, r ? (r as VisionRun).raw : null, stageId),
   createScene: () => new VisionScene(),
 }

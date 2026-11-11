@@ -6,6 +6,7 @@ import QuizModal from '../../components/QuizModal'
 import TermMoment from '../../components/TermMoment'
 import SpeedButton from '../../components/SpeedButton'
 import LevelCompleteModal from '../../components/LevelCompleteModal'
+import StageClearCard from '../../components/StageClearCard'
 import BottomSheet from '../../components/BottomSheet'
 import PredictionCard from '../../components/PredictionCard'
 import MissionBar from '../../components/MissionBar'
@@ -74,6 +75,8 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     refreshPreview,
     locateHint,
     levelDone,
+    cleared,
+    continueStage,
     setLevelDone,
     passed,
     TRACK,
@@ -274,7 +277,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
 
   // One thing at a time: a pill waits while a card, sheet or new word is open,
   // and its clock only starts once it is on screen.
-  const busy = Boolean(entry || levelDone || quiz || missionOpen || guessOpen || touring || showIntro || stageFull)
+  const busy = Boolean(entry || levelDone || cleared || quiz || missionOpen || guessOpen || touring || showIntro || stageFull)
   const pill = !busy && !(hint && !pointsAtBlocks) ? pills[0] : undefined
   useEffect(() => {
     if (!pill) return
@@ -588,6 +591,10 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
             }}
           />
         </BottomSheet>
+      )}
+
+      {cleared && !levelDone && !entry && (
+        <StageClearCard sheet lang={lang} level={level} stageId={cleared.stageId} nextId={cleared.nextId} done={done} onNext={continueStage} />
       )}
 
       {levelDone && (
