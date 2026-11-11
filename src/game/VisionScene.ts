@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { registerPixelTextures } from './pixels'
 import { NO_MILESTONES, STAGE_HEIGHT, STAGE_WIDTH, type LogFn, type Milestones, type PopupSide, type SessionScene } from './types'
 import { t, type CardId, type Key, type Lang } from '../i18n'
-import { PHOTOS, SIZE, type Grid, type Part, type Photo, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
+import { PHOTOS, SIZE, type Grid, type Part, type PhotoId, type PhotoResult, type VisionResult } from '../levels/vision/model'
 import { PIXEL_TEXT, css, hex } from '../theme'
 
 const W = STAGE_WIDTH
@@ -47,10 +47,10 @@ const mix = (a: number, b: number, t: number) => {
   return fromChannels(x.map((v, i) => v + (y[i] - v) * t))
 }
 
-/** The colour each part of a photo is, before Kata turns it into numbers. */
-const PART_HUE: Record<Part, Parameters<typeof hex>[0]> = {
-  wall: 'tosca-tint',
-  hair: 'wood-dark',
+type Hue = Parameters<typeof hex>[0]
+
+/** The colour each part of a photo is, before Kata turns it into numbers. Hair is per person. */
+const PART_HUE: Record<Exclude<Part, 'hair' | 'wall'>, Hue> = {
   skin: 'skin',
   eye: 'ink',
   mouth: 'apple',
@@ -58,24 +58,39 @@ const PART_HUE: Record<Part, Parameters<typeof hex>[0]> = {
   spot: 'ink',
   hijab: 'tosca',
 }
+const HAIR_HUE: Record<PhotoId, Hue> = {
+  dinda: 'hair',
+  raka: 'hair',
+  sari: 'hair',
+  bimo: 'hair',
+  ayu: 'wood-dark',
+  dindaDark: 'hair',
+  bimoDark: 'hair',
+  poster: 'wood',
+}
 
 /**
- * A part's colour, made exactly as bright as its number. So the colour
- * photo and its grey version are the same picture, and the grey is just
- * the colour with the hue taken out.
+ * A pixel's colour in the photo as the camera took it. Each colour is as
+ * bright as its number, so the grey version is the same picture with the
+ * hue taken out: darker colours are scaled down, lighter ones mixed with
+ * white (which keeps them soft rather than neon). The wall is the one
+ * exception: it's plain, as bright as its brightest pixel, and the 8s and
+ * 9s only show up once it turns into numbers, like a real camera's noise.
  */
-function colourOf(part: Part, v: number) {
-  const want = luma(channels(grey(v)))
-  const hue = channels(hex(PART_HUE[part]))
-  let c = hue.map((x) => (x * want) / Math.max(1, luma(hue)))
-  if (Math.max(...c) > 255) {
-    // Too bright to scale up: clip, then lift towards white until it matches.
-    c = c.map((x) => Math.min(255, x))
-    const l = luma(c)
-    const t = l >= 255 ? 0 : (want - l) / (255 - l)
-    c = c.map((x) => x + (255 - x) * Math.max(0, t))
+function colourOf(id: PhotoId, r: number, c: number) {
+  const photo = PHOTOS[id]
+  const v = photo.brightness[r][c]
+  const part = photo.parts[r][c]
+  if (part === 'wall') {
+    const plain = Math.max(...photo.brightness.flatMap((row, i) => row.filter((_, j) => photo.parts[i][j] === 'wall')))
+    return grey(plain)
   }
-  return fromChannels(c)
+  const want = luma(channels(grey(v)))
+  const hue = channels(hex(part === 'hair' ? HAIR_HUE[id] : PART_HUE[part]))
+  const l = Math.max(1, luma(hue))
+  if (want <= l) return fromChannels(hue.map((x) => (x * want) / l))
+  const t = (want - l) / (255 - l)
+  return fromChannels(hue.map((x) => x + (255 - x) * t))
 }
 
 /**
@@ -175,13 +190,14 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
    * changed the numbers, that happens last. The first photo of a run takes
    * its time; the rest go quickly.
    */
-  private async drawGrid(photo: Photo, seen: Grid, slow: boolean, run: number) {
+  private async drawGrid(id: PhotoId, seen: Grid, slow: boolean, run: number) {
+    const photo = PHOTOS[id]
     this.grid.removeAll(true)
     this.digits.removeAll(true)
     this.cells = []
     const b = photo.brightness
     const at = (k: number) => cellOf(k)
-    const colour = (k: number) => colourOf(photo.parts[at(k).r][at(k).c], b[at(k).r][at(k).c])
+    const colour = (k: number) => colourOf(id, at(k).r, at(k).c)
     const original = (k: number) => grey(b[at(k).r][at(k).c])
     for (let k = 0; k < SIZE * SIZE; k++) {
       const { x, y } = this.at(at(k).r, at(k).c)
@@ -212,9 +228,8 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     this.thumbs.removeAll(true)
     ids.forEach((id, i) => {
       const { x, y } = this.thumbPos(i)
-      const b = PHOTOS[id].brightness
       const g = this.add.graphics()
-      for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) g.fillStyle(colourOf(PHOTOS[id].parts[r][c], b[r][c])).fillRect(x + c * THUMB.cell, y + r * THUMB.cell, THUMB.cell, THUMB.cell)
+      for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) g.fillStyle(colourOf(id, r, c)).fillRect(x + c * THUMB.cell, y + r * THUMB.cell, THUMB.cell, THUMB.cell)
       g.lineStyle(2, INK).strokeRect(x, y, SIZE * THUMB.cell, SIZE * THUMB.cell)
       const name = this.add.text(x + (SIZE * THUMB.cell) / 2, y + SIZE * THUMB.cell + 4, t(this.lang, PHOTO_KEY[id]), { ...FONT, fontSize: '14px', align: 'center', wordWrap: { width: THUMB.gapX } }).setOrigin(0.5, 0)
       this.thumbs.add([g, name])
@@ -288,7 +303,7 @@ export class VisionScene extends Phaser.Scene implements SessionScene {
     this.marks.removeAll(true)
     this.title.setText(t(L, PHOTO_KEY[p.photo]))
     this.sensor.setVisible(false)
-    await this.drawGrid(PHOTOS[p.photo], p.seen, first, run)
+    await this.drawGrid(p.photo, p.seen, first, run)
     if (run !== this.runId) return
     const full: Rect = { x: GRID.x - 4, y: GRID.y - 4, w: CELL * SIZE + 8, h: CELL * SIZE + 8 }
     if (first) {
