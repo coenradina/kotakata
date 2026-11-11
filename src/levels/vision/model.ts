@@ -15,7 +15,7 @@
 export const SIZE = 12
 export type Grid = number[][]
 /** What a pixel shows, so the scene can draw the photo in colour before it turns into numbers. */
-export type Part = 'wall' | 'hair' | 'skin' | 'eye' | 'mouth' | 'mole' | 'spot'
+export type Part = 'wall' | 'hair' | 'skin' | 'eye' | 'mouth' | 'mole' | 'spot' | 'hijab'
 
 export interface Photo {
   id: string
@@ -55,6 +55,9 @@ interface FaceOptions {
   dark?: boolean
   /** It's a picture of a face, not a face: flat, so the depth sensor sees nothing near. */
   picture?: boolean
+  /** The head, drawn as 12 rows of 12: . wall, h hair, s skin, j hijab. Eyes, mouth, mole and wall dots go on top. */
+  look?: string[]
+  hijab?: number
 }
 
 export function makeFace(o: FaceOptions): Photo {
@@ -71,12 +74,18 @@ export function makeFace(o: FaceOptions): Photo {
       let v = (r + c) % 2 ? 9 : 8
       let near = 0
       let part: Part = 'wall'
-      if (inHair(r, c)) {
+      const ch = o.look ? o.look[r][c] : inFace(r, c) ? 's' : inHair(r, c) ? 'h' : '.'
+      if (ch === 'h') {
         v = hair
         near = 1
         part = 'hair'
       }
-      if (inFace(r, c)) {
+      if (ch === 'j') {
+        v = o.hijab ?? 7
+        near = 1
+        part = 'hijab'
+      }
+      if (ch === 's') {
         v = o.skin
         near = 1
         part = 'skin'
@@ -110,15 +119,109 @@ export function makeFace(o: FaceOptions): Photo {
 }
 
 /** The photos, from the friends' phones. Each puzzle adds the ones its idea is about. */
+// prettier-ignore
+const LOOKS = {
+  // Long straight hair with a fringe, down to the shoulders.
+  dinda: [
+    '............',
+    '...hhhhhh...',
+    '..hhhhhhhh..',
+    '..hhhhhhhh..',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hsssssshh.',
+    '..hhsssshhh.',
+    '..hh....hh..',
+  ],
+  // Short spiky hair, ears showing.
+  raka: [
+    '............',
+    '...h.hh.h...',
+    '...hhhhhh...',
+    '...hssssh...',
+    '...ssssss...',
+    '..ssssssss..',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // A hijab framing the face and falling to the shoulders.
+  sari: [
+    '............',
+    '...jjjjjj...',
+    '..jjjjjjjj..',
+    '..jjssssjj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jssssssj..',
+    '..jjssssjj..',
+    '.jjjjjjjjjj.',
+  ],
+  // A short buzz cut.
+  bimo: [
+    '............',
+    '............',
+    '...hhhhhh...',
+    '...hssssh...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // Two pigtails.
+  ayu: [
+    '............',
+    '...hhhhhh...',
+    '..hhhhhhhh..',
+    'hhh.ssss.hhh',
+    'hh.ssssss.hh',
+    '.h.ssssss.h.',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+  // A singer on a poster: hair swept to one side.
+  poster: [
+    '............',
+    '...hhhhhhh..',
+    '..hhhhhhhhh.',
+    '..hhhsssshh.',
+    '...sssssshh.',
+    '...ssssssh..',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '...ssssss...',
+    '....ssss....',
+    '............',
+  ],
+}
+
 export const PHOTOS = {
-  dinda: makeFace({ id: 'dinda', skin: 6 }),
-  raka: makeFace({ id: 'raka', skin: 5, poster: true }),
-  sari: makeFace({ id: 'sari', skin: 4, mole: true }),
-  bimo: makeFace({ id: 'bimo', skin: 3, hair: 1 }),
-  ayu: makeFace({ id: 'ayu', skin: 6, poster: true, mole: true }),
-  dindaDark: makeFace({ id: 'dindaDark', skin: 6, dark: true }),
-  bimoDark: makeFace({ id: 'bimoDark', skin: 3, hair: 1, dark: true }),
-  poster: makeFace({ id: 'poster', skin: 5, picture: true }),
+  dinda: makeFace({ id: 'dinda', skin: 6, look: LOOKS.dinda }),
+  raka: makeFace({ id: 'raka', skin: 5, poster: true, look: LOOKS.raka }),
+  sari: makeFace({ id: 'sari', skin: 4, mole: true, look: LOOKS.sari }),
+  bimo: makeFace({ id: 'bimo', skin: 3, hair: 1, look: LOOKS.bimo }),
+  ayu: makeFace({ id: 'ayu', skin: 6, poster: true, mole: true, look: LOOKS.ayu }),
+  dindaDark: makeFace({ id: 'dindaDark', skin: 6, dark: true, look: LOOKS.dinda }),
+  bimoDark: makeFace({ id: 'bimoDark', skin: 3, hair: 1, dark: true, look: LOOKS.bimo }),
+  poster: makeFace({ id: 'poster', skin: 5, hair: 3, picture: true, look: LOOKS.poster }),
 }
 export type PhotoId = keyof typeof PHOTOS
 

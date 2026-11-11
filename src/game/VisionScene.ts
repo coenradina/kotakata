@@ -56,6 +56,7 @@ const PART_HUE: Record<Part, Parameters<typeof hex>[0]> = {
   mouth: 'apple',
   mole: 'wood-dark',
   spot: 'ink',
+  hijab: 'tosca',
 }
 
 /**
