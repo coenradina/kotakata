@@ -5,8 +5,8 @@
 //   `impact_batches`, stamped with the day in Jakarta and an expiry.
 // - impactReport: the admin dashboard asks for a date range. Days are counted
 //   from the raw batches and survey answers; days that can't change any more
-//   are cached in `impact_daily`. Cells under K players are hidden before
-//   the report leaves the server.
+//   are cached in `impact_daily`. Only the admin reads the report, so it
+//   carries the real counts, small ones included.
 //
 // Firestore rules give browsers no access to either collection.
 
@@ -26,8 +26,8 @@ const DAY_MS = 86_400_000
 /** Raw batches are deleted by a Firestore TTL policy on `expireAt` (firestore.indexes.json). */
 const KEEP_MS = 730 * DAY_MS
 const MAX_BODY = 32_000
-/** Longest range one report may cover. */
-const MAX_DAYS = 366
+/** Longest range one report may cover: the raw batches' whole lifetime. */
+const MAX_DAYS = 731
 
 export const ingestImpact = onRequest({ cors: [/^https:\/\/aastr\.id$/, /^http:\/\/localhost(:\d+)?$/], memory: '256MiB', concurrency: 80 }, async (req, res) => {
   if (req.method !== 'POST') {
@@ -75,7 +75,7 @@ export const impactReport = onCall({ memory: '512MiB', timeoutSeconds: 120 }, as
   const days = daysBetween(from, to).filter((d) => d <= today)
   if (days.length > MAX_DAYS) throw new HttpsError('invalid-argument', `At most ${MAX_DAYS} days.`)
   const counted = await Promise.all(days.map((day) => loadDay(day, day <= lastFinal)))
-  return buildReport(from, to, counted)
+  return buildReport(from, to, counted, 0)
 })
 
 async function loadDay(day: string, final: boolean): Promise<{ day: string; agg: DayAgg }> {

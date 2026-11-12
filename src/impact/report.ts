@@ -4,8 +4,9 @@
 // except the schema.
 //
 // One day becomes one `DayAgg`: only counts and histograms, no research IDs.
-// Days add up field by field (`addDays`), and `suppress` hides every cell
-// fewer than K players make, before anything leaves the server.
+// Days add up field by field (`addDays`). `buildReport` can hide every cell
+// fewer than K players make; `impactReport` passes 0, because only the
+// admin reads the report.
 
 import { MS_STEP, type Batch, type ImpactEvent } from './schema'
 
@@ -414,7 +415,7 @@ export function daysBetween(from: string, to: string): string[] {
   const out: string[] = []
   const d = new Date(`${from}T00:00:00Z`)
   const end = new Date(`${to}T00:00:00Z`)
-  while (d <= end && out.length < 400) {
+  while (d <= end && out.length < 800) {
     out.push(d.toISOString().slice(0, 10))
     d.setUTCDate(d.getUTCDate() + 1)
   }
