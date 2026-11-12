@@ -185,9 +185,14 @@ export default function LandingPage() {
               aastr.id
             </a>
           </span>
-          <a href="https://github.com/coenradina/kotakata" className="underline hover:text-amber">
-            {t(lang, 'footerSource')}
-          </a>
+          <span className="flex flex-wrap gap-4">
+            <Link to="/privasi" className="underline hover:text-amber">
+              {t(lang, 'pvTitle')}
+            </Link>
+            <a href="https://github.com/coenradina/kotakata" className="underline hover:text-amber">
+              {t(lang, 'footerSource')}
+            </a>
+          </span>
         </div>
       </footer>
     </div>

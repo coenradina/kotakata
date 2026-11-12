@@ -59,6 +59,8 @@ export type Page =
   | { name: 'guides' }
   | { name: 'guide'; role: string; id: string }
   | { name: 'survey' }
+  | { name: 'privacy' }
+  | { name: 'admin' }
 
 /** Which page a route shows. Unknown routes go to the landing page. */
 export function matchRoute(route: string): Page {
@@ -68,6 +70,38 @@ export function matchRoute(route: string): Page {
   if (parts[0] === 'buku' && parts.length === 1) return { name: 'notebook' }
   if (parts[0] === 'sertifikat' && parts[1]) return { name: 'certificate', id: parts[1] }
   if (parts[0] === 'survei' && parts.length === 1) return { name: 'survey' }
+  if (parts[0] === 'privasi' && parts.length === 1) return { name: 'privacy' }
+  if (parts[0] === 'admin' && parts.length === 1) return { name: 'admin' }
   if (parts[0] === 'panduan') return parts[1] && parts[2] ? { name: 'guide', role: parts[1], id: parts[2] } : { name: 'guides' }
   return { name: 'landing' }
+}
+
+/**
+ * The page as impact data records it: one path per page, whatever the URL
+ * said, so a typo or a made-up path doesn't become a row. Null for pages not
+ * counted (the admin dashboard).
+ */
+export function pagePath(page: Page): string | null {
+  switch (page.name) {
+    case 'landing':
+      return '/'
+    case 'map':
+      return '/main'
+    case 'play':
+      return `/main/${page.id}`
+    case 'notebook':
+      return '/buku'
+    case 'certificate':
+      return `/sertifikat/${page.id}`
+    case 'guides':
+      return '/panduan'
+    case 'guide':
+      return `/panduan/${page.role}/${page.id}`
+    case 'survey':
+      return '/survei'
+    case 'privacy':
+      return '/privasi'
+    case 'admin':
+      return null
+  }
 }

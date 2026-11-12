@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchRoute, toRoute } from './router'
+import { matchRoute, pagePath, toRoute } from './router'
 
 describe('toRoute', () => {
   const base = '/kotakata'
@@ -27,9 +27,23 @@ describe('matchRoute', () => {
     expect(matchRoute('/sertifikat/train')).toEqual({ name: 'certificate', id: 'train' })
     expect(matchRoute('/panduan')).toEqual({ name: 'guides' })
     expect(matchRoute('/panduan/guru/s1')).toEqual({ name: 'guide', role: 'guru', id: 's1' })
+    expect(matchRoute('/privasi')).toEqual({ name: 'privacy' })
+    expect(matchRoute('/admin')).toEqual({ name: 'admin' })
   })
   it('sends unknown routes to the landing page', () => {
     expect(matchRoute('/nope')).toEqual({ name: 'landing' })
     expect(matchRoute('/sertifikat')).toEqual({ name: 'landing' })
+  })
+})
+
+describe('pagePath', () => {
+  it('records one path per page', () => {
+    expect(pagePath(matchRoute('/'))).toBe('/')
+    expect(pagePath(matchRoute('/nope/whatever'))).toBe('/')
+    expect(pagePath(matchRoute('/main/s3'))).toBe('/main/s3')
+    expect(pagePath(matchRoute('/panduan/guru/s1'))).toBe('/panduan/guru/s1')
+  })
+  it('leaves the admin dashboard out', () => {
+    expect(pagePath(matchRoute('/admin'))).toBeNull()
   })
 })

@@ -52,7 +52,6 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     hint,
     setHint,
     quiz,
-    setQuiz,
     stars,
     entry,
     closeEntry,
@@ -88,6 +87,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
     openQuiz,
     showIntro,
     closeIntro,
+    closeQuiz,
     tourSeen,
     touring,
     setTouring,
@@ -606,7 +606,7 @@ export default function PhonePlayLayout({ s, landscape }: { s: PlaySession; land
           maxed={(id) => (stars[id] ?? 0) >= MAX_STARS}
           onAnswer={handleQuizAnswer}
           explain={EVERY_CARD.find((c) => c.id === quiz.terms[0])?.body[lang] ?? ''}
-          onClose={() => setQuiz(null)}
+          onClose={closeQuiz}
           sheet
         />
       )}

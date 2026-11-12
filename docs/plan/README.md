@@ -28,6 +28,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | Kata's look | Kata keeps its current robot sprite | 6 Nov 2026 |
 | Backend | A new Firebase project on the Blaze plan in asia-southeast2 (Jakarta), with a USD 10 a month budget alert. Created 8 Nov 2026 as `kotakata-prod`, with its Firestore database in asia-southeast2 and delete protection on. `kotakata-dev` is not created yet. | 6 Nov 2026 |
 | Feedback first | A 2-minute survey at `/survei` collects what players find confusing before the sessions are changed. Answers go to Firestore `feedback`. | 9 Nov 2026 |
+| Dashboard before accounts | Build order step 4 for guests: a consent card, anonymous page counts, the impact pipeline and an admin dashboard at `/admin` (03, section 6, "As built for guests"). Accounts come after. | 12 Nov 2026 |
 
 ## Still open
 

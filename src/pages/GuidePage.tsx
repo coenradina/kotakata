@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import SiteHeader from '../components/SiteHeader'
 import { guideFor, type Role, type SessionGuide } from '../guides'
 import { PRIVACY, REFLECTION, RUBRIC, RUBRIC_LEVELS, TIMELINE } from '../guides/shared'
@@ -7,6 +7,7 @@ import { t, type Key, type Lang } from '../i18n'
 import { useLang } from '../lang'
 import { Link } from '../router'
 import GuidesPage from './GuidesPage'
+import { impact } from '../impact'
 
 /**
  * One guide, for one role (docs/plan/02-sessions.md, section 10). Teachers
@@ -16,6 +17,10 @@ import GuidesPage from './GuidesPage'
 export default function GuidePage({ role, id }: { role: string; id: string }) {
   const { lang } = useLang()
   const guide = guideFor(id)
+  // Remembered on this browser only, so a later session_start can say the teacher guide came first.
+  useEffect(() => {
+    if (guide && role === 'guru') impact.rememberGuide(id)
+  }, [guide, role, id])
   if (!guide || (role !== 'guru' && role !== 'ortu')) return <GuidesPage />
   const sections = role === 'guru' ? teacherSections(guide, lang) : parentSections(guide, lang)
 

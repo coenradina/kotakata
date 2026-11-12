@@ -14,6 +14,8 @@ export const STATIC_ROUTES: string[] = [
   'buku',
   'panduan',
   'survei',
+  'privasi',
+  'admin',
   ...PLAY_IDS.map((id) => `main/${id}`),
   ...PLAY_IDS.map((id) => `sertifikat/${id}`),
   ...GUIDE_ROLES.flatMap((role) => GUIDE_IDS.map((id) => `panduan/${role}/${id}`)),
