@@ -72,17 +72,15 @@ export default function AdminPage() {
         {state.status === 'loading' && <p className="type-body">Memuat…</p>}
         {state.status === 'out' && (
           <Panel title="Khusus admin">
-            <p className="type-body">Masuk dengan akun Google yang sudah diberi akses admin.</p>
+            <p className="type-body">Masuk dengan akun Google.</p>
             <button onClick={signIn} className="pixel-btn mt-3 min-h-11 rounded border-2 border-ink bg-ink px-4 py-2 type-button text-cream">
               Masuk dengan Google
             </button>
           </Panel>
         )}
         {state.status === 'in' && !state.admin && (
-          <Panel title="Belum punya akses admin">
-            <p className="type-body">
-              Akun ini sudah masuk, tapi belum punya klaim admin. Jalankan di komputermu: <code className="type-mono">cd functions &amp;&amp; npm run set-admin -- {state.user.email}</code>, lalu muat ulang halaman ini.
-            </p>
+          <Panel title="Tidak ada akses">
+            <p className="type-body">Akun ini tidak punya akses ke halaman ini.</p>
           </Panel>
         )}
         {state.status === 'in' && state.admin && <Dashboard />}
