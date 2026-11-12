@@ -13,7 +13,8 @@ import { EVERY_CARD, store } from '../../store'
 import { useLang } from '../../lang'
 import { useRoute } from '../../router'
 import { MAX_STARS, pickQuestion, type Question, type RunContext } from '../../quiz/questions'
-import { track } from '../../impact/track'
+import { flushImpact, track } from '../../impact/track'
+import { activeMs, impact } from '../../impact'
 
 export type LogLine = { text: string; tone: 'info' | 'good' | 'bad' }
 
@@ -62,6 +63,14 @@ export function usePlaySession(sessionId: string) {
   // The list this session belongs to: the new sessions, or the classic levels.
   const { list: TRACK, track: trackName } = trackOf(levelId)
   useEffect(() => store.save({ lastSession: levelId }), [levelId])
+  // Impact data: when this session opened, in active time, and once per opening.
+  const sessionClock = useRef(0)
+  useEffect(() => {
+    sessionClock.current = activeMs()
+    track({ t: 'session_start', session: levelId, guide: impact.guideSeen(levelId) })
+  }, [levelId])
+  /** Per puzzle (`session:puzzle`): active time when it opened, and when its first run started. */
+  const puzzleClock = useRef<Record<string, { opened: number; firstRun: number | null }>>({})
   const [stagesDone, setStagesDone] = useState<StagesDone>(() => initial.puzzlesDone)
   const done = stagesDone[levelId] ?? []
   /**
@@ -179,11 +188,22 @@ export function usePlaySession(sessionId: string) {
       pickQuestion(foundRef.current, stars, recent, lastRun.current, Math.random)
     if (!q) return
     store.save({ quizRecent: [q.id, ...recent.filter((id) => id !== q.id)].slice(0, 6) })
+    quizAnswered.current = false
     setQuiz(q)
   }
 
+  // Whether the open question got an answer, so closing it without one counts as skipped.
+  const quizAnswered = useRef(false)
+  const closeQuiz = () => {
+    if (quiz && !quizAnswered.current) track({ t: 'quiz', session: level.id, q: quiz.id, result: 'skip' })
+    setQuiz(null)
+  }
+
   const handleQuizAnswer = (correct: boolean) => {
-    if (!correct || !quiz) return
+    if (!quiz || quizAnswered.current) return
+    quizAnswered.current = true
+    track({ t: 'quiz', session: level.id, q: quiz.id, result: correct ? 'right' : 'wrong' })
+    if (!correct) return
     setStars((prev) => {
       const next = { ...prev, ...store.load().stars }
       for (const id of quiz.terms) next[id] = Math.min(MAX_STARS, (next[id] ?? 0) + 1)
@@ -246,6 +266,7 @@ export function usePlaySession(sessionId: string) {
     setRunning(true)
     setOutcome(null)
     setLog([])
+    const runStartedAt = activeMs()
     const token = ++runToken.current
     cardsThisRun.current = 0
     // A new seed each run, so every run looks a little different.
@@ -266,8 +287,14 @@ export function usePlaySession(sessionId: string) {
       const n = (runsOn.current[puzzleKey] ?? 0) + 1
       runsOn.current[puzzleKey] = n
       const hint = rungOn.current[puzzleKey] ?? 0
-      track({ t: 'run', session: level.id, puzzle: stage.id, n, passed: stagePassed, prediction: answering ? guess.choice : null, outcome, hint })
-      if (stagePassed) track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint })
+      const clock = (puzzleClock.current[puzzleKey] ??= { opened: runStartedAt, firstRun: null })
+      clock.firstRun ??= runStartedAt
+      const ms = Math.round(activeMs() - clock.opened)
+      track({ t: 'run', session: level.id, puzzle: stage.id, n, passed: stagePassed, prediction: answering ? guess.choice : null, outcome, hint, ms })
+      if (stagePassed) {
+        track({ t: 'puzzle_pass', session: level.id, puzzle: stage.id, runs: n, hint, ms, msBuild: Math.round(clock.firstRun - clock.opened) })
+        flushImpact()
+      }
     }
     let levelDoneNow = false
 
@@ -310,6 +337,11 @@ export function usePlaySession(sessionId: string) {
       const wasMainDone = level.puzzles.every((st) => st.bonus || done.includes(st.id))
       if (mainDone && !wasMainDone) {
         // The whole mission is complete
+        if (!demo) {
+          const held = level.badgeDefs.filter((a) => earned.includes(a) || badges.has(`${level.id}:${a.id}`)).map((a) => a.id)
+          track({ t: 'session_complete', session: level.id, ms: Math.round(activeMs() - sessionClock.current), badges: held })
+          flushImpact()
+        }
         setLog((l) => [...l, { text: `${t(lang, 'winTitle')} ${t(lang, level.winKey, { acc })}`, tone: 'good' }])
         stageCelebrate()
         if (!foundRef.current.has(level.winCard)) await showCard(level.winCard)
@@ -341,6 +373,7 @@ export function usePlaySession(sessionId: string) {
     // Badge toasts come last, after any win card, so they aren't missed.
     // Several at once become one toast.
     if (earned.length) {
+      for (const a of earned) track({ t: 'badge', session: level.id, badge: a.id })
       const next = new Set([...store.load().badges, ...badges])
       for (const a of earned) next.add(`${level.id}:${a.id}`)
       if (earned.length === 1) pushToast(earned[0].icon, t(lang, earned[0].titleKey), t(lang, earned[0].descKey))
@@ -426,7 +459,12 @@ export function usePlaySession(sessionId: string) {
   useEffect(() => {
     if (!store.load().introSeen.includes(levelId)) setShowIntro(true)
   }, [levelId])
+  const introClock = useRef(activeMs())
+  useEffect(() => {
+    if (showIntro) introClock.current = activeMs()
+  }, [showIntro, levelId])
   const closeIntro = useCallback(() => {
+    track({ t: 'intro', session: levelId, ms: Math.round(activeMs() - introClock.current) })
     setShowIntro(false)
     const seen = store.load().introSeen
     if (!seen.includes(levelId)) store.save({ introSeen: [...seen, levelId] })
@@ -436,6 +474,15 @@ export function usePlaySession(sessionId: string) {
     setTourSeen(true)
     store.save({ tourDone: true })
   }, [])
+
+  // A puzzle opens for impact data once its task is on screen: after the intro, not under a well done.
+  useEffect(() => {
+    if (showIntro || cleared) return
+    const key = `${levelId}:${stage.id}`
+    if (puzzleClock.current[key]) return
+    puzzleClock.current[key] = { opened: activeMs(), firstRun: null }
+    track({ t: 'puzzle_start', session: levelId, puzzle: stage.id })
+  }, [levelId, stage.id, showIntro, cleared])
 
   // When the stage changes, the mission bar says so for a moment, so the new task gets read.
   const [freshStage, setFreshStage] = useState(false)
@@ -469,6 +516,7 @@ export function usePlaySession(sessionId: string) {
     cleared,
     closeEntry,
     closeIntro,
+    closeQuiz,
     continueStage,
     cycleSpeed,
     firstIntro,

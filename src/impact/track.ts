@@ -1,28 +1,23 @@
 // What the game reports for impact measurement (docs/plan/03-technical.md,
-// section 6). Nothing is sent anywhere yet: build step 4 adds the queue
-// and the backend. Until then events go to listeners only, which tests use.
+// section 6). Every event goes to the impact queue (src/impact/index.ts),
+// which drops play events unless the player said yes, and to listeners,
+// which tests use.
 
-export type ImpactEvent =
-  | { t: 'session_start'; session: string }
-  | {
-      t: 'run'
-      session: string
-      puzzle: string
-      /** Runs on this puzzle so far, this one included. */
-      n: number
-      passed: boolean
-      prediction: number | null
-      outcome: number | null
-      hint: 0 | 1 | 2 | 3
-    }
-  | { t: 'puzzle_pass'; session: string; puzzle: string; runs: number; hint: 0 | 1 | 2 | 3 }
+import type { ImpactEvent } from './schema'
+import { impact } from './index'
+
+export type { ImpactEvent }
 
 type Listener = (e: ImpactEvent) => void
 const listeners = new Set<Listener>()
 
 export function track(e: ImpactEvent) {
+  impact.track(e)
   for (const l of listeners) l(e)
 }
+
+/** Sends what's queued now, at the moments worth not losing (a pass, a finished session). */
+export const flushImpact = () => void impact.flush()
 
 /** Subscribes to every tracked event. Returns the unsubscribe function. */
 export function onTrack(l: Listener) {

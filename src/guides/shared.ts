@@ -58,9 +58,11 @@ export const PRIVACY: { guru: L[]; ortu: L[] } = {
     { id: 'Siswa bermain tanpa akun. Progres hanya tersimpan di perangkat yang dipakai.', en: 'Students play without accounts. Progress is saved only on the device they use.' },
     { id: 'Semua chat, nama, dan pengumuman di permainan adalah fiksi. Jangan minta siswa mengetik atau mengunggah chat, foto, atau data asli mereka.', en: "All chats, names and notices in the game are fictional. Don't ask students to type or upload their real chats, photos or data." },
     { id: 'Nama di sertifikat hanya dipakai di perangkat dan tidak dikirim ke mana pun.', en: "The name on a certificate is only used on the device and isn't sent anywhere." },
+    { id: 'Di awal sesi pertama, siswa ditanya apakah cara bermainnya boleh disimpan tanpa nama. Tidak ada jawaban yang dipilihkan. Rinciannya di halaman Privasi (/privasi).', en: 'At the start of the first session, students are asked whether their play may be saved without their name. Neither answer is preselected. The details are on the Privacy page (/privasi).' },
   ],
   ortu: [
     { id: 'Tidak perlu daftar. Progres anak hanya tersimpan di perangkat ini.', en: "No sign-up. Your child's progress is saved only on this device." },
     { id: 'Semua chat dan nama di permainan adalah fiksi. Anak tidak diminta memasukkan data pribadi.', en: 'All chats and names in the game are fictional. Your child is never asked for personal data.' },
+    { id: 'Di awal sesi pertama, anak ditanya apakah cara bermainnya boleh disimpan tanpa nama. Pilihan ini bisa diubah di halaman Privasi (/privasi).', en: 'At the start of the first session, your child is asked whether their play may be saved without their name. The choice can be changed on the Privacy page (/privasi).' },
   ],
 }

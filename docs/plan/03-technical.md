@@ -164,8 +164,8 @@ Added 9 Nov 2026, before the impact pipeline, to hear what players find confusin
 
 - **Where.** `/survei`, linked from the site header, the ⋯ menu while playing, the session-complete card, and a banner on the map once a stage is done (until the player answers).
 - **What it asks.** Role, the last session played, fun (1 to 5), clarity (1 to 5), which parts were confusing (a fixed list), whether they'd play the next session, and an optional essay of up to 600 characters. No name, account or device id.
-- **Where it goes.** Firestore `feedback` in `kotakata-prod`, written from the browser. `firestore.rules` allows creating an answer of exactly that shape with a server timestamp, and nothing else: no reads, updates or deletes from a browser. Answers are read in the Firebase console.
-- **Key.** The Firebase web key in `src/survey/send.ts` is public by design. It is restricted to `aastr.id` and `localhost` and to the Firestore API. The rules protect the data, not the key.
+- **Where it goes.** Firestore `feedback` in `kotakata-prod`, written from the browser. `firestore.rules` allows creating an answer of exactly that shape with a server timestamp, and nothing else: no reads, updates or deletes from a browser. Answers are read on the admin dashboard (`/admin`, see "As built" below) or in the Firebase console.
+- **Key.** The Firebase web key in `src/firebase.ts` is public by design. It is restricted to `aastr.id` and `localhost` and to the Firestore API. The rules protect the data, not the key.
 - **Not done yet.** App Check and a rate limit. A flood of answers is possible but costs little at Firestore prices, and each answer is capped in size by the rules.
 - **Exception to "no free text".** The essay is free text from children. The form tells them not to write names, schools or phone numbers, but it can't stop them. The legal review (section 9) needs to cover this, including how long answers are kept and who can read them.
 
@@ -192,6 +192,39 @@ Pre-tests and post-tests run only in groups where research is on.
 9. Raw batches can be exported as CSV by an admin-only callable function, for research. Every export is written to an audit log.
 
 **Optional:** the "Stream Firestore to BigQuery" extension on `impact_batches`, for deeper analysis.
+
+### As built for guests (12 Nov 2026)
+
+Step 4 of the build order, for guests only. Where it differs from the pipeline above, this is what runs.
+
+| Part | Where | Notes |
+| --- | --- | --- |
+| Event schema and server check | `src/impact/schema.ts` | Shared by the browser and the function. Events: `page`, `consent`, `session_start`, `intro`, `puzzle_start`, `run`, `puzzle_pass`, `session_complete`, `badge`, `quiz`. Unknown fields are dropped, durations are rounded to 15 s and capped at 30 min on the server. |
+| Consent card | `src/components/ConsentCard.tsx`, shown by `src/pages/PlayPage.tsx` | Before the first session. Both buttons look the same. |
+| Privacy page | `/privasi`, `src/pages/PrivacyPage.tsx` | What is sent, the choice, and "Hapus data saya". Linked from the landing page footer and the consent card. |
+| Queue | `src/impact/client.ts`, `src/impact/index.ts` | In `localStorage`, not IndexedDB: batches are tiny. Flushed every 60 s, after a pass or a finished session, when the page is hidden (`sendBeacon`) and when the device comes back online. Only `aastr.id` production builds send. |
+| Ingest | `ingestImpact` in `functions/src/index.ts` | One document per batch in `impact_batches`, with the day in Jakarta time and `expireAt` 24 months on. |
+| Report | `impactReport` in `functions/src/index.ts`, counting in `src/impact/report.ts` | Admin-only callable. Counts each day from the raw batches and `feedback`, and caches days older than two days in `impact_daily/{day}` as JSON text. Hides any cell under 5 players before returning. |
+| Dashboard | `/admin`, `src/pages/AdminPage.tsx` | Google sign-in. Needs the `admin` claim, set with `functions/scripts/set-admin.mjs`. Indonesian only. |
+
+**Differences from the plan, and why.**
+
+- **Page views and the consent answer go out for everyone, without a research ID.** Without them the dashboard can't count visitors or how many players say no, and the play numbers would have no denominator. They carry no ID, no time of day and no IP, so they are counts rather than anyone's path. The privacy page says so. The legal review should confirm this.
+- **No nightly `aggregateImpact`.** The report counts on request and caches finished days. At pilot volume this costs a few hundred reads per dashboard load and is simpler to change: bumping `AGG_VERSION` recounts every day.
+- **Player counts are per day.** A player who plays on two days counts twice. Most sessions are played in one sitting, so this rarely matters.
+- **"Read the teacher guide first"** is measured on one browser: the guide page remembers locally that it was opened, and `session_start` says so. A teacher who reads the guide on a laptop and runs the class on student devices isn't counted. Measuring that properly needs class accounts (step 6).
+- **The quiz exists only in the classic levels.** For Sessions 1 to 6, wrong predictions per puzzle play its part.
+- **Not built yet:** App Check (needs a reCAPTCHA Enterprise key), a rate limit, the CSV export and its audit log, and `rid`/`gk` for class and family members.
+
+**Deploy.** From the repository root, signed in to the Firebase CLI with access to `kotakata-prod`:
+
+1. `cd functions && npm install && cd ..`
+2. `firebase deploy --only functions,firestore`. This also turns on the TTL policy on `impact_batches.expireAt` (`firestore.indexes.json`).
+3. In the Firebase console: Authentication → Sign-in method → enable Google, and add `aastr.id` to the authorised domains.
+4. In Google Cloud → APIs & Services → Credentials, allow the browser key to call the Identity Toolkit API and the Token Service API, next to Firestore.
+5. Sign in once on `https://aastr.id/kotakata/admin`, then on your own computer: `gcloud auth application-default login`, and `cd functions && npm run set-admin -- <your email>`. Reload the dashboard.
+
+**Testing.** `src/impact/impact.test.ts` covers the schema, the counting and the browser queue. The functions run in the emulator with `firebase emulators:start --only functions,firestore,auth --project demo-kotakata`.
 
 ### Retention
 
@@ -406,7 +439,7 @@ Existing `localStorage` progress is migrated once, so that notebook cards a play
 | 1 | Refactor: router, store interface, `Session` and `Puzzle` model, notebook instead of pop-ups, prediction card, three-rung hints | None |
 | 2 | Landing page, session map, certificate | 1 |
 | 3 | Session 1 content, model and balance tests | 1 |
-| 4 | Impact pipeline for guests: queue, `ingestImpact`, aggregates, admin dashboard v1 | 1 |
+| 4 | Impact pipeline for guests: queue, `ingestImpact`, aggregates, admin dashboard v1. *Built 12 Nov 2026, see section 6, "As built for guests".* | 1 |
 | 5 | Sessions 3 and 5 | 3 |
 | 6 | Accounts: educator and parent sign-in, groups, join flow, dashboards | 4 |
 | 7 | Guides for Sessions 1, 3 and 5, both roles. Printable unplugged packs. | 3, 5 |

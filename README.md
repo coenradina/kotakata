@@ -57,6 +57,8 @@ New terms go into **Kata's notebook** (`/buku`), with the moment the player foun
 | `/kotakata/sertifikat/<id>` | Certificate for a finished level, as PNG or print. The name typed on it stays in the page and is never saved. |
 | `/kotakata/panduan` | Teacher and parent guides for every playable session |
 | `/kotakata/panduan/<guru\|ortu>/<session>` | One guide. It prints, with an appendix of unplugged cards built from the game's own data. |
+| `/kotakata/privasi` | What Kotakata sends, the player's choice, and "delete my data" |
+| `/kotakata/admin` | Admin dashboard: traffic, play, quiz and survey numbers. Google sign-in with the `admin` claim. |
 
 The build copies `index.html` to `404.html`, so GitHub Pages serves the app for every path.
 

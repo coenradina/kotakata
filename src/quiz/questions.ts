@@ -597,3 +597,11 @@ export function shouldQuiz(opts: { foundCount: number; showedNewCard: boolean; q
   if (opts.foundCount < 2 || opts.showedNewCard || opts.quizzedLastRun) return false
   return opts.roll < QUIZ_CHANCE
 }
+
+/** A question's prompt (or sentence), for the admin dashboard. Null for an id that no longer exists. */
+export function quizText(id: string, lang: 'id' | 'en'): string | null {
+  const choice = CHOICES.find((q) => q.id === id)
+  if (choice) return choice.prompt[lang]
+  const blank = BLANKS.find((q) => q.id === id)
+  return blank ? blank.sentence[lang] : null
+}

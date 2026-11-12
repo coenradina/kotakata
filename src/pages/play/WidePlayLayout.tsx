@@ -36,6 +36,7 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
     badges,
     closeEntry,
     closeIntro,
+    closeQuiz,
     cycleSpeed,
     firstIntro,
     speed,
@@ -73,7 +74,6 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
     setHint,
     setLevelDone,
     setMenuOpen,
-    setQuiz,
     setTouring,
     showIntro,
     stage,
@@ -311,7 +311,7 @@ export default function WidePlayLayout({ s, tall = false }: { s: PlaySession; ta
           maxed={(id) => (stars[id] ?? 0) >= MAX_STARS}
           onAnswer={handleQuizAnswer}
           explain={EVERY_CARD.find((c) => c.id === quiz.terms[0])?.body[lang] ?? ''}
-          onClose={() => setQuiz(null)}
+          onClose={closeQuiz}
         />
       )}
 

@@ -1,8 +1,10 @@
 rules_version = '2';
 
 // Browsers may only add survey answers (src/survey/questions.ts). Nobody can
-// read, change or delete anything from the browser; answers are read in the
-// Firebase console.
+// read, change or delete anything from the browser. Impact data
+// (`impact_batches`, `impact_daily`) has no rule here, so browsers can't
+// touch it at all: only the functions in functions/src/index.ts read and
+// write it, and the admin dashboard gets totals through `impactReport`.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /feedback/{id} {

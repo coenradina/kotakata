@@ -1,0 +1,21 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "impact_batches",
+      "fieldPath": "events",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "impact_batches",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "impact_daily",
+      "fieldPath": "json",
+      "indexes": []
+    }
+  ]
+}

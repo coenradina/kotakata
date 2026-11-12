@@ -1,12 +1,23 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { execSync } from 'node:child_process'
 import { STATIC_ROUTES } from './src/staticRoutes'
+
+/** The commit this build is from, sent with impact data so numbers can be split by release. */
+function appVersion() {
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return 'dev'
+  }
+}
 
 // Served from https://aastr.id/kotakata/ via GitHub Pages.
 export default defineConfig({
   base: '/kotakata/',
   plugins: [react(), tailwindcss(), productionCsp(), spaFallback()],
+  define: { __APP_VERSION__: JSON.stringify(appVersion()) },
   build: { chunkSizeWarningLimit: 2000 },
 })
 
@@ -14,12 +25,15 @@ export default defineConfig({
 function productionCsp(): Plugin {
   const csp = [
     "default-src 'self'",
-    "script-src 'self'",
+    // apis.google.com and the auth domain frame: Google sign-in on /admin.
+    "script-src 'self' https://apis.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob:",
-    // Firestore, for survey answers (src/survey/send.ts).
-    "connect-src 'self' data: blob: https://firestore.googleapis.com",
+    // Firestore for survey answers (src/survey/send.ts), the impact functions
+    // (src/impact/index.ts, src/pages/AdminPage.tsx) and Firebase Auth.
+    "connect-src 'self' data: blob: https://firestore.googleapis.com https://asia-southeast2-kotakata-prod.cloudfunctions.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com",
+    "frame-src https://kotakata-prod.firebaseapp.com",
     "media-src 'self' data: blob:",
     "worker-src 'self' blob:",
     "object-src 'none'",
