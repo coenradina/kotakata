@@ -10,7 +10,7 @@ import { isHidden, jakartaDay, medianMs, type Hidden, type Hist, type PuzzleAgg,
 
 // The admin dashboard (docs/plan/03-technical.md, section 6). Only the
 // Kotakata admin reads it, so it is in Indonesian only. Every number comes
-// from the `impactReport` function, which hides cells under 5 players.
+// from the `impactReport` function, as totals without research IDs.
 
 type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User; admin: boolean }
 
