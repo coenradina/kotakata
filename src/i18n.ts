@@ -748,8 +748,8 @@ const dict = {
     en: 'Your name, email, a stored IP address, the blocks you build, words you type in the game, and the name on a certificate.',
   },
   pvWho: {
-    id: 'Hanya admin Kotakata yang bisa melihat angkanya, dan hanya dalam bentuk jumlah. Angka dari kurang dari 5 pemain disembunyikan. Data mentah dihapus otomatis setelah 24 bulan.',
-    en: 'Only the Kotakata admin can see the numbers, and only as totals. Numbers from fewer than 5 players are hidden. Raw data is deleted automatically after 24 months.',
+    id: 'Hanya admin Kotakata yang bisa melihat angkanya, dan hanya dalam bentuk jumlah, tanpa kode acak pemain. Data mentah dihapus otomatis setelah 24 bulan.',
+    en: "Only the Kotakata admin can see the numbers, and only as totals, without players' random codes. Raw data is deleted automatically after 24 months.",
   },
   pvChoice: { id: 'Pilihanmu sekarang:', en: 'Your choice now:' },
   pvYes: { id: 'Ya, cara bermainku boleh disimpan', en: 'Yes, my play may be saved' },
