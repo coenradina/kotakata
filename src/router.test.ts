@@ -31,6 +31,7 @@ describe('matchRoute', () => {
     expect(matchRoute('/admin')).toEqual({ name: 'admin' })
     expect(matchRoute('/masuk')).toEqual({ name: 'signin' })
     expect(matchRoute('/guru')).toEqual({ name: 'educator' })
+    expect(matchRoute('/guru/ajukan')).toEqual({ name: 'classRequest' })
     expect(matchRoute('/ortu')).toEqual({ name: 'parent' })
     expect(matchRoute('/akun')).toEqual({ name: 'account' })
   })

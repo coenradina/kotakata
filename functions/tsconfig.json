@@ -9,5 +9,5 @@
     "isolatedModules": true,
     "types": ["node"]
   },
-  "include": ["src", "../src/impact/schema.ts", "../src/impact/report.ts", "../src/account/schema.ts"]
+  "include": ["src", "../src/impact/schema.ts", "../src/impact/report.ts", "../src/account/schema.ts", "../src/account/classRequest.ts"]
 }

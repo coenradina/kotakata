@@ -7,7 +7,9 @@ import { ALL } from '../levels'
 import { quizText } from '../quiz/questions'
 import { Bars, Columns, type BarRow } from '../components/AdminCharts'
 import { useAccount } from '../account/AccountProvider'
-import { listAdmins, setAdmin } from '../account/client'
+import { listAdmins, loadRequestQueue, reviewClassRequest, setAdmin } from '../account/client'
+import { daysFrom, jakartaToday, type ClassRequest } from '../account/classRequest'
+import { dayLabel, sessionLabel } from '../account/requestText'
 import { isHidden, jakartaDay, medianMs, type Hidden, type Hist, type PuzzleAgg, type Report, type SessionAgg } from '../impact/report'
 
 // The admin dashboard (docs/plan/03-technical.md, section 6). Only the
@@ -86,6 +88,7 @@ export default function AdminPage() {
             <p className="type-body">Akun ini tidak punya akses ke halaman ini.</p>
           </Panel>
         )}
+        {state.status === 'in' && state.admin && <RequestsPanel />}
         {state.status === 'in' && state.admin && <Dashboard />}
         {state.status === 'in' && state.admin && <AdminsPanel />}
       </main>
@@ -812,7 +815,7 @@ function AdminsPanel() {
   }
   return (
     <Panel title="Admin">
-      <p className="type-body">Admin bisa melihat dashboard ini dan, nanti, menyetujui pengajuan kelas. Orangnya harus sudah pernah masuk sekali.</p>
+      <p className="type-body">Admin bisa melihat dashboard ini, menyetujui pengajuan kelas, dan mendapat email setiap ada pengajuan baru. Orangnya harus sudah pernah masuk sekali.</p>
       <ul className="mt-3 space-y-2">
         {admins?.map((a) => (
           <li key={a.uid} className="flex flex-wrap items-center gap-3 rounded border-2 border-ink bg-cream p-3 type-body">
@@ -847,5 +850,129 @@ function AdminsPanel() {
         </p>
       )}
     </Panel>
+  )
+}
+
+// ---------- class requests ----------
+
+const MODE_ID: Record<string, string> = { offline: 'Tatap muka', online: 'Daring' }
+const WHO_ID: Record<string, string> = { students: 'siswa', teachers: 'guru', parents: 'orang tua' }
+
+/** How soon the class starts, marked when it is close or already past. */
+function StartsIn({ start }: { start: string }) {
+  const n = daysFrom(jakartaToday(Date.now()), start)
+  if (n < 0) return <span className="rounded border border-ink bg-maroon-tint px-2 py-0.5 type-micro">Sudah lewat {-n} hari</span>
+  if (n <= 3) return <span className="rounded border border-ink bg-amber-tint px-2 py-0.5 type-micro">{n === 0 ? 'Mulai hari ini' : `Mulai ${n} hari lagi`}</span>
+  return <span className="type-caption text-ink-muted">Mulai {n} hari lagi</span>
+}
+
+/** Pending class requests, oldest first (docs/plan/07-accounts-and-classes.md, section 5). */
+function RequestsPanel() {
+  const [queue, setQueue] = useState<{ pending: ClassRequest[]; approved: ClassRequest[] } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const reload = () =>
+    loadRequestQueue()
+      .then(setQueue)
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+  useEffect(() => {
+    void reload()
+  }, [])
+  return (
+    <Panel title={`Pengajuan kelas${queue ? ` (${queue.pending.length} menunggu)` : ''}`}>
+      {!queue && !error && <p className="type-body">Memuat…</p>}
+      {error && (
+        <p role="alert" className="rounded border-2 border-maroon bg-maroon-tint p-3 type-body">
+          Gagal memuat: {error}
+        </p>
+      )}
+      {queue?.pending.length === 0 && <p className="type-body">Tidak ada pengajuan yang menunggu.</p>}
+      <ul className="space-y-4">
+        {queue?.pending.map((r) => (
+          <PendingRequest key={r.id} r={r} onDone={reload} />
+        ))}
+      </ul>
+      {queue && queue.approved.length > 0 && (
+        <>
+          <h3 className="mt-6 mb-2 type-subheading">Disetujui, kelas belum ditutup ({queue.approved.length})</h3>
+          <ul className="space-y-2">
+            {queue.approved.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center gap-2 rounded border-2 border-ink bg-cream p-3 type-body">
+                <span className="flex-1">
+                  {r.institution}, {r.city}
+                </span>
+                <span className="type-caption text-ink-muted">
+                  {r.ownerName || 'akun dihapus'} · {dayLabel('id', r.start)} – {dayLabel('id', r.end)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Panel>
+  )
+}
+
+function PendingRequest({ r, onDone }: { r: ClassRequest; onDone: () => Promise<void> }) {
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const decide = async (approve: boolean) => {
+    if (!approve && !window.confirm(`Tolak pengajuan ${r.institution}? Pendidiknya akan dapat email${note.trim() ? ' dengan catatanmu' : ''}.`)) return
+    setBusy(true)
+    setError(null)
+    try {
+      await reviewClassRequest(r.id, approve, note)
+      await onDone()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setBusy(false)
+    }
+  }
+  return (
+    <li className="space-y-3 rounded border-2 border-ink bg-cream p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex-1 type-subheading">
+          {r.institution}, {r.city}
+        </span>
+        <StartsIn start={r.start} />
+      </div>
+      <dl className="grid gap-1 type-body sm:grid-cols-[max-content_1fr]">
+        <dt className="type-label">Pendidik</dt>
+        <dd>
+          {r.ownerName || 'akun dihapus'}
+          {r.ownerEmail && <span className="text-ink-muted"> · {r.ownerEmail}</span>}
+        </dd>
+        <dt className="type-label">Tanggal</dt>
+        <dd>
+          {dayLabel('id', r.start)} – {dayLabel('id', r.end)}
+        </dd>
+        <dt className="type-label">Peserta</dt>
+        <dd>
+          {r.count} ({r.participants.map((p) => WHO_ID[p] ?? p).join(', ')}){r.grades.length > 0 && `, kelas ${r.grades.join(', ')}`} · {MODE_ID[r.mode] ?? r.mode}
+        </dd>
+        <dt className="type-label">Sesi</dt>
+        <dd>{r.sessions.map((s) => sessionLabel('id', s)).join(', ')}</dd>
+        <dt className="type-label">Diajukan</dt>
+        <dd>{r.createdAt ? new Date(r.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }) : '–'}</dd>
+      </dl>
+      <p className="whitespace-pre-wrap rounded border border-ink bg-white p-3 type-body">{r.purpose}</p>
+      <label className="block space-y-1">
+        <span className="type-label">Catatan untuk pendidik (boleh kosong, ikut di email)</span>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={600} rows={2} className="w-full rounded border-2 border-ink bg-white px-3 py-2 type-body" />
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => decide(true)} disabled={busy} className="pixel-btn min-h-11 rounded border-2 border-ink bg-ink px-4 py-2 type-button text-cream disabled:opacity-60">
+          Setujui
+        </button>
+        <button onClick={() => decide(false)} disabled={busy} className="pixel-btn min-h-11 rounded border-2 border-ink bg-white px-4 py-2 type-button hover:bg-parchment disabled:opacity-60">
+          Tolak
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="type-body text-maroon">
+          {error}
+        </p>
+      )}
+    </li>
   )
 }

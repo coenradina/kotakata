@@ -3,7 +3,8 @@ rules_version = '2';
 // Browsers may add survey answers (src/survey/questions.ts), read and edit
 // parts of their own account, and manage a parent's child profiles
 // (src/account/schema.ts). Accounts are created by `completeSignup`, so
-// `role`, `access` and the consent times never come from a browser. Impact data
+// `role`, `access` and the consent times never come from a browser. Class
+// requests and classes are read-only here (src/account/classRequest.ts). Impact data
 // (`impact_batches`, `impact_daily`) has no rule here, so browsers can't
 // touch it at all: only the functions in functions/src/index.ts read and
 // write it, and the admin dashboard gets totals through `impactReport`.
@@ -28,6 +29,18 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/users/$(uid)).data.role == 'parent'
           && validChild(request.resource.data);
       }
+    }
+
+    // Class requests are written only by functions (functions/src/classes.ts),
+    // which count the limit. The educator who sent one and admins read it.
+    match /classRequests/{id} {
+      allow read: if request.auth != null && (resource.data.ownerUid == request.auth.uid || request.auth.token.admin == true);
+    }
+
+    // A class is read by its educator. `codes`, which maps a class code to its
+    // class, has no rule: only functions read it.
+    match /classes/{id} {
+      allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;
     }
   }
 

@@ -4,7 +4,8 @@
 // - completeSignup: writes users/{uid} once, from the sign-up form, with
 //   session access for parents. The browser can't create that document, so
 //   `access` and the consent timestamps can't be forged.
-// - deleteAccount: removes the person's document, child profiles and sign-in.
+// - deleteAccount: removes the person's document, child profiles and sign-in,
+//   and their name and email from their class requests.
 // - listAdmins, setAdmin: superadmins manage who has the admin claim.
 
 import './setup'
@@ -55,13 +56,22 @@ export const completeSignup = onCall(async (req) => {
 
 export const deleteAccount = onCall(async (req) => {
   const uid = signedIn(req)
+  // Class requests are kept 24 months for the record, but without who sent
+  // them; a pending one is cancelled, since nobody is left to run the class.
+  const requests = await db().collection('classRequests').where('ownerUid', '==', uid).get()
+  const batch = db().batch()
+  for (const r of requests.docs) {
+    const pending = r.get('status') === 'pending'
+    batch.update(r.ref, { ownerName: '', ownerEmail: null, ...(pending ? { status: 'cancelled', active: false, cancelledAt: FieldValue.serverTimestamp() } : {}) })
+  }
+  await batch.commit()
   await db().recursiveDelete(db().doc(`users/${uid}`))
   await getAuth().deleteUser(uid)
   return { deleted: true }
 })
 
-export const listAdmins = onCall(async (req) => {
-  superadmin(req)
+/** Every account with the admin claim. Also used to email admins about class requests. */
+export async function allAdmins() {
   const admins: { email: string | null; uid: string; superadmin: boolean }[] = []
   let page: string | undefined
   do {
@@ -72,6 +82,11 @@ export const listAdmins = onCall(async (req) => {
     page = res.pageToken
   } while (page)
   return admins
+}
+
+export const listAdmins = onCall(async (req) => {
+  superadmin(req)
+  return allAdmins()
 })
 
 export const setAdmin = onCall(async (req) => {

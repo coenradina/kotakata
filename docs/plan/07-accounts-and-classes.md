@@ -1,6 +1,6 @@
 # Accounts, classes and access
 
-Status: plan, 13 November 2026. Phase 1 (accounts) is built; see section 12.
+Status: plan, 13 November 2026. Phases 1 (accounts) and 2 (class requests) are built; see section 12.
 
 Where this file and `03-technical.md` differ (sections 3, 4, 5 and 7, and the family groups in `01-learning-path.md`), this file wins. The impact pipeline in 03, section 6, stays as built.
 
@@ -85,7 +85,7 @@ The training question is asked again in the post-class feedback (section 7). Tha
 
 **Limit**: the callable `requestClass` counts the educator's `pending` and `approved`-but-not-`closed` requests in a transaction and refuses a fourth. Firestore rules can't count, so requests are only created through this function.
 
-**Email**: a Firestore trigger on a new request emails every admin a summary and a link to `/admin`. The decision is emailed back to the educator. Mail goes through Gmail SMTP with an app password kept in Secret Manager; a transactional service can replace it if volume grows.
+**Email**: a Firestore trigger on a new request emails every admin a summary and a link to `/admin`. The decision is emailed back to the educator. Mail goes out over SMTP from an aastr.id mailbox at Hostinger, with its password kept in Secret Manager; a transactional service can replace it if volume grows.
 
 **Review**: `/admin` gets a request queue, oldest first, showing the dates (a request whose start date is close or past is marked). The callable `reviewClassRequest(id, approve, note)` is admin-only. Approving creates the class and its code, and grants the educator session access if they didn't have it.
 
@@ -154,7 +154,7 @@ Each phase is its own PR and can be deployed on its own. The lock comes last: sw
 | Phase | Delivers | Owner tasks |
 | --- | --- | --- |
 | 1. Accounts | Sign-in, role and the three questions, consent and opt-ins, `/guru` onboarding checklist, parent child profiles, superadmin and admin claims, `setAdmin` | Turn on email-link sign-in; make your account superadmin |
-| 2. Requests | Request form, `requestClass` with the limit, admin queue and `reviewClassRequest`, emails | Create the Gmail app password and store it in Secret Manager; deploy functions |
+| 2. Requests | Request form, `requestClass` with the limit, admin queue and `reviewClassRequest`, emails | Create the sending mailbox and store its password in Secret Manager; deploy functions |
 | 3. Classes | Class link, `joinClass`, server progress for members and child profiles, monitoring page | Deploy functions and rules |
 | 4. Feedback | Post-class form, class closing, feedback in the dashboard, mailing list CSV export | Deploy functions |
 | 5. Lock | Access checks on routes, the map and the landing page; locked page with the way in; `/privasi` and guide updates | Merge last |
@@ -186,3 +186,31 @@ Child profiles are stored as `users/{uid}/children/{c1…c6}` rather than a list
 4. Merge the PR, which publishes the pages.
 
 **Testing locally.** `firebase emulators:start --only functions,firestore,auth --project demo-kotakata`, then `VITE_EMULATORS=1 pnpm dev`. Email sign-in links appear in the Auth emulator at `http://127.0.0.1:9099/emulator/v1/projects/demo-kotakata/oobCodes`.
+
+### Phase 2: class requests (13 Nov 2026)
+
+| Part | Where |
+| --- | --- |
+| The form's rules, dates and class codes, shared by browser and functions | `src/account/classRequest.ts` |
+| Pages | `/guru/ajukan` (the form, prefilled with the city and grades from sign-up), `/guru` (the educator's requests, with cancel), `/admin` (pending requests oldest first, approve or reject with a note) |
+| Functions | `requestClass`, `cancelClassRequest`, `reviewClassRequest`, and the trigger `mailClassRequest` in `functions/src/classes.ts` |
+| Rules | `classRequests` read by the owner and admins; `classes` read by the owner; no browser writes either, and `codes` has no rule |
+| Retention | TTL on `expireAt`: requests 24 months after they are sent, classes and codes 30 days after the end date |
+
+Differences from the plan, and choices it left open:
+
+- **Active** is a field on the request (`active`), set false on cancel or reject; phase 4 sets it false when the class closes. `requestClass` counts `active == true` in a transaction that also writes `users/{uid}.lastRequestAt`, so two requests sent at once can't both slip under the limit.
+- A request may start up to 180 days ahead. The end date is 7 to 31 days after the start.
+- Approving creates `classes/{id}` and `codes/{code}` now, but nothing reads a code until `joinClass` in phase 3, so `/guru` doesn't show a link yet. A class's `status` is `active` until phase 4 closes it; whether it is open is worked out from its dates.
+- Deleting an account removes the name and email from that person's requests and cancels any still pending. The requests stay for the 24 months.
+- Mail goes over SMTP from an aastr.id mailbox at Hostinger rather than Gmail: the sender is the site's own domain, which already has SPF and DKIM for Hostinger, and it needs no Google app password. One message per address, so admins don't see each other's. A failed mail is logged and doesn't undo the request. In the emulator mail is only logged. Admin mail is in Indonesian; the decision goes out in the educator's language.
+
+**Deploy, in this order:**
+
+1. In Hostinger hPanel, create a mailbox for sending, such as `kotakata@aastr.id`. aastr.id already has SPF, DKIM and DMARC for Hostinger mail, so nothing changes in DNS.
+2. `firebase functions:secrets:set SMTP_PASSWORD --project kotakata-prod` and paste the mailbox password.
+3. `cd functions && npm ci && cd ..`, then `firebase deploy --only functions,firestore --project kotakata-prod`. The first deploy asks for `MAIL_FROM`, the mailbox address, and saves it in `functions/.env.kotakata-prod`. `SMTP_HOST` and `SMTP_PORT` default to `smtp.hostinger.com` and 465; set them there to move to another provider.
+4. Merge the PR.
+
+
+**Testing locally.** As in phase 1. The Firestore emulator needs Java 21 or newer. Class request mail is written to the functions log instead of being sent. The emulator also logs a Secret Manager 403 for `SMTP_PASSWORD`, because the demo project has no secrets; it is harmless.

@@ -5,6 +5,7 @@
 import type { User } from 'firebase/auth'
 import { FUNCTIONS_REGION, firebaseApp } from '../firebase'
 import type { Child, Profile, SignupInput } from './schema'
+import type { ClassRequest, ClassRequestInput } from './classRequest'
 
 async function authMod() {
   const [app, mod] = await Promise.all([firebaseApp(), import('firebase/auth')])
@@ -155,6 +156,62 @@ export async function removeChild(uid: string, id: string) {
   const { db, mod } = await store()
   await mod.deleteDoc(mod.doc(db, 'users', uid, 'children', id))
 }
+
+// ---------- class requests ----------
+
+function toRequest(id: string, d: Record<string, unknown>): ClassRequest {
+  return {
+    id,
+    institution: d.institution as string,
+    city: d.city as string,
+    mode: d.mode as ClassRequest['mode'],
+    participants: (d.participants as ClassRequest['participants']) ?? [],
+    count: d.count as number,
+    grades: (d.grades as ClassRequest['grades']) ?? [],
+    sessions: (d.sessions as ClassRequest['sessions']) ?? [],
+    start: d.start as string,
+    end: d.end as string,
+    purpose: d.purpose as string,
+    ownerUid: d.ownerUid as string,
+    ownerName: (d.ownerName as string) ?? '',
+    ownerEmail: (d.ownerEmail as string | null) ?? null,
+    status: d.status as ClassRequest['status'],
+    active: d.active === true,
+    createdAt: ms(d.createdAt as Stamp),
+    reviewedAt: ms(d.reviewedAt as Stamp),
+    note: (d.note as string) ?? '',
+    classId: (d.classId as string | null) ?? null,
+  }
+}
+
+/** Newest first. */
+const byNewest = (a: ClassRequest, b: ClassRequest) => (b.createdAt ?? Infinity) - (a.createdAt ?? Infinity)
+
+/** The educator's own requests, newest first. */
+export async function loadMyRequests(uid: string): Promise<ClassRequest[]> {
+  const { db, mod } = await store()
+  const snap = await mod.getDocs(mod.query(mod.collection(db, 'classRequests'), mod.where('ownerUid', '==', uid)))
+  return snap.docs.map((d) => toRequest(d.id, d.data())).sort(byNewest)
+}
+
+/** For admins: pending requests, oldest first, and approved classes still running, newest first. */
+export async function loadRequestQueue(): Promise<{ pending: ClassRequest[]; approved: ClassRequest[] }> {
+  const { db, mod } = await store()
+  const col = mod.collection(db, 'classRequests')
+  const [pending, approved] = await Promise.all([
+    mod.getDocs(mod.query(col, mod.where('status', '==', 'pending'))),
+    mod.getDocs(mod.query(col, mod.where('status', '==', 'approved'), mod.where('active', '==', true))),
+  ])
+  return {
+    pending: pending.docs.map((d) => toRequest(d.id, d.data())).sort((a, b) => byNewest(b, a)),
+    approved: approved.docs.map((d) => toRequest(d.id, d.data())).sort(byNewest),
+  }
+}
+
+export const requestClass = (input: ClassRequestInput) => call<ClassRequestInput, { id: string }>('requestClass', input)
+export const cancelClassRequest = (id: string) => call<{ id: string }, { status: string }>('cancelClassRequest', { id })
+export const reviewClassRequest = (id: string, approve: boolean, note: string) =>
+  call<{ id: string; approve: boolean; note: string }, { status: 'approved' | 'rejected'; classId: string | null }>('reviewClassRequest', { id, approve, note })
 
 export const listAdmins = () => call<null, { email: string | null; uid: string; superadmin: boolean }[]>('listAdmins', null)
 export const setAdmin = (email: string, admin: boolean) => call<{ email: string; admin: boolean }, { email: string; admin: boolean }>('setAdmin', { email, admin })
