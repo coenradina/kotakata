@@ -52,6 +52,8 @@ This document covers architecture, roles, data, the impact pipeline, privacy, qu
 
 ## 3. Routes
 
+> For accounts, classes and access, [07-accounts-and-classes.md](07-accounts-and-classes.md) replaces this section where they differ (13 Nov 2026).
+
 | Path | Who | Page |
 | --- | --- | --- |
 | `/kotakata/` | Everyone | Landing |
@@ -70,6 +72,8 @@ This document covers architecture, roles, data, the impact pipeline, privacy, qu
 Guides are public, because a teacher should be able to read one before signing up. Dashboards check roles on the client and in Firestore rules.
 
 ## 4. Roles and permissions
+
+> For accounts, classes and access, [07-accounts-and-classes.md](07-accounts-and-classes.md) replaces this section where they differ (13 Nov 2026).
 
 | Capability | Guest | Student | Educator | Parent | Admin |
 | --- | --- | --- | --- | --- | --- |
@@ -90,6 +94,8 @@ Guides are public, because a teacher should be able to read one before signing u
 Educators and parents share one code path. The difference is `users/{uid}.role`. That field picks which guide, which wording ("kelas"/"siswa" or "keluarga"/"anak") and which group limits apply.
 
 ## 5. Authentication
+
+> For accounts, classes and access, [07-accounts-and-classes.md](07-accounts-and-classes.md) replaces this section where they differ (13 Nov 2026).
 
 | Role | How they sign in | Notes |
 | --- | --- | --- |
@@ -236,6 +242,8 @@ Step 4 of the build order, for guests only. Where it differs from the pipeline a
 | Export audit log | 24 months |
 
 ## 7. Data model
+
+> For accounts, classes and access, [07-accounts-and-classes.md](07-accounts-and-classes.md) replaces this section where they differ (13 Nov 2026).
 
 ```text
 users/{uid}                  role: 'educator'|'parent', displayName, email, lang, createdAt, disabled
