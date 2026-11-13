@@ -157,7 +157,19 @@ async function send(mail: Mail) {
   // Port 465 speaks TLS from the start; 587 upgrades with STARTTLS.
   const transport = createTransport({ host: SMTP_HOST.value(), port, secure: port === 465, auth: { user: from, pass: SMTP_PASSWORD.value() } })
   // One message per address, so admins don't see each other's addresses.
-  for (const to of mail.to) await transport.sendMail({ from: `Kotakata <${from}>`, to, subject: mail.subject, text: mail.text })
+  for (const to of mail.to) {
+    const info = await transport.sendMail({ from: `Kotakata <${from}>`, to, subject: mail.subject, text: mail.text })
+    // The SMTP server's reply, so a mail that never arrives can be traced to
+    // whether the server took it. Only the recipient's domain is logged.
+    logger.info('mail sent', {
+      subject: mail.subject,
+      toDomain: to.split('@')[1] ?? '',
+      messageId: info.messageId,
+      response: info.response,
+      accepted: info.accepted.length,
+      rejected: info.rejected.length,
+    })
+  }
 }
 
 function adminMail(r: Record<string, unknown> & ClassRequestInput, to: string[]): Mail {
