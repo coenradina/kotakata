@@ -7,14 +7,14 @@
 // - reviewClassRequest: an admin approves or rejects. Approving creates the
 //   class and its code, and gives the educator session access.
 // - mailClassRequest: emails every admin about a new request, and the
-//   educator about the decision. Mail goes through Gmail SMTP; in the emulator
-//   it is only logged.
+//   educator about the decision. Mail goes out over SMTP from the aastr.id
+//   mailbox at Hostinger; in the emulator it is only logged.
 
 import './setup'
 import { randomBytes } from 'node:crypto'
 import { HttpsError, onCall, type CallableRequest } from 'firebase-functions/v2/https'
 import { onDocumentWritten } from 'firebase-functions/v2/firestore'
-import { defineSecret, defineString } from 'firebase-functions/params'
+import { defineInt, defineSecret, defineString } from 'firebase-functions/params'
 import { logger } from 'firebase-functions'
 import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore'
 import { createTransport } from 'nodemailer'
@@ -30,9 +30,11 @@ const KEEP_REQUEST_MS = 730 * DAY_MS
 const KEEP_CLASS_MS = 30 * DAY_MS
 const SITE = 'https://aastr.id/kotakata'
 
-/** The Gmail account mail is sent from, and its app password (Secret Manager). */
-const MAIL_FROM = defineString('MAIL_FROM', { description: 'Gmail address that sends class request emails' })
-const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD')
+/** The mailbox mail is sent from, its SMTP server, and its password (Secret Manager). */
+const MAIL_FROM = defineString('MAIL_FROM', { description: 'Mailbox that sends class request emails, e.g. kotakata@aastr.id' })
+const SMTP_HOST = defineString('SMTP_HOST', { default: 'smtp.hostinger.com' })
+const SMTP_PORT = defineInt('SMTP_PORT', { default: 465 })
+const SMTP_PASSWORD = defineSecret('SMTP_PASSWORD')
 
 function signedIn(req: CallableRequest): string {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Sign in first.')
@@ -151,7 +153,9 @@ async function send(mail: Mail) {
   if (mail.to.length === 0) return logger.warn('mail with no recipients', { subject: mail.subject })
   if (process.env.FUNCTIONS_EMULATOR === 'true') return logger.info('mail (emulator, not sent)', mail)
   const from = MAIL_FROM.value()
-  const transport = createTransport({ service: 'gmail', auth: { user: from, pass: GMAIL_APP_PASSWORD.value() } })
+  const port = SMTP_PORT.value()
+  // Port 465 speaks TLS from the start; 587 upgrades with STARTTLS.
+  const transport = createTransport({ host: SMTP_HOST.value(), port, secure: port === 465, auth: { user: from, pass: SMTP_PASSWORD.value() } })
   // One message per address, so admins don't see each other's addresses.
   for (const to of mail.to) await transport.sendMail({ from: `Kotakata <${from}>`, to, subject: mail.subject, text: mail.text })
 }
@@ -200,7 +204,7 @@ function decisionMail(r: Record<string, unknown> & ClassRequestInput, approved: 
   return { to: typeof r.ownerEmail === 'string' ? [r.ownerEmail] : [], subject, text: lines.join('\n') }
 }
 
-export const mailClassRequest = onDocumentWritten({ document: 'classRequests/{id}', secrets: [GMAIL_APP_PASSWORD], retry: false }, async (event) => {
+export const mailClassRequest = onDocumentWritten({ document: 'classRequests/{id}', secrets: [SMTP_PASSWORD], retry: false }, async (event) => {
   const before = event.data?.before.data()
   const after = event.data?.after.data() as (Record<string, unknown> & ClassRequestInput) | undefined
   if (!after) return
