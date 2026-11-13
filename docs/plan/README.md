@@ -10,6 +10,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | [02-sessions.md](02-sessions.md) | Each session puzzle by puzzle: mechanics, hints, predictions, exit tickets, game balance |
 | [03-technical.md](03-technical.md) | Architecture, roles and permissions, data model, the impact data pipeline, privacy, testing, operations |
 | [04-ui-design.md](04-ui-design.md) | Pages, components, layouts and art direction on the aastr.id palette, with contrast checks |
+| [07-accounts-and-classes.md](07-accounts-and-classes.md) | Who can play what, roles, sign-up, class requests and approval, class links, monitoring, post-class feedback. Replaces the account parts of 03. |
 
 ## Decisions so far
 
@@ -19,7 +20,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | Theme | School, friends and the internet | 6 Nov 2026 |
 | First release | Sessions 1, 3 and 5. The rest come later. | 6 Nov 2026 |
 | Pilot | Later. Astrid has teacher contacts. | 6 Nov 2026 |
-| Accounts | Guests can play without an account. Logged-in roles: admin, educator, student, parent. | 6 Nov 2026 |
+| Accounts | Guests can play without an account. Logged-in roles: admin, educator, student, parent. Replaced on 13 Nov 2026, see below. | 6 Nov 2026 |
 | Parent vs educator | Same tools. They differ in their instructions and guides. | 6 Nov 2026 |
 | Impact data | Stored anonymously in the backend for every mode. Only admins can read it. | 6 Nov 2026 |
 | Look | The aastr.id design system (`src/styles/tokens.css`, `DESIGN.md`) | 6 Nov 2026 |
@@ -29,6 +30,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 | Backend | A new Firebase project on the Blaze plan in asia-southeast2 (Jakarta), with a USD 10 a month budget alert. Created 8 Nov 2026 as `kotakata-prod`, with its Firestore database in asia-southeast2 and delete protection on. `kotakata-dev` is not created yet. | 6 Nov 2026 |
 | Feedback first | A 2-minute survey at `/survei` collects what players find confusing before the sessions are changed. Answers go to Firestore `feedback`. | 9 Nov 2026 |
 | Dashboard before accounts | Build order step 4 for guests: a consent card, anonymous page counts, the impact pipeline and an admin dashboard at `/admin` (03, section 6, "As built for guests"). Accounts come after. | 12 Nov 2026 |
+| Access and classes | Guests play classic 1 and 2 only. Classic 3 and 4 and Sessions 1 to 6 need access: parents get it at sign-up, educators after an admin approves a class request, students through a class link. Roles: superadmin, admin, educator, parent, students as class members without accounts. See 07. | 13 Nov 2026 |
 
 ## Still open
 
