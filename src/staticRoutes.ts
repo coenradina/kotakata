@@ -18,6 +18,7 @@ export const STATIC_ROUTES: string[] = [
   'admin',
   'masuk',
   'guru',
+  'guru/ajukan',
   'ortu',
   'akun',
   ...PLAY_IDS.map((id) => `main/${id}`),

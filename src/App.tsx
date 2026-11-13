@@ -10,6 +10,7 @@ import PlayPage from './pages/PlayPage'
 import PrivacyPage from './pages/PrivacyPage'
 import SignInPage from './pages/SignInPage'
 import EducatorPage from './pages/EducatorPage'
+import ClassRequestPage from './pages/ClassRequestPage'
 import ParentPage from './pages/ParentPage'
 import AccountPage from './pages/AccountPage'
 import { AccountProvider } from './account/AccountProvider'
@@ -60,6 +61,8 @@ function Routes() {
       return <SignInPage />
     case 'educator':
       return <EducatorPage />
+    case 'classRequest':
+      return <ClassRequestPage />
     case 'parent':
       return <ParentPage />
     case 'account':

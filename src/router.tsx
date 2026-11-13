@@ -63,6 +63,7 @@ export type Page =
   | { name: 'admin' }
   | { name: 'signin' }
   | { name: 'educator' }
+  | { name: 'classRequest' }
   | { name: 'parent' }
   | { name: 'account' }
 
@@ -76,6 +77,7 @@ export function matchRoute(route: string): Page {
   if (parts[0] === 'survei' && parts.length === 1) return { name: 'survey' }
   if (parts[0] === 'privasi' && parts.length === 1) return { name: 'privacy' }
   if (parts[0] === 'admin' && parts.length === 1) return { name: 'admin' }
+  if (parts[0] === 'guru' && parts[1] === 'ajukan' && parts.length === 2) return { name: 'classRequest' }
   if (parts.length === 1) {
     const account = ({ masuk: 'signin', guru: 'educator', ortu: 'parent', akun: 'account' } as const)[parts[0] as 'masuk' | 'guru' | 'ortu' | 'akun']
     if (account) return { name: account }
@@ -115,6 +117,8 @@ export function pagePath(page: Page): string | null {
       return '/masuk'
     case 'educator':
       return '/guru'
+    case 'classRequest':
+      return '/guru/ajukan'
     case 'parent':
       return '/ortu'
     case 'account':

@@ -16,6 +16,24 @@
       "collectionGroup": "impact_daily",
       "fieldPath": "json",
       "indexes": []
+    },
+    {
+      "collectionGroup": "classRequests",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "classes",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "codes",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
     }
   ]
 }
