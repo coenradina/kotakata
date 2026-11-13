@@ -4,3 +4,5 @@ dist/
 *.log
 .claude/worktrees/
 functions/lib/
+functions/.env.local
+functions/.secret.local
