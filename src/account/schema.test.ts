@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AVATARS, CHILD_IDS, INSTITUTIONS, MAX_CHILDREN, SOURCES, cleanChild, cleanSignup } from './schema'
+import { AVATARS, CHILD_IDS, INSTITUTIONS, LEVELS, MAX_CHILDREN, SOURCES, cleanChild, cleanSignup } from './schema'
 
 // firestore.rules repeats these lists; they must stay the same.
 const rules = readFileSync(join(__dirname, '../../firestore.rules'), 'utf8')
@@ -11,7 +11,7 @@ const educator = {
   role: 'educator',
   displayName: '  Bu   Sari ',
   lang: 'id',
-  survey: { institution: 'smp', city: 'Bandung', grades: ['9', '7'], source: 'colleague', extra: 'x' },
+  survey: { institution: 'smp', city: 'Bandung', level: '8', source: 'colleague', extra: 'x' },
   adult: true,
   terms: true,
   training: 'yes',
@@ -24,13 +24,14 @@ describe('cleanSignup', () => {
     const r = cleanSignup(educator)
     expect(r).toEqual({
       ok: true,
-      value: { role: 'educator', displayName: 'Bu Sari', lang: 'id', survey: { institution: 'smp', city: 'Bandung', grades: ['7', '9'], source: 'colleague' }, adult: true, terms: true, training: 'yes', mailing: false },
+      value: { role: 'educator', displayName: 'Bu Sari', lang: 'id', survey: { institution: 'smp', city: 'Bandung', level: '8', source: 'colleague' }, adult: true, terms: true, training: 'yes', mailing: false },
     })
   })
 
   it('needs the survey from educators, and ignores it from parents', () => {
     expect(cleanSignup({ ...educator, survey: null })).toEqual({ ok: false, reason: 'survey' })
-    expect(cleanSignup({ ...educator, survey: { ...educator.survey, grades: [] } })).toEqual({ ok: false, reason: 'survey' })
+    expect(cleanSignup({ ...educator, survey: { ...educator.survey, level: '13' } })).toEqual({ ok: false, reason: 'survey' })
+    expect(cleanSignup({ ...educator, training: null })).toEqual({ ok: false, reason: 'training' })
     const parent = cleanSignup({ ...educator, role: 'parent' })
     expect(parent.ok && parent.value).toMatchObject({ role: 'parent', survey: null, training: null })
   })
@@ -66,5 +67,6 @@ describe('firestore.rules', () => {
     expect(listAfter('childId')).toEqual(CHILD_IDS)
     expect(listAfter('s.institution')).toEqual([...INSTITUTIONS])
     expect(listAfter('s.source')).toEqual([...SOURCES])
+    expect(listAfter('s.level')).toEqual([...LEVELS])
   })
 })

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useAccount } from '../account/AccountProvider'
 import { deleteAccount, signOut, updateProfile } from '../account/client'
 import { NAME_MAX } from '../account/schema'
-import { Card, Check, Chip, Chips, Field, Page, RequireRole, errorText, inputClass, primaryButton, secondaryButton } from '../account/ui'
+import { Card, Check, Field, Page, RequireRole, errorText, inputClass, primaryButton, secondaryButton } from '../account/ui'
 import { t } from '../i18n'
 import { useLang } from '../lang'
 import { Link, useRoute } from '../router'
@@ -94,15 +94,9 @@ function AccountForm({
             <input value={name} maxLength={NAME_MAX} onChange={(e) => setName(e.target.value)} className={inputClass} aria-label={t(lang, 'suName')} />
           </Field>
           {role === 'educator' && (
-            <Field label={t(lang, 'suTraining')}>
-              <Chips>
-                {(['yes', 'no'] as const).map((v) => (
-                  <Chip key={v} type="radio" name="training" checked={training === v} onChange={() => setTraining(v)}>
-                    {t(lang, v === 'yes' ? 'suTrainingYes' : 'suTrainingNo')}
-                  </Chip>
-                ))}
-              </Chips>
-            </Field>
+            <Check checked={training === 'yes'} onChange={(v) => setTraining(v ? 'yes' : 'no')}>
+              {t(lang, 'suTraining')}
+            </Check>
           )}
           <Check checked={mailing} onChange={setMailing}>
             {t(lang, 'suMailing')}

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { homeOf, useAccount } from '../account/AccountProvider'
 import { completeSignup, finishSignInLink, sendSignInLink, signInWithGoogle } from '../account/client'
-import { GRADES, INSTITUTIONS, NAME_MAX, CITY_MAX, SOURCES, cleanSignup, type Grade, type Institution, type Role, type Source } from '../account/schema'
+import { INSTITUTIONS, LEVELS, NAME_MAX, CITY_MAX, SOURCES, cleanSignup, type Institution, type Level, type Role, type Source } from '../account/schema'
 import { Card, Check, Chip, Chips, Field, Page, errorText, inputClass, primaryButton, secondaryButton } from '../account/ui'
 import { t, type Key } from '../i18n'
 import { useLang } from '../lang'
@@ -22,6 +22,13 @@ const SOURCE_KEYS: Record<Source, Key> = {
   event: 'suSrcEvent',
   school: 'suSrcSchool',
   other: 'suOther',
+}
+
+export function levelLabel(lang: 'id' | 'en', l: Level): string {
+  if (l === 'university') return t(lang, 'suLevelUniversity')
+  if (l === 'professional') return t(lang, 'suLevelProfessional')
+  if (l === 'other') return t(lang, 'suOther')
+  return t(lang, 'suLevelGrade', { n: l })
 }
 
 /**
@@ -130,11 +137,11 @@ function SignupForm() {
   const [name, setName] = useState(() => user?.displayName ?? '')
   const [institution, setInstitution] = useState<Institution | null>(null)
   const [city, setCity] = useState('')
-  const [grades, setGrades] = useState<Grade[]>([])
+  const [level, setLevel] = useState<Level | ''>('')
   const [source, setSource] = useState<Source | null>(null)
   const [adult, setAdult] = useState(false)
   const [terms, setTerms] = useState(false)
-  const [training, setTraining] = useState<'yes' | 'no' | null>(null)
+  const [training, setTraining] = useState(false)
   const [mailing, setMailing] = useState(false)
   const [tried, setTried] = useState(false)
   const [state, setState] = useState<{ kind: 'idle' | 'busy' } | { kind: 'error'; msg: string }>({ kind: 'idle' })
@@ -143,10 +150,10 @@ function SignupForm() {
     role,
     displayName: name,
     lang,
-    survey: role === 'educator' ? { institution, city, grades, source } : null,
+    survey: role === 'educator' ? { institution, city, level, source } : null,
     adult,
     terms,
-    training: role === 'educator' ? training : null,
+    training: role === 'educator' ? (training ? 'yes' : 'no') : null,
     mailing,
   }
   const clean = cleanSignup(input)
@@ -204,14 +211,17 @@ function SignupForm() {
             <Field label={t(lang, 'suCity')} required>
               <input value={city} maxLength={CITY_MAX} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" className={inputClass} aria-label={t(lang, 'suCity')} />
             </Field>
-            <Field label={t(lang, 'suGrades')} required>
-              <Chips>
-                {GRADES.map((g) => (
-                  <Chip key={g} type="checkbox" name="grades" checked={grades.includes(g)} onChange={() => setGrades((gs) => (gs.includes(g) ? gs.filter((x) => x !== g) : [...gs, g]))}>
-                    {g === 'other' ? t(lang, 'suOther') : t(lang, 'suGrade', { n: g })}
-                  </Chip>
+            <Field label={t(lang, 'suLevel')} required>
+              <select value={level} onChange={(e) => setLevel(e.target.value as Level | '')} className={inputClass} aria-label={t(lang, 'suLevel')}>
+                <option value="" disabled>
+                  {t(lang, 'suChoose')}
+                </option>
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {levelLabel(lang, l)}
+                  </option>
                 ))}
-              </Chips>
+              </select>
             </Field>
             <Field label={t(lang, 'suSource')} required>
               <Chips>
@@ -238,15 +248,9 @@ function SignupForm() {
               {termsAfter}
             </Check>
             {role === 'educator' && (
-              <Field label={t(lang, 'suTraining')}>
-                <Chips>
-                  {(['yes', 'no'] as const).map((v) => (
-                    <Chip key={v} type="radio" name="training" checked={training === v} onChange={() => setTraining(v)}>
-                      {t(lang, v === 'yes' ? 'suTrainingYes' : 'suTrainingNo')}
-                    </Chip>
-                  ))}
-                </Chips>
-              </Field>
+              <Check checked={training} onChange={setTraining}>
+                {t(lang, 'suTraining')}
+              </Check>
             )}
             <Check checked={mailing} onChange={setMailing}>
               {t(lang, 'suMailing')}

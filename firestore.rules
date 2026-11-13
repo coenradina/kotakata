@@ -63,10 +63,10 @@ service cloud.firestore {
   }
 
   function validSurvey(s) {
-    return s.keys().hasOnly(['institution', 'city', 'grades', 'source'])
+    return s.keys().hasOnly(['institution', 'city', 'level', 'source'])
       && s.institution in ['smp', 'sd', 'sma', 'campus', 'community', 'other']
       && text(s.city, 60)
-      && s.grades is list && s.grades.size() >= 1 && s.grades.hasOnly(['7', '8', '9', 'other'])
+      && s.level in ['7', '8', '9', '10', '11', '12', 'university', 'professional', 'other']
       && s.source in ['colleague', 'social', 'search', 'event', 'school', 'other'];
   }
 

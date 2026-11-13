@@ -60,7 +60,7 @@ function RequestForm({ profile }: { profile: Profile }) {
   const [mode, setMode] = useState<Mode | null>(null)
   const [participants, setParticipants] = useState<Participant[]>(['students'])
   const [count, setCount] = useState('')
-  const [grades, setGrades] = useState<ClassGrade[]>(() => CLASS_GRADES.filter((g) => profile.survey?.grades.includes(g)))
+  const [grades, setGrades] = useState<ClassGrade[]>(() => CLASS_GRADES.filter((g) => profile.survey?.level === g))
   const [sessions, setSessions] = useState<ClassSession[]>([])
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
@@ -148,7 +148,7 @@ function RequestForm({ profile }: { profile: Profile }) {
               <Chips>
                 {CLASS_GRADES.map((g) => (
                   <Chip key={g} type="checkbox" name="grades" checked={grades.includes(g)} onChange={() => setGrades(toggle(grades, g))}>
-                    {t(lang, 'suGrade', { n: g })}
+                    {t(lang, 'suLevelGrade', { n: g })}
                   </Chip>
                 ))}
               </Chips>

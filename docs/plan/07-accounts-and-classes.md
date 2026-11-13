@@ -53,9 +53,9 @@ Sign-in is Google or a passwordless email link (Firebase Auth). Then:
 
 **Educator**
 1. Role: educator.
-2. Three questions: type of institution and city; grades taught (7, 8, 9, other); how they heard of Kotakata. The answers prefill the class request form.
+2. Three questions: type of institution and city; the level taught most, from a dropdown (grade 7 to 12, university, professionals, other); how they heard of Kotakata. The answers prefill the class request form.
 3. Confirm 18 or older, accept the terms, and confirm parental consent letters will be collected for classes (template in the guide).
-4. Optional: "Want further training?" (yes / not now), and the mailing list opt-in, unticked.
+4. Optional, two unticked boxes: further training, and the mailing list.
 5. Onboarding: `/guru` shows a checklist until it's done: read the teacher guide, send the first class request, share the link. No tour.
 
 **Parent**
@@ -120,7 +120,7 @@ The stage-by-stage numbers from monitoring are shown next to the form, so the ed
 
 ```text
 users/{uid}                      role: 'educator'|'parent', displayName, email, lang,
-                                 survey: { institution, city, grades, source },
+                                 survey: { institution, city, level, source },
                                  adultAt, termsAt, training: 'yes'|'no'|null,
                                  mailing: { optIn, at }, access: { sessions, grantedAt } (functions only),
                                  createdAt
@@ -192,7 +192,7 @@ Child profiles are stored as `users/{uid}/children/{c1…c6}` rather than a list
 | Part | Where |
 | --- | --- |
 | The form's rules, dates and class codes, shared by browser and functions | `src/account/classRequest.ts` |
-| Pages | `/guru/ajukan` (the form, prefilled with the city and grades from sign-up), `/guru` (the educator's requests, with cancel), `/admin` (pending requests oldest first, approve or reject with a note) |
+| Pages | `/guru/ajukan` (the form, prefilled with the city and, for grades 7 to 9, the grade from sign-up), `/guru` (the educator's requests, with cancel), `/admin` (pending requests oldest first, approve or reject with a note) |
 | Functions | `requestClass`, `cancelClassRequest`, `reviewClassRequest`, and the trigger `mailClassRequest` in `functions/src/classes.ts` |
 | Rules | `classRequests` read by the owner and admins; `classes` read by the owner; no browser writes either, and `codes` has no rule |
 | Retention | TTL on `expireAt`: requests 24 months after they are sent, classes and codes 30 days after the end date |

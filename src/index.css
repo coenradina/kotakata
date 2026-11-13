@@ -17,6 +17,14 @@ body {
 }
 
 .pixel-shadow { box-shadow: var(--shadow-pixel); }
+/* Phones: iOS zooms into a field under 16px when it gets focus, and while the
+   page is zoomed every tap waits for a possible double tap. Fields are 16px on
+   touch screens, and taps on controls never wait for a double tap. */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio']), select, textarea { font-size: 1rem !important; }
+}
+a, button, label, input, select, textarea, summary { touch-action: manipulation; }
+
 .pixel-btn { transition: transform .1s, box-shadow .1s; box-shadow: var(--shadow-pixel-sm); }
 .pixel-btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--shadow-pixel); }
 .pixel-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }

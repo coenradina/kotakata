@@ -7,19 +7,20 @@ export const ROLES = ['educator', 'parent'] as const
 export type Role = (typeof ROLES)[number]
 
 export const INSTITUTIONS = ['smp', 'sd', 'sma', 'campus', 'community', 'other'] as const
-export const GRADES = ['7', '8', '9', 'other'] as const
+/** The level an educator teaches most: one choice, from a dropdown. */
+export const LEVELS = ['7', '8', '9', '10', '11', '12', 'university', 'professional', 'other'] as const
 export const SOURCES = ['colleague', 'social', 'search', 'event', 'school', 'other'] as const
 export const TRAINING = ['yes', 'no'] as const
 
 export type Institution = (typeof INSTITUTIONS)[number]
-export type Grade = (typeof GRADES)[number]
+export type Level = (typeof LEVELS)[number]
 export type Source = (typeof SOURCES)[number]
 
 /** The three sign-up questions for educators. They prefill the class request form. */
 export interface Survey {
   institution: Institution
   city: string
-  grades: Grade[]
+  level: Level
   source: Source
 }
 
@@ -34,7 +35,7 @@ export interface SignupInput {
   adult: true
   /** Ticked: the terms (and, for educators, collecting parental consent letters). */
   terms: true
-  /** Educators only: want further training? Null when skipped. */
+  /** Educators only: the further-training box, ticked or not. Null for parents. */
   training: 'yes' | 'no' | null
   /** The mailing list: a separate, unticked opt-in. */
   mailing: boolean
@@ -62,9 +63,8 @@ export function cleanSurvey(raw: unknown): Survey | null {
   if (!raw || typeof raw !== 'object') return null
   const s = raw as Record<string, unknown>
   const city = text(s.city, CITY_MAX)
-  if (!oneOf(INSTITUTIONS, s.institution) || !city || !oneOf(SOURCES, s.source)) return null
-  if (!Array.isArray(s.grades) || s.grades.length === 0 || !s.grades.every((g) => oneOf(GRADES, g))) return null
-  return { institution: s.institution, city, grades: GRADES.filter((g) => (s.grades as string[]).includes(g)), source: s.source }
+  if (!oneOf(INSTITUTIONS, s.institution) || !city || !oneOf(LEVELS, s.level) || !oneOf(SOURCES, s.source)) return null
+  return { institution: s.institution, city, level: s.level, source: s.source }
 }
 
 /** The sign-up as it may be stored, or a reason it can't be. Unknown fields are dropped. */
@@ -81,7 +81,7 @@ export function cleanSignup(raw: unknown): { ok: true; value: SignupInput } | { 
   if (d.role === 'educator') {
     const survey = cleanSurvey(d.survey)
     if (!survey) return { ok: false, reason: 'survey' }
-    if (!(d.training === null || oneOf(TRAINING, d.training))) return { ok: false, reason: 'training' }
+    if (!oneOf(TRAINING, d.training)) return { ok: false, reason: 'training' }
     return { ok: true, value: { role: 'educator', displayName, lang: d.lang, survey, adult: true, terms: true, training: d.training, mailing: d.mailing } }
   }
   return { ok: true, value: { role: 'parent', displayName, lang: d.lang, survey: null, adult: true, terms: true, training: null, mailing: d.mailing } }
