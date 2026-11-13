@@ -10,16 +10,13 @@
 //
 // Firestore rules give browsers no access to either collection.
 
-import { setGlobalOptions } from 'firebase-functions/v2'
+import './setup'
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions'
-import { initializeApp } from 'firebase-admin/app'
 import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore'
 import { cleanBatch } from '../../src/impact/schema'
 import { AGG_VERSION, aggregateDay, buildReport, daysBetween, jakartaDay, type DayAgg, type StoredAnswer, type StoredBatch } from '../../src/impact/report'
 
-setGlobalOptions({ region: 'asia-southeast2', maxInstances: 5 })
-initializeApp()
 const db = getFirestore()
 
 const DAY_MS = 86_400_000
@@ -106,3 +103,5 @@ async function loadDay(day: string, final: boolean): Promise<{ day: string; agg:
   if (final) await cache.set({ v: AGG_VERSION, json: JSON.stringify(agg), at: FieldValue.serverTimestamp() })
   return { day, agg }
 }
+
+export { completeSignup, deleteAccount, listAdmins, setAdmin } from './accounts'

@@ -6,6 +6,8 @@ import { t } from '../i18n'
 import { ALL } from '../levels'
 import { quizText } from '../quiz/questions'
 import { Bars, Columns, type BarRow } from '../components/AdminCharts'
+import { useAccount } from '../account/AccountProvider'
+import { listAdmins, setAdmin } from '../account/client'
 import { isHidden, jakartaDay, medianMs, type Hidden, type Hist, type PuzzleAgg, type Report, type SessionAgg } from '../impact/report'
 
 // The admin dashboard (docs/plan/03-technical.md, section 6). Only the
@@ -85,6 +87,7 @@ export default function AdminPage() {
           </Panel>
         )}
         {state.status === 'in' && state.admin && <Dashboard />}
+        {state.status === 'in' && state.admin && <AdminsPanel />}
       </main>
     </div>
   )
@@ -775,4 +778,74 @@ function Row({ cells, head = false }: { cells: ReactNode[]; head?: boolean }) {
 function Hot({ n, of }: { n: number; of: number }) {
   const share = of > 0 ? n / of : 0
   return <span className={share >= 0.3 ? 'font-bold text-maroon' : ''}>{`${num(n)} (${pct(n, of)})`}</span>
+}
+
+/** Superadmins add and remove admins (docs/plan/07-accounts-and-classes.md, section 3). */
+function AdminsPanel() {
+  const { account } = useAccount()
+  const superadmin = account.status === 'in' && account.superadmin
+  const [admins, setAdmins] = useState<{ email: string | null; uid: string; superadmin: boolean }[] | null>(null)
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const reload = () =>
+    listAdmins()
+      .then(setAdmins)
+      .catch((e) => setMsg(e instanceof Error ? e.message : String(e)))
+  useEffect(() => {
+    if (superadmin) void reload()
+  }, [superadmin])
+  if (!superadmin) return null
+  const change = async (address: string, admin: boolean) => {
+    setBusy(true)
+    setMsg(null)
+    try {
+      await setAdmin(address, admin)
+      setMsg(admin ? `${address} sekarang admin.` : `${address} bukan admin lagi.`)
+      setEmail('')
+      await reload()
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Panel title="Admin">
+      <p className="type-body">Admin bisa melihat dashboard ini dan, nanti, menyetujui pengajuan kelas. Orangnya harus sudah pernah masuk sekali.</p>
+      <ul className="mt-3 space-y-2">
+        {admins?.map((a) => (
+          <li key={a.uid} className="flex flex-wrap items-center gap-3 rounded border-2 border-ink bg-cream p-3 type-body">
+            <span className="flex-1">{a.email ?? a.uid}</span>
+            {a.superadmin ? (
+              <span className="rounded border border-ink bg-amber-tint px-2 py-0.5 type-micro">superadmin</span>
+            ) : (
+              a.email && (
+                <button onClick={() => change(a.email!, false)} disabled={busy} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment disabled:opacity-60">
+                  Cabut admin
+                </button>
+              )
+            )}
+          </li>
+        ))}
+      </ul>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (email.trim()) void change(email.trim(), true)
+        }}
+        className="mt-4 flex flex-wrap gap-2"
+      >
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email" aria-label="Email admin baru" className="min-h-11 min-w-0 flex-1 basis-56 rounded border-2 border-ink bg-white px-3" />
+        <button type="submit" disabled={busy} className="pixel-btn min-h-11 rounded border-2 border-ink bg-ink px-4 py-1.5 type-button text-cream disabled:opacity-60">
+          Jadikan admin
+        </button>
+      </form>
+      {msg && (
+        <p role="status" className="mt-3 type-body">
+          {msg}
+        </p>
+      )}
+    </Panel>
+  )
 }

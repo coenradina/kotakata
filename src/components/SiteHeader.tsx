@@ -1,6 +1,7 @@
 import { t, type Lang } from '../i18n'
 import { useLang } from '../lang'
 import { Link, useRoute } from '../router'
+import { homeOf, useAccount } from '../account/AccountProvider'
 
 /** The top bar on every page except the game: logo, page links, language. */
 export default function SiteHeader() {
@@ -30,6 +31,7 @@ export default function SiteHeader() {
               {l.label}
             </Link>
           ))}
+          <AccountLink />
           <LangSwitch lang={lang} onChange={setLang} />
         </nav>
       </div>
@@ -52,5 +54,22 @@ export function LangSwitch({ lang, onChange, disabled }: { lang: Lang; onChange:
         </button>
       ))}
     </div>
+  )
+}
+
+/** "Masuk" for guests; the person's name, linking to their home page, once signed in. */
+function AccountLink() {
+  const { lang } = useLang()
+  const { account } = useAccount()
+  const { route } = useRoute()
+  if (account.status === 'loading') return null
+  const signedUp = account.status === 'in' && (account.profile || account.admin)
+  const to = signedUp ? homeOf(account) : '/masuk'
+  const label = account.status === 'in' && account.profile ? t(lang, 'navAccount', { name: account.profile.displayName }) : account.status === 'in' && account.admin ? 'Admin' : t(lang, 'navSignIn')
+  const current = route === to
+  return (
+    <Link to={to} aria-current={current ? 'page' : undefined} className={`max-w-48 truncate rounded border-2 border-ink px-3 py-1.5 type-button ${current ? 'bg-ink text-cream' : 'bg-amber-tint hover:bg-parchment'}`}>
+      {label}
+    </Link>
   )
 }

@@ -40,6 +40,7 @@ The PR uses the same title and the same sections as `## Background`, `## Impact`
 - `pnpm test`: the tests (vitest).
 - `pnpm build`: the design check (`scripts/check-design.mjs`), `tsc` and the Vite build.
 - If `functions/` changed: `cd functions && npm run build`.
+- Accounts, rules or functions: run them against the emulators (`firebase emulators:start --only functions,firestore,auth --project demo-kotakata`, then `VITE_EMULATORS=1 pnpm dev`).
 
 ## Deploying
 

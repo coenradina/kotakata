@@ -1,6 +1,6 @@
 # Accounts, classes and access
 
-Status: plan, 13 November 2026. Nothing here is built yet.
+Status: plan, 13 November 2026. Phase 1 (accounts) is built; see section 12.
 
 Where this file and `03-technical.md` differ (sections 3, 4, 5 and 7, and the family groups in `01-learning-path.md`), this file wins. The impact pipeline in 03, section 6, stays as built.
 
@@ -162,3 +162,27 @@ Each phase is its own PR and can be deployed on its own. The lock comes last: sw
 ## 11. Not in this plan
 
 Sending the mailings themselves, a public leaderboard, an educator-to-parent channel, and App Check (03, section 6) are left for later.
+
+## 12. As built
+
+### Phase 1: accounts (13 Nov 2026)
+
+| Part | Where |
+| --- | --- |
+| Sign-up rules, shared by browser and functions | `src/account/schema.ts` |
+| Firebase Auth, the users document, child profiles | `src/account/client.ts`, `src/account/AccountProvider.tsx` |
+| Pages | `/masuk` (sign in, then the sign-up form), `/guru` (educator checklist), `/ortu` (child profiles), `/akun` (name, choices, sign out, delete) |
+| Functions | `completeSignup`, `deleteAccount`, `listAdmins`, `setAdmin` in `functions/src/accounts.ts` |
+| Rules | `users/{uid}` and `users/{uid}/children/{c1…c6}` in `firestore.rules` |
+| Admins | `functions/scripts/set-admin.mjs <email> --super` makes a superadmin; superadmins add and remove admins on `/admin` |
+
+Child profiles are stored as `users/{uid}/children/{c1…c6}` rather than a list on the user document, so the rules can check each one and cap them at six by id. Progress is still kept per device until phase 3.
+
+**Deploy, in this order:**
+
+1. Firebase console → Authentication → Sign-in method → Email/Password: turn on **Email link (passwordless sign-in)**.
+2. `cd functions && npm ci && cd ..`, then `firebase deploy --only functions,firestore --project kotakata-prod`.
+3. `cd functions && npm run set-admin -- <your email> --super`, then reload `/admin`.
+4. Merge the PR, which publishes the pages.
+
+**Testing locally.** `firebase emulators:start --only functions,firestore,auth --project demo-kotakata`, then `VITE_EMULATORS=1 pnpm dev`. Email sign-in links appear in the Auth emulator at `http://127.0.0.1:9099/emulator/v1/projects/demo-kotakata/oobCodes`.

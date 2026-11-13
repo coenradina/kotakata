@@ -58,6 +58,10 @@ New terms go into **Kata's notebook** (`/buku`), with the moment the player foun
 | `/kotakata/panduan` | Teacher and parent guides for every playable session |
 | `/kotakata/panduan/<guru\|ortu>/<session>` | One guide. It prints, with an appendix of unplugged cards built from the game's own data. |
 | `/kotakata/privasi` | What Kotakata sends, the player's choice, and "delete my data" |
+| `/kotakata/masuk` | Sign in (Google or an email link) and sign up as an educator or a parent |
+| `/kotakata/guru` | An educator's home: access status and first steps |
+| `/kotakata/ortu` | A parent's home: up to six child profiles |
+| `/kotakata/akun` | Name, training and newsletter choices, sign out, delete the account |
 | `/kotakata/admin` | Admin dashboard: traffic, play, quiz and survey numbers. Google sign-in with the `admin` claim. |
 
 The build copies `index.html` to `404.html`, so GitHub Pages serves the app for every path.
