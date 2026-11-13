@@ -8,6 +8,11 @@ import MapPage from './pages/MapPage'
 import NotebookPage from './pages/NotebookPage'
 import PlayPage from './pages/PlayPage'
 import PrivacyPage from './pages/PrivacyPage'
+import SignInPage from './pages/SignInPage'
+import EducatorPage from './pages/EducatorPage'
+import ParentPage from './pages/ParentPage'
+import AccountPage from './pages/AccountPage'
+import { AccountProvider } from './account/AccountProvider'
 import SurveyPage from './pages/SurveyPage'
 import { RouterProvider, matchRoute, pagePath, useRoute, type Page } from './router'
 import { ALL, isUnlocked } from './levels'
@@ -51,6 +56,14 @@ function Routes() {
       return <SurveyPage />
     case 'privacy':
       return <PrivacyPage />
+    case 'signin':
+      return <SignInPage />
+    case 'educator':
+      return <EducatorPage />
+    case 'parent':
+      return <ParentPage />
+    case 'account':
+      return <AccountPage />
     case 'admin':
       return (
         <Suspense fallback={null}>
@@ -67,7 +80,9 @@ export default function App() {
   return (
     <LangProvider>
       <RouterProvider>
-        <Routes />
+        <AccountProvider>
+          <Routes />
+        </AccountProvider>
       </RouterProvider>
     </LangProvider>
   )

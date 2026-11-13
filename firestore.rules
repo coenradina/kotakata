@@ -1,7 +1,9 @@
 rules_version = '2';
 
-// Browsers may only add survey answers (src/survey/questions.ts). Nobody can
-// read, change or delete anything from the browser. Impact data
+// Browsers may add survey answers (src/survey/questions.ts), read and edit
+// parts of their own account, and manage a parent's child profiles
+// (src/account/schema.ts). Accounts are created by `completeSignup`, so
+// `role`, `access` and the consent times never come from a browser. Impact data
 // (`impact_batches`, `impact_daily`) has no rule here, so browsers can't
 // touch it at all: only the functions in functions/src/index.ts read and
 // write it, and the admin dashboard gets totals through `impactReport`.
@@ -10,6 +12,56 @@ service cloud.firestore {
     match /feedback/{id} {
       allow create: if validAnswer(request.resource.data);
     }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      // Only these fields change from a browser; the rest is set by functions.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'lang', 'survey', 'training', 'mailing'])
+        && validEdit(request.resource.data, resource.data);
+
+      // Child profiles, c1 to c6, so there are never more than six.
+      match /children/{childId} {
+        allow read, delete: if isSelf(uid);
+        allow create, update: if isSelf(uid)
+          && childId in ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']
+          && get(/databases/$(database)/documents/users/$(uid)).data.role == 'parent'
+          && validChild(request.resource.data);
+      }
+    }
+  }
+
+  function isSelf(uid) {
+    return request.auth != null && request.auth.uid == uid;
+  }
+
+  function text(s, max) {
+    return s is string && s.size() >= 1 && s.size() <= max;
+  }
+
+  function validEdit(d, before) {
+    return text(d.displayName, 60)
+      && d.lang in ['id', 'en']
+      && (d.survey == before.survey || (before.role == 'educator' && validSurvey(d.survey)))
+      && d.training in ['yes', 'no', null]
+      && (d.mailing == before.mailing
+        || (d.mailing.keys().hasOnly(['optIn', 'at']) && d.mailing.optIn is bool
+          && (d.mailing.optIn ? d.mailing.at == request.time : d.mailing.at == null)));
+  }
+
+  function validSurvey(s) {
+    return s.keys().hasOnly(['institution', 'city', 'grades', 'source'])
+      && s.institution in ['smp', 'sd', 'sma', 'campus', 'community', 'other']
+      && text(s.city, 60)
+      && s.grades is list && s.grades.size() >= 1 && s.grades.hasOnly(['7', '8', '9', 'other'])
+      && s.source in ['colleague', 'social', 'search', 'event', 'school', 'other'];
+  }
+
+  function validChild(c) {
+    return c.keys().hasOnly(['nickname', 'avatar', 'createdAt'])
+      && text(c.nickname, 20)
+      && c.avatar in ['🐝', '🐦', '🐸', '🦅', '🤖', '🌈', '🌙', '🌳', '🍎', '🏀', '🎲', '⭐']
+      && c.createdAt is timestamp;
   }
 
   function scale(n) {

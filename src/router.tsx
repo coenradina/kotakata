@@ -61,6 +61,10 @@ export type Page =
   | { name: 'survey' }
   | { name: 'privacy' }
   | { name: 'admin' }
+  | { name: 'signin' }
+  | { name: 'educator' }
+  | { name: 'parent' }
+  | { name: 'account' }
 
 /** Which page a route shows. Unknown routes go to the landing page. */
 export function matchRoute(route: string): Page {
@@ -72,6 +76,10 @@ export function matchRoute(route: string): Page {
   if (parts[0] === 'survei' && parts.length === 1) return { name: 'survey' }
   if (parts[0] === 'privasi' && parts.length === 1) return { name: 'privacy' }
   if (parts[0] === 'admin' && parts.length === 1) return { name: 'admin' }
+  if (parts.length === 1) {
+    const account = ({ masuk: 'signin', guru: 'educator', ortu: 'parent', akun: 'account' } as const)[parts[0] as 'masuk' | 'guru' | 'ortu' | 'akun']
+    if (account) return { name: account }
+  }
   if (parts[0] === 'panduan') return parts[1] && parts[2] ? { name: 'guide', role: parts[1], id: parts[2] } : { name: 'guides' }
   return { name: 'landing' }
 }
@@ -103,5 +111,13 @@ export function pagePath(page: Page): string | null {
       return '/privasi'
     case 'admin':
       return null
+    case 'signin':
+      return '/masuk'
+    case 'educator':
+      return '/guru'
+    case 'parent':
+      return '/ortu'
+    case 'account':
+      return '/akun'
   }
 }

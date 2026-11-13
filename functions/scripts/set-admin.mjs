@@ -7,19 +7,21 @@
 //   cd functions && npm run set-admin -- you@example.com
 //
 // The account must have signed in at /kotakata/admin once, so it exists.
-// Add --remove to take the claim away.
+// Add --super to make it a superadmin (who can add and remove admins on
+// /kotakata/admin), or --remove to take both claims away.
 
 import { initializeApp, applicationDefault } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 
 const [email, flag] = process.argv.slice(2)
 if (!email) {
-  console.error('Usage: npm run set-admin -- <email> [--remove]')
+  console.error('Usage: npm run set-admin -- <email> [--super | --remove]')
   process.exit(1)
 }
 initializeApp({ credential: applicationDefault(), projectId: 'kotakata-prod' })
 const auth = getAuth()
 const user = await auth.getUserByEmail(email)
 const admin = flag !== '--remove'
-await auth.setCustomUserClaims(user.uid, { ...(user.customClaims ?? {}), admin })
-console.log(`${email}: admin ${admin ? 'on' : 'off'}. Sign out and in again on /kotakata/admin.`)
+const superadmin = flag === '--super'
+await auth.setCustomUserClaims(user.uid, { ...(user.customClaims ?? {}), admin, superadmin })
+console.log(`${email}: admin ${admin ? 'on' : 'off'}, superadmin ${superadmin ? 'on' : 'off'}. Reload /kotakata/admin.`)

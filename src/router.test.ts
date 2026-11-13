@@ -29,6 +29,10 @@ describe('matchRoute', () => {
     expect(matchRoute('/panduan/guru/s1')).toEqual({ name: 'guide', role: 'guru', id: 's1' })
     expect(matchRoute('/privasi')).toEqual({ name: 'privacy' })
     expect(matchRoute('/admin')).toEqual({ name: 'admin' })
+    expect(matchRoute('/masuk')).toEqual({ name: 'signin' })
+    expect(matchRoute('/guru')).toEqual({ name: 'educator' })
+    expect(matchRoute('/ortu')).toEqual({ name: 'parent' })
+    expect(matchRoute('/akun')).toEqual({ name: 'account' })
   })
   it('sends unknown routes to the landing page', () => {
     expect(matchRoute('/nope')).toEqual({ name: 'landing' })
