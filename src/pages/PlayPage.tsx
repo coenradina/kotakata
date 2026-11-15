@@ -12,7 +12,8 @@ import PhonePlayLayout from './play/PhonePlayLayout'
  * card, so the session's first events already know whether they may be sent.
  */
 export default function PlayPage({ sessionId }: { sessionId: string }) {
-  const [asked, setAsked] = useState(() => impact.consent() !== null)
+  // Students in a class aren't asked: their play isn't sent (src/account/AccountProvider.tsx).
+  const [asked, setAsked] = useState(() => impact.consent() !== null || impact.playPaused())
   const { lang } = useLang()
   const layout = useLayout()
   if (!asked)

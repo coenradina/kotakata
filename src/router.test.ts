@@ -32,6 +32,8 @@ describe('matchRoute', () => {
     expect(matchRoute('/masuk')).toEqual({ name: 'signin' })
     expect(matchRoute('/guru')).toEqual({ name: 'educator' })
     expect(matchRoute('/guru/ajukan')).toEqual({ name: 'classRequest' })
+    expect(matchRoute('/guru/kelas/abc123')).toEqual({ name: 'classPage', id: 'abc123' })
+    expect(matchRoute('/kelas/ab2cd3')).toEqual({ name: 'classJoin', code: 'AB2CD3' })
     expect(matchRoute('/ortu')).toEqual({ name: 'parent' })
     expect(matchRoute('/akun')).toEqual({ name: 'account' })
   })
@@ -47,6 +49,10 @@ describe('pagePath', () => {
     expect(pagePath(matchRoute('/nope/whatever'))).toBe('/')
     expect(pagePath(matchRoute('/main/s3'))).toBe('/main/s3')
     expect(pagePath(matchRoute('/panduan/guru/s1'))).toBe('/panduan/guru/s1')
+  })
+  it('leaves class codes and ids out', () => {
+    expect(pagePath(matchRoute('/kelas/AB2CD3'))).toBe('/kelas')
+    expect(pagePath(matchRoute('/guru/kelas/abc123'))).toBe('/guru/kelas')
   })
   it('leaves the admin dashboard out', () => {
     expect(pagePath(matchRoute('/admin'))).toBeNull()

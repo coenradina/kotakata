@@ -3,9 +3,11 @@
 // demand, so pages that never touch an account don't pay for it.
 
 import type { User } from 'firebase/auth'
-import { FUNCTIONS_REGION, firebaseApp } from '../firebase'
+import { FUNCTIONS_REGION, firebaseApp, liveFirestore } from '../firebase'
+import { flushProgress } from '../store'
 import type { Child, Profile, SignupInput } from './schema'
 import type { ClassRequest, ClassRequestInput } from './classRequest'
+import type { ClassInfo, Live, Member } from './classes'
 
 async function authMod() {
   const [app, mod] = await Promise.all([firebaseApp(), import('firebase/auth')])
@@ -92,6 +94,8 @@ async function finish(url: string, email?: string): Promise<'not-a-link' | 'need
 }
 
 export async function signOut() {
+  // Progress still waiting for the server goes out while this browser may still write it.
+  await flushProgress().catch(() => {})
   const { auth, mod } = await authMod()
   await mod.signOut(auth)
 }
@@ -99,7 +103,9 @@ export async function signOut() {
 /** The user's claims, fresh from the server so a claim set a moment ago is seen. */
 export async function claimsOf(user: User) {
   const token = await user.getIdTokenResult(true)
-  return { admin: token.claims.admin === true, superadmin: token.claims.superadmin === true }
+  const c = token.claims
+  const student = c.student === true && typeof c.classId === 'string' && typeof c.memberId === 'string' && typeof c.code === 'string' ? { classId: c.classId, memberId: c.memberId, code: c.code } : null
+  return { admin: c.admin === true, superadmin: c.superadmin === true, student }
 }
 
 type Stamp = { toMillis(): number } | null | undefined
@@ -147,9 +153,12 @@ export async function loadChildren(uid: string): Promise<ChildProfile[]> {
   return snap.docs.map((d) => ({ id: d.id, nickname: d.get('nickname'), avatar: d.get('avatar') })).sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }))
 }
 
-export async function saveChild(uid: string, id: string, child: Child) {
+/** Adds a child profile, or renames one; an existing profile keeps its progress. */
+export async function saveChild(uid: string, id: string, child: Child, isNew: boolean) {
   const { db, mod } = await store()
-  await mod.setDoc(mod.doc(db, 'users', uid, 'children', id), { ...child, createdAt: mod.serverTimestamp() })
+  const ref = mod.doc(db, 'users', uid, 'children', id)
+  if (isNew) await mod.setDoc(ref, { ...child, createdAt: mod.serverTimestamp() })
+  else await mod.updateDoc(ref, { nickname: child.nickname, avatar: child.avatar })
 }
 
 export async function removeChild(uid: string, id: string) {
@@ -215,3 +224,81 @@ export const reviewClassRequest = (id: string, approve: boolean, note: string) =
 
 export const listAdmins = () => call<null, { email: string | null; uid: string; superadmin: boolean }[]>('listAdmins', null)
 export const setAdmin = (email: string, admin: boolean) => call<{ email: string; admin: boolean }, { email: string; admin: boolean }>('setAdmin', { email, admin })
+
+// ---------- classes and students ----------
+
+export const classInfo = (code: string) => call<{ code: string }, ClassInfo>('classInfo', { code })
+
+/** Joins a class (or comes back to it) and signs this browser in as that student. */
+export async function joinClass(input: { code: string; nickname: string; picture: number[]; returning: boolean }) {
+  const res = await call<typeof input, { token: string; classId: string; memberId: string; nickname: string }>('joinClass', input)
+  const { auth, mod } = await authMod()
+  await mod.signInWithCustomToken(auth, res.token)
+  return res
+}
+
+export async function memberNickname(classId: string, memberId: string): Promise<string | null> {
+  const { db, mod } = await store()
+  const snap = await mod.getDoc(mod.doc(db, 'classes', classId, 'members', memberId))
+  return snap.exists() ? (snap.get('nickname') as string) : null
+}
+
+export interface ClassDoc {
+  id: string
+  code: string
+  institution: string
+  sessions: string[]
+  start: string
+  end: string
+  status: string
+  memberCount: number
+}
+
+/** A class, for its educator. */
+export async function loadClass(id: string): Promise<ClassDoc | null> {
+  const { db, mod } = await store()
+  const snap = await mod.getDoc(mod.doc(db, 'classes', id))
+  if (!snap.exists()) return null
+  const d = snap.data()
+  return { id, code: d.code, institution: d.institution ?? '', sessions: d.sessions ?? [], start: d.start, end: d.end, status: d.status, memberCount: d.memberCount ?? 0 }
+}
+
+const toMember = (id: string, d: Record<string, unknown>): Member => {
+  const live = (d.live ?? null) as Record<string, unknown> | null
+  const progress = (d.progress ?? null) as { passed?: string[] } | null
+  return {
+    id,
+    nickname: String(d.nickname ?? ''),
+    joinedAt: ms(d.joinedAt as Stamp),
+    passed: progress?.passed ?? [],
+    live: {
+      session: (live?.session as string | null) ?? null,
+      puzzle: (live?.puzzle as string | null) ?? null,
+      since: ms(live?.since as Stamp),
+      runs: Number(live?.runs ?? 0),
+      hint: Number(live?.hint ?? 0),
+      at: ms(live?.at as Stamp),
+    } satisfies Live,
+  }
+}
+
+/** Calls back with the class's students now and on every change, for the class page. Returns the unsubscribe function. */
+export function watchMembers(classId: string, cb: (members: Member[]) => void, onError: (e: unknown) => void): () => void {
+  let off = () => {}
+  let stopped = false
+  void Promise.all([liveFirestore(), import('firebase/firestore')]).then(([db, mod]) => {
+    if (stopped) return
+    off = mod.onSnapshot(
+      mod.collection(db, 'classes', classId, 'members'),
+      (snap) => cb(snap.docs.map((d) => toMember(d.id, d.data())).sort((a, b) => a.nickname.localeCompare(b.nickname, 'id'))),
+      onError,
+    )
+  })
+  return () => {
+    stopped = true
+    off()
+  }
+}
+
+export const renameMember = (classId: string, memberId: string, nickname: string) => call<{ classId: string; memberId: string; nickname: string }, { nickname: string }>('renameMember', { classId, memberId, nickname })
+export const resetMemberPicture = (classId: string, memberId: string) => call<{ classId: string; memberId: string }, { reset: boolean }>('resetMemberPicture', { classId, memberId })
