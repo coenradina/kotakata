@@ -7,6 +7,7 @@ import { useLang } from '../lang'
 import { ALL, numberOf, trackOf } from '../levels'
 import { Link } from '../router'
 import { store } from '../store'
+import { isVisible, useAccess } from '../access'
 
 /**
  * A certificate for a finished session (docs/plan/04-ui-design.md, section
@@ -16,7 +17,8 @@ import { store } from '../store'
  */
 export default function CertificatePage({ id }: { id: string }) {
   const { lang } = useLang()
-  const level = ALL.find((l) => l.id === id)
+  const access = useAccess()
+  const level = isVisible(id, access) ? ALL.find((l) => l.id === id) : undefined
   const passed = level ? store.load().passed.includes(level.id) : false
   const [name, setName] = useState('')
   const canvas = useRef<HTMLCanvasElement>(null)

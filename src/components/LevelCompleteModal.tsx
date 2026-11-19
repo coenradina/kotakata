@@ -3,6 +3,7 @@ import { LEVELS, levelById, numberOf, trackOf, type SessionId } from '../levels'
 import { t, type CardId, type Lang } from '../i18n'
 import { Link } from '../router'
 import { backdropClass, panelClass } from './modalFrame'
+import { isVisible, useAccess } from '../access'
 
 interface Props {
   lang: Lang
@@ -23,7 +24,9 @@ interface Props {
 export default function LevelCompleteModal({ lang, levelId, found, badges, allDone, onNext, onClose, onCertificate, sheet = false }: Props) {
   const level = levelById(levelId)
   const { list, index, track } = trackOf(levelId)
-  const next = list[index + 1]
+  const access = useAccess()
+  // No "next" into a session this viewer can't open.
+  const next = list[index + 1] && isVisible(list[index + 1].id, access) ? list[index + 1] : undefined
   const hasBonus = level.puzzles.some((s) => s.bonus)
   const primary = useRef<HTMLButtonElement>(null)
   const closeRef = useRef(onClose)

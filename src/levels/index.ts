@@ -49,10 +49,10 @@ export function trackOf(id: string): { track: Track; list: Session[]; index: num
 /** Shown in the level list as "coming soon". */
 export const UPCOMING: { title: Record<Lang, string>; topic: Record<Lang, string> }[] = []
 
-/** A level is open once the one before it is passed. */
-export function isUnlocked(id: string, passed: ReadonlySet<string>): boolean {
+/** A level is open once the one before it is passed. The admin can open any of them (src/access.ts). */
+export function isUnlocked(id: string, passed: ReadonlySet<string>, admin = false): boolean {
   // New sessions stand alone, like an Hour of Code: none is locked.
-  if (SESSIONS.some((s) => s.id === id)) return true
+  if (admin || SESSIONS.some((s) => s.id === id)) return true
   const i = LEVELS.findIndex((l) => l.id === id)
   return i === 0 || (i > 0 && passed.has(LEVELS[i - 1].id))
 }

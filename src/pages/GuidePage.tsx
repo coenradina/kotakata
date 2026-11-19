@@ -8,6 +8,7 @@ import { useLang } from '../lang'
 import { Link } from '../router'
 import GuidesPage from './GuidesPage'
 import { impact } from '../impact'
+import { isVisible, useAccess } from '../access'
 
 /**
  * One guide, for one role (docs/plan/02-sessions.md, section 10). Teachers
@@ -16,7 +17,8 @@ import { impact } from '../impact'
  */
 export default function GuidePage({ role, id }: { role: string; id: string }) {
   const { lang } = useLang()
-  const guide = guideFor(id)
+  const access = useAccess()
+  const guide = isVisible(id, access) ? guideFor(id) : null
   // Remembered on this browser only, so a later session_start can say the teacher guide came first.
   useEffect(() => {
     if (guide && role === 'guru') impact.rememberGuide(id)
