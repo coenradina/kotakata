@@ -19,16 +19,19 @@ import { RouterProvider, matchRoute, pagePath, useRoute, type Page } from './rou
 import { ALL, isUnlocked } from './levels'
 import { store } from './store'
 import { externalReferrer, impact } from './impact'
+import { ADMIN_ONLY, isVisible, useAccess, type Access } from './access'
 
 // Only the admin needs Firebase Auth and the dashboard, so they load on demand.
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 
-const playable = (id: string) => ALL.some((l) => l.id === id) && isUnlocked(id, new Set(store.load().passed))
+const playable = (id: string, access: Access) => ALL.some((l) => l.id === id) && isVisible(id, access) && isUnlocked(id, new Set(store.load().passed), access === 'admin')
 
 /** Counts each page shown, for the dashboard's traffic numbers. Only the first page of a visit has a referrer. */
-function usePageViews(page: Page) {
+function usePageViews(page: Page, access: Access) {
   const first = useRef(true)
-  const path = page.name === 'play' && !playable(page.id) ? '/main' : pagePath(page)
+  // Not counted while an admin-only play page waits for the admin check.
+  const waiting = access === 'checking' && page.name === 'play' && ADMIN_ONLY.has(page.id)
+  const path = waiting ? null : page.name === 'play' && !playable(page.id, access) ? '/main' : pagePath(page)
   useEffect(() => {
     if (!path) return
     impact.page(path, first.current ? externalReferrer() : null)
@@ -39,7 +42,8 @@ function usePageViews(page: Page) {
 function Routes() {
   const { route } = useRoute()
   const page = matchRoute(route)
-  usePageViews(page)
+  const access = useAccess()
+  usePageViews(page, access)
   switch (page.name) {
     case 'landing':
       return <LandingPage />
@@ -74,8 +78,10 @@ function Routes() {
         </Suspense>
       )
     case 'play':
-      // A session that doesn't exist yet, or is still locked, shows the map instead.
-      return playable(page.id) ? <PlayPage sessionId={page.id} /> : <MapPage />
+      // An admin-only session waits for the admin check rather than flashing the map.
+      if (access === 'checking' && ADMIN_ONLY.has(page.id)) return null
+      // A session that doesn't exist yet, is still locked, or is admin-only shows the map instead.
+      return playable(page.id, access) ? <PlayPage sessionId={page.id} /> : <MapPage />
   }
 }
 

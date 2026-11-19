@@ -4,6 +4,7 @@ import { ALL, numberOf, trackOf } from '../levels'
 import { MAX_STARS } from '../quiz/questions'
 import { Link } from '../router'
 import { store } from '../store'
+import { isVisible, useAccess } from '../access'
 
 /**
  * Kata's notebook: every term the player has met, grouped by session, each
@@ -12,9 +13,11 @@ import { store } from '../store'
  */
 export default function NotebookPage() {
   const { lang, setLang } = useLang()
+  const access = useAccess()
+  const levels = ALL.filter((l) => isVisible(l.id, access))
   const progress = store.load()
   const found = new Set<CardId>(progress.cards)
-  const total = ALL.reduce((n, l) => n + l.cards.length, 0)
+  const total = levels.reduce((n, l) => n + l.cards.length, 0)
 
   return (
     <div className="min-h-full bg-parchment">
@@ -38,7 +41,7 @@ export default function NotebookPage() {
           <p className="type-label text-tosca-dark">{t(lang, 'notebookCount', { found: found.size, total })}</p>
         </div>
 
-        {ALL.map((level) => (
+        {levels.map((level) => (
           <section key={level.id} aria-labelledby={`nb-${level.id}`} className="space-y-3">
             <h2 id={`nb-${level.id}`} className="type-heading">
               {t(lang, trackOf(level.id).track === 'sessions' ? 'sessionN' : 'levelN', { n: numberOf(level.id) })} · {level.title[lang]}{' '}

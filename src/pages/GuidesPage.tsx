@@ -3,10 +3,12 @@ import { GUIDES } from '../guides'
 import { t } from '../i18n'
 import { useLang } from '../lang'
 import { Link } from '../router'
+import { isVisible, useAccess } from '../access'
 
 /** Every guide, by session: one for teachers and one for parents. */
 export default function GuidesPage() {
   const { lang } = useLang()
+  const access = useAccess()
   return (
     <div className="min-h-full bg-cream">
       <SiteHeader />
@@ -16,7 +18,7 @@ export default function GuidesPage() {
           <p className="type-lead text-ink-soft">{t(lang, 'gIndexLead')}</p>
         </div>
         <ul className="grid gap-6 md:grid-cols-3">
-          {GUIDES.map((g) => (
+          {GUIDES.filter((g) => isVisible(g.session, access)).map((g) => (
             <li key={g.session} className="flex flex-col rounded-lg border-2 border-ink bg-white p-6 shadow-pixel">
               <span className="type-eyebrow text-maroon">{t(lang, 'sessionLabel', { n: g.session.slice(1) })}</span>
               <h2 className="mt-2 type-heading">{g.title[lang]}</h2>

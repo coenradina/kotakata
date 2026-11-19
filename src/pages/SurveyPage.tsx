@@ -6,6 +6,7 @@ import { useLang } from '../lang'
 import { SESSIONS, numberOf } from '../levels'
 import { Link } from '../router'
 import { store } from '../store'
+import { isVisible, useAccess, type Access } from '../access'
 import { AGAIN, ESSAY_MAX, ROLES, STUCK, toAnswer, type Draft, type Stuck } from '../survey/questions'
 import { sendSurvey } from '../survey/send'
 
@@ -21,10 +22,10 @@ const STUCK_KEYS: Record<Stuck, Key> = {
 const AGAIN_KEYS: Record<(typeof AGAIN)[number], Key> = { yes: 'svYes', maybe: 'svMaybe', no: 'svNo' }
 
 /** The session the answer is probably about: `?s=` from the link, else the last one played. */
-function startingSession(): string | null {
+function startingSession(access: Access): string | null {
   const fromLink = new URLSearchParams(window.location.search).get('s')
   const last = store.load().lastSession
-  return [fromLink, last].find((id) => SESSIONS.some((s) => s.id === id)) ?? null
+  return [fromLink, last].find((id) => SESSIONS.some((s) => s.id === id) && isVisible(id!, access)) ?? null
 }
 
 /** Chips for one question, each a real radio or checkbox under its label. */
@@ -59,7 +60,8 @@ function Question({ id, title, required, missing, children }: { id: string; titl
  */
 export default function SurveyPage() {
   const { lang } = useLang()
-  const [draft, setDraft] = useState<Draft>(() => ({ role: null, session: startingSession(), fun: null, clear: null, stuck: [], again: null, essay: '' }))
+  const access = useAccess()
+  const [draft, setDraft] = useState<Draft>(() => ({ role: null, session: startingSession(access), fun: null, clear: null, stuck: [], again: null, essay: '' }))
   const [state, setState] = useState<'filling' | 'sending' | 'error' | 'sent'>('filling')
   const [tried, setTried] = useState(false)
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
@@ -151,7 +153,7 @@ export default function SurveyPage() {
                 className="min-h-11 w-full rounded border-2 border-ink bg-white px-3 py-2 type-body"
               >
                 <option value="">{t(lang, 'svSessionNone')}</option>
-                {SESSIONS.map((s) => (
+                {SESSIONS.filter((s) => isVisible(s.id, access)).map((s) => (
                   <option key={s.id} value={s.id}>
                     {t(lang, 'introSession', { n: numberOf(s.id) })} · {s.title[lang]}
                   </option>

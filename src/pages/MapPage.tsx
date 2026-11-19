@@ -6,6 +6,7 @@ import { LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
+import { ADMIN_ONLY, isVisible, useAccess } from '../access'
 
 /**
  * The session list drawn as the front of SMP Kotakata
@@ -15,6 +16,9 @@ import { store } from '../store'
  */
 export default function MapPage() {
   const { lang } = useLang()
+  const access = useAccess()
+  // Admin-only rooms say so, for the admin.
+  const openStatus = (id: string) => (ADMIN_ONLY.has(id) ? `${t(lang, 'roomOpen')} · ${t(lang, 'adminOnly')}` : t(lang, 'roomOpen'))
   const progress = store.load()
   const passed = new Set(progress.passed)
   // Ask for feedback once the player has done at least one stage, until they answer.
@@ -59,10 +63,10 @@ export default function MapPage() {
             <Floor title={t(lang, 'floorNew')}>
               <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {PLANNED.map((s) => {
-                  if (!SESSIONS.some((x) => x.id === s.id)) {
+                  if (!SESSIONS.some((x) => x.id === s.id) || !isVisible(s.id, access)) {
                     return (
                       <li key={s.id}>
-                        <Room number={`R.2${s.n}`} icon={s.icon} title={s.title[lang]} status={s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')} state="soon" />
+                        <Room number={`R.2${s.n}`} icon={s.icon} title={s.title[lang]} status={s.firstRelease && isVisible(s.id, access) ? t(lang, 'firstRelease') : t(lang, 'soon')} state="soon" />
                       </li>
                     )
                   }
@@ -70,7 +74,7 @@ export default function MapPage() {
                   return (
                     <li key={s.id} className="space-y-2">
                       <Link to={`/main/${s.id}`} className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
-                        <Room number={`R.2${s.n}`} icon={done ? '✓' : s.icon} title={s.title[lang]} status={done ? t(lang, 'roomDone') : t(lang, 'roomOpen')} state={done ? 'done' : 'open'} />
+                        <Room number={`R.2${s.n}`} icon={done ? '✓' : s.icon} title={s.title[lang]} status={done ? t(lang, 'roomDone') : openStatus(s.id)} state={done ? 'done' : 'open'} />
                       </Link>
                       {done && (
                         <Link to={`/sertifikat/${s.id}`} className="inline-block type-micro underline hover:text-maroon">
@@ -87,7 +91,14 @@ export default function MapPage() {
               <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {LEVELS.map((level, i) => {
                   const done = passed.has(level.id)
-                  if (!isUnlocked(level.id, passed)) {
+                  if (!isVisible(level.id, access)) {
+                    return (
+                      <li key={level.id}>
+                        <Room number={`R.1${i + 1}`} icon="🚪" title={level.title[lang]} status={t(lang, 'soon')} state="soon" />
+                      </li>
+                    )
+                  }
+                  if (!isUnlocked(level.id, passed, access === 'admin')) {
                     return (
                       <li key={level.id}>
                         <Room number={`R.1${i + 1}`} icon="🔒" title={level.title[lang]} status={t(lang, 'levelLocked')} state="soon" />
@@ -101,7 +112,7 @@ export default function MapPage() {
                           number={`R.1${i + 1}`}
                           icon={done ? '✓' : '🚪'}
                           title={level.title[lang]}
-                          status={done ? t(lang, 'roomDone') : t(lang, 'roomOpen')}
+                          status={done ? t(lang, 'roomDone') : openStatus(level.id)}
                           state={done ? 'done' : 'open'}
                         />
                       </Link>

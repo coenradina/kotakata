@@ -5,6 +5,7 @@ import type { NotebookEntry } from '../../components/TermMoment'
 import type { Milestones, PopupSide } from '../../game/types'
 import { t, type CardId, type Lang } from '../../i18n'
 import { MAX_REPEATS, ladderHint, rungFor, type Hint } from '../../hints'
+import { isVisible, useAccess } from '../../access'
 import { levelById, trackOf, type SessionId } from '../../levels'
 import type { Puzzle, Session } from '../../levels/types'
 
@@ -62,6 +63,7 @@ export function usePlaySession(sessionId: string) {
   const level = levelById(levelId)
   // The list this session belongs to: the new sessions, or the classic levels.
   const { list: TRACK, track: trackName } = trackOf(levelId)
+  const access = useAccess()
   useEffect(() => store.save({ lastSession: levelId }), [levelId])
   // Impact data: when this session opened, in active time, and once per opening.
   const sessionClock = useRef(0)
@@ -350,7 +352,7 @@ export function usePlaySession(sessionId: string) {
           setPassed(next)
           store.save({ passed: [...next] })
           const nextIndex = TRACK.findIndex((l) => l.id === level.id) + 1
-          if (trackName === 'classic' && nextIndex < TRACK.length) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
+          if (trackName === 'classic' && nextIndex < TRACK.length && isVisible(TRACK[nextIndex].id, access)) setLog((l) => [...l, { text: t(lang, 'levelUnlocked', { n: nextIndex + 1 }), tone: 'good' }])
         }
         if (level.puzzles.some((st) => st.bonus && !nowDone.has(st.id))) setLog((l) => [...l, { text: t(lang, 'bonusOpen'), tone: 'info' }])
         else setLog((l) => [...l, { text: `${t(lang, 'bonusToo')} ${t(lang, 'allDone')}`, tone: 'good' }])

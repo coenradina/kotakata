@@ -7,6 +7,7 @@ import { ALL, LEVELS, SESSIONS, isUnlocked } from '../levels'
 import { Link } from '../router'
 import { PLANNED } from '../sessions/catalog'
 import { store } from '../store'
+import { isVisible, useAccess } from '../access'
 
 /**
  * The front door (docs/plan/04-ui-design.md, section 5.1): what Kotakata
@@ -15,6 +16,8 @@ import { store } from '../store'
  */
 export default function LandingPage() {
   const { lang } = useLang()
+  const access = useAccess()
+  const sessions = SESSIONS.filter((s) => isVisible(s.id, access))
   // Bumped after a reset, so the page reads the (now empty) progress again.
   const [, setResets] = useState(0)
   const progress = store.load()
@@ -22,9 +25,9 @@ export default function LandingPage() {
   // Pick up the last session played. The old version saved classic levels
   // under the same key, so a classic id there goes to the first unfinished
   // session instead. A first visit starts at Session 1.
-  const resume = SESSIONS.some((s) => s.id === progress.lastSession)
+  const resume = sessions.some((s) => s.id === progress.lastSession)
     ? progress.lastSession!
-    : (SESSIONS.find((s) => !passed.has(s.id)) ?? SESSIONS[0]).id
+    : (sessions.find((s) => !passed.has(s.id)) ?? sessions[0]).id
 
   return (
     <div className="min-h-full bg-cream">
@@ -66,7 +69,7 @@ export default function LandingPage() {
             </div>
             <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {PLANNED.map((s) => {
-                const playable = SESSIONS.some((x) => x.id === s.id)
+                const playable = sessions.some((x) => x.id === s.id)
                 const done = passed.has(s.id)
                 return (
                   <li
@@ -84,7 +87,7 @@ export default function LandingPage() {
                     <div className="mt-4 flex flex-wrap gap-1.5">
                       <Chip>⏱ {t(lang, 'minutes', { n: s.minutes })}</Chip>
                       <Chip>{t(lang, 'kelasChip', { k: s.kelas.join(', ') })}</Chip>
-                      {!playable && <Chip>{s.firstRelease ? t(lang, 'firstRelease') : t(lang, 'soon')}</Chip>}
+                      {!playable && <Chip>{s.firstRelease && isVisible(s.id, access) ? t(lang, 'firstRelease') : t(lang, 'soon')}</Chip>}
                     </div>
                     {playable && (
                       <div className="mt-4 flex flex-wrap gap-2">
@@ -110,27 +113,29 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl space-y-8">
             <div className="max-w-3xl space-y-3">
               <h2 id="classic-title" className="type-title">
-                {t(lang, 'classicTitle')}
+                {t(lang, 'classicTitle', { n: LEVELS.filter((l) => isVisible(l.id, access)).length })}
               </h2>
               <p className="type-lead text-ink-soft">{t(lang, 'classicLead')}</p>
             </div>
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {LEVELS.map((level, i) => {
                 const done = passed.has(level.id)
-                const open = isUnlocked(level.id, passed)
+                const hidden = !isVisible(level.id, access)
+                const open = !hidden && isUnlocked(level.id, passed, access === 'admin')
                 return (
                   <li key={level.id} className={`flex flex-col rounded-lg border-2 p-6 ${open ? 'border-ink bg-white shadow-pixel' : 'border-dashed border-ink/40 bg-cream'}`}>
                     <span className="type-eyebrow text-maroon">{t(lang, 'levelN', { n: i + 1 })}</span>
                     <h3 className="mt-2 type-subheading">
-                      {level.title[lang]} {done && <span aria-label={t(lang, 'roomDone')}>✓</span>}
+                      {level.title[lang]} {done && !hidden && <span aria-label={t(lang, 'roomDone')}>✓</span>}
                     </h3>
                     <p className="mt-1 flex-1 type-label text-ink-muted">{level.topic[lang]}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {!open && <span className="type-micro text-ink-muted">🔒 {t(lang, 'levelLocked')}</span>}
+                      {hidden && <span className="type-micro text-ink-muted">{t(lang, 'soon')}</span>}
+                      {!open && !hidden && <span className="type-micro text-ink-muted">🔒 {t(lang, 'levelLocked')}</span>}
                       {open && <Link to={`/main/${level.id}`} className="pixel-btn rounded border-2 border-ink bg-white px-3 py-1.5 type-button hover:bg-parchment">
                         {done ? t(lang, 'replay') : t(lang, 'play')}
                       </Link>}
-                      {done && (
+                      {done && !hidden && (
                         <Link to={`/sertifikat/${level.id}`} className="pixel-btn rounded border-2 border-ink bg-amber px-3 py-1.5 type-button hover:bg-amber-tint">
                           🎓 {t(lang, 'certificate')}
                         </Link>
