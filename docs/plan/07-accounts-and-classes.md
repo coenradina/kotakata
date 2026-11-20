@@ -31,6 +31,8 @@ Where this file and `03-technical.md` differ (sections 3, 4, 5 and 7, and the fa
 | Student, through a class link | ✓ | The class's sessions, between its start and end dates |
 | Admin, superadmin | ✓ | ✓ |
 
+**Until phase 5.** Nothing is locked by this table yet. Since 19 Nov 2026 a stopgap hides Sessions 4 to 6 and classic levels 3 and 4 from everyone but admins (`ADMIN_ONLY` in `src/access.ts`), and the class request form doesn't offer them. Everyone else plays Sessions 1 to 3 and classic levels 1 and 2. Phase 5 replaces the stopgap with this table.
+
 **The lock is a gate, not protection.** The site is static on GitHub Pages, so every session's code is in the bundle anyone downloads. The lock stops casual use and routes people through sign-up and requests. Serving sessions from a backend after sign-in would protect them, at a cost that isn't worth it now.
 
 **Guest impact data shrinks.** Guests can only reach classic 1–2, so the dashboard's session numbers will come from parents, educators' previews and, once classes run, students.

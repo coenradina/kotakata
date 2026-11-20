@@ -2,7 +2,7 @@
 
 Kotakata is a pixel-art block-coding game for learning machine learning terms. You snap blocks together, press run, and watch a small robot learn. Each level you finish unlocks term cards that explain the words you just used.
 
-Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP classrooms is planned in [docs/plan](docs/plan/README.md). The game is in Indonesian and English. Technical terms like *training*, *dataset* and *accuracy* stay in English in both, because those are the words learners will meet later.
+Play it at https://aastr.id/kotakata. The one-hour sessions for SMP classrooms, and the plan behind them, are described below and in [docs/plan](docs/plan/README.md). The game is in Indonesian and English. Technical terms like *training*, *dataset* and *accuracy* stay in English in both, because those are the words learners will meet later.
 
 ## Sessions
 
@@ -12,20 +12,22 @@ Play it at https://aastr.id/kotakata. A redesign into one-hour sessions for SMP 
 
 3. **Data yang Adil / Fair Data.** The same learner, moved to a cousin's class that writes differently. Players inspect the data, learn that different examples beat more of the same, fix joke labels, set examples aside for an honest test, and score Kata person by person to find who it fails. Terms: bias, data quality, test data, overfitting, fairness. *(playable, `/kotakata/main/s3`)*
 
-4. **Ekskul Apa? / Which Club?** Kata suggests a club for new students from survey answers. Players build a yes/no tree, use "explain for Dinda" to trace why she was told choir, let Kata learn a tree from 24 past members, ban the "from class A" question that last year's data taught it, and prune a tree that memorised members who followed friends. Terms: recommender system, explainability, decision tree learning, historical bias, pruning. *(playable, `/kotakata/main/s4`)*
+4. **Ekskul Apa? / Which Club?** Kata suggests a club for new students from survey answers. Players build a yes/no tree, use "explain for Dinda" to trace why she was told choir, let Kata learn a tree from 24 past members, ban the "from class A" question that last year's data taught it, and prune a tree that memorised members who followed friends. Terms: recommender system, explainability, decision tree learning, historical bias, pruning. *(admins only for now, `/kotakata/main/s4`)*
 
-5. **Kata demi Kata / Word by Word.** Kata becomes the class info chatbot, a word n-gram model trained on the announcement board. Players see the next-word probabilities, use temperature and memory, catch Kata confidently answering a date the board never gave, rewrite vague questions, and make Kata read a new notice. Terms: generative AI, hallucination, prompt, AI as a tool. *(playable, `/kotakata/main/s5`)*
+5. **Kata demi Kata / Word by Word.** Kata becomes the class info chatbot, a word n-gram model trained on the announcement board. Players see the next-word probabilities, use temperature and memory, catch Kata confidently answering a date the board never gave, rewrite vague questions, and make Kata read a new notice. Terms: generative AI, hallucination, prompt, AI as a tool. *(admins only for now, `/kotakata/main/s5`)*
 
-6. **Rapat OSIS / Student Council.** A decision simulation. Players chair a meeting on four proposals: a face-scan attendance camera, an AI essay detector, Kata as the parents' info desk, and a gate camera. A school week fills meters for time, privacy, fairness, copies caught, trust and safety, and an ethics matrix shows how five characters feel. The attendance plan everyone accepts uses no AI, the essay detector needs a teacher to talk to flagged students, and the gate camera passes only without face recognition. Terms: data privacy, false positive, false negative, human in the loop, AI ethics. *(playable, `/kotakata/main/s6`)*
+6. **Rapat OSIS / Student Council.** A decision simulation. Players chair a meeting on four proposals: a face-scan attendance camera, an AI essay detector, Kata as the parents' info desk, and a gate camera. A school week fills meters for time, privacy, fairness, copies caught, trust and safety, and an ethics matrix shows how five characters feel. The attendance plan everyone accepts uses no AI, the essay detector needs a teacher to talk to flagged students, and the gate camera passes only without face recognition. Terms: data privacy, false positive, false negative, human in the loop, AI ethics. *(admins only for now, `/kotakata/main/s6`)*
 
 The plan for all six sessions is in [docs/plan](docs/plan/README.md).
+
+**Admin-only sessions.** Sessions 4 to 6 and classic levels 3 and 4 show as "coming soon" to everyone except signed-in admins, who can also open the classic levels in any order. The list is `ADMIN_ONLY` in `src/access.ts`: take an id out of it to release that session. The code still ships in the bundle, so this hides the sessions without protecting them.
 
 ## Classic levels
 
 1. **Latih Robot / Train the Robot.** Classification: dataset, label, training, testing, accuracy. *(playable)*
 2. **Taman Decision Tree / Decision Tree Garden.** Features, splits, leaves, predictions, decision trees. Unlocks after Level 1. *(playable)*
-3. **Bukit Loss / Hill of Loss.** Loss, gradients, learning rates, convergence, gradient descent. *(playable)*
-4. **Kedai Token / Token Tavern.** Tokens, probability, temperature, context, LLMs. *(playable)*
+3. **Bukit Loss / Hill of Loss.** Loss, gradients, learning rates, convergence, gradient descent. *(admins only for now)*
+4. **Kedai Token / Token Tavern.** Tokens, probability, temperature, context, LLMs. *(admins only for now)*
 
 ## Stages and badges
 
@@ -85,7 +87,7 @@ The bard is a tiny language model learned from five tavern sentences (`src/level
 
 ## Guides
 
-Each session's guide is data in `src/guides/` (`s1.ts`, `s3.ts`, `s5.ts`). It holds both roles: the parts they share (goals, terms, exit ticket, misconceptions) are written once, and the teacher (`guru`) and parent (`ortu`) instructions differ. Every text exists in Indonesian and English, which `guides.test.ts` checks. The unplugged cards come from the game's corpora, so the paper version matches the screen.
+Each session's guide is data in `src/guides/` (`s1.ts` to `s6.ts`). It holds both roles: the parts they share (goals, terms, exit ticket, misconceptions) are written once, and the teacher (`guru`) and parent (`ortu`) instructions differ. Every text exists in Indonesian and English, which `guides.test.ts` checks. The unplugged cards come from the game's corpora, so the paper version matches the screen.
 
 ## Adding a level
 
