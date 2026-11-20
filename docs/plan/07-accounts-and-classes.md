@@ -233,6 +233,8 @@ Differences from the plan, and choices it left open:
 
 **Monitoring.** The game's impact events (`session_start`, `puzzle_start`, `run`, `session_complete`) also drive `live` on the student's document: session, stage, since when (server time), runs and the strongest hint. The class page listens with the full Firestore SDK, loaded only there. Students' play events are never sent for research (`impact.pausePlay`), as no class has research on yet; the consent card isn't shown to them.
 
+**Admin-only sessions.** Students and child profiles aren't admins, so the stopgap in section 2 hides Sessions 4 to 6 and classic levels 3 and 4 from them too. The request form no longer offers those, so a class can't be booked with sessions its students can't open.
+
 **Parents.** One child profile plays automatically. With more, the map and sessions ask "Siapa yang main?" once per tab, and `/ortu` has "Main sebagai …" for each child.
 
 **Retention.** `reviewClassRequest` now stamps a class with `deleteAfter` (end date + 30 days) instead of a TTL field, because a TTL policy deletes one document and would leave the students' subcollections and sign-ins behind. `cleanupClasses` runs every night at 03:00 WIB: it deletes the students' Auth users, the class with everything under it, and its code. Codes keep their TTL as a backstop.
