@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAccount } from '../account/AccountProvider'
-import { cancelClassRequest, loadMyRequests } from '../account/client'
+import { cancelClassRequest, loadClass, loadMyRequests, type ClassDoc } from '../account/client'
 import { MAX_ACTIVE, type ClassRequest, type RequestStatus } from '../account/classRequest'
 import type { Profile } from '../account/schema'
 import { RequireRole, Card, Page, errorText, primaryButton, secondaryButton } from '../account/ui'
@@ -10,6 +10,7 @@ import { useLang } from '../lang'
 import { Link } from '../router'
 import { GUIDE_IDS } from '../staticRoutes'
 import { dayLabel, justSent, sessionLabel } from '../account/requestText'
+import { classLink } from './ClassPage'
 
 /**
  * /guru: an educator's home: the onboarding checklist and their class
@@ -31,6 +32,7 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
   const { lang } = useLang()
   const { refresh } = useAccount()
   const [requests, setRequests] = useState<ClassRequest[] | null>(null)
+  const [classes, setClasses] = useState<Record<string, ClassDoc>>({})
   const [error, setError] = useState<string | null>(null)
   const [sent] = useState(() => {
     const was = justSent.value
@@ -43,6 +45,10 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
         setRequests(list)
         // An approval gives access on the server; pick it up without a reload.
         if (!profile.access.sessions && list.some((r) => r.status === 'approved')) void refresh()
+        const ids = list.flatMap((r) => (r.status === 'approved' && r.classId ? [r.classId] : []))
+        void Promise.all(ids.map((id) => loadClass(id).catch(() => null))).then((docs) =>
+          setClasses(Object.fromEntries(docs.flatMap((c) => (c ? [[c.id, c]] : [])))),
+        )
       })
       .catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -65,7 +71,7 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
   const steps = [
     { done: guideRead, label: t(lang, 'edStepGuide'), to: '/panduan' },
     { done: (requests?.length ?? 0) > 0, label: t(lang, 'edStepRequest'), to: '/guru/ajukan' },
-    { done: false, label: t(lang, 'edStepShare'), soon: true },
+    { done: Object.values(classes).some((c) => c.memberCount > 0), label: t(lang, 'edStepShare') },
   ]
 
   return (
@@ -92,7 +98,6 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
               ) : (
                 <span>{s.label}</span>
               )}
-              {s.soon && <span className="rounded border border-ink bg-parchment px-2 py-0.5 type-micro">{t(lang, 'edSoon')}</span>}
             </li>
           ))}
         </ol>
@@ -114,7 +119,15 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
               </p>
               <p className="type-caption text-ink-muted">{r.sessions.map((s) => sessionLabel(lang, s)).join(', ')}</p>
               {r.note && <p className="type-body">{t(lang, 'edNote', { note: r.note })}</p>}
-              {r.status === 'approved' && <p className="type-caption text-ink-muted">{t(lang, 'edApprovedNext')}</p>}
+              {r.status === 'approved' && r.classId && classes[r.classId] && (
+                <div className="space-y-2">
+                  <p className="type-label">{t(lang, 'edClassLink')}</p>
+                  <code className="block break-all rounded border-2 border-ink bg-white px-3 py-2 type-body">{classLink(classes[r.classId].code)}</code>
+                  <Link to={`/guru/kelas/${r.classId}`} className={`inline-block ${primaryButton}`}>
+                    {t(lang, 'edOpenClass')}
+                  </Link>
+                </div>
+              )}
               {r.status === 'pending' && (
                 <button onClick={() => cancel(r)} className={secondaryButton}>
                   {t(lang, 'edCancel')}

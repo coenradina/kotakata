@@ -4,7 +4,8 @@ import { AVATARS, CHILD_IDS, NICKNAME_MAX, cleanChild } from '../account/schema'
 import { Card, Chip, Chips, Field, Page, RequireRole, errorText, inputClass, primaryButton, secondaryButton } from '../account/ui'
 import { t } from '../i18n'
 import { useLang } from '../lang'
-import { Link } from '../router'
+import { Link, useRoute } from '../router'
+import { useAccount } from '../account/AccountProvider'
 
 /**
  * /ortu: a parent's home, with up to six child profiles
@@ -19,10 +20,20 @@ function Children({ uid, name }: { uid: string; name: string }) {
   const [children, setChildren] = useState<ChildProfile[] | null>(null)
   const [editing, setEditing] = useState<ChildProfile | 'new' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { player, pickChild, reloadChildren } = useAccount()
+  const { navigate } = useRoute()
+  const playing = player.kind === 'child' ? player.child.id : null
   const reload = () =>
     loadChildren(uid)
-      .then(setChildren)
+      .then((list) => {
+        setChildren(list)
+        void reloadChildren()
+      })
       .catch((e) => setError(errorText(e)))
+  const playAs = (id: string) => {
+    pickChild(id)
+    navigate('/main')
+  }
   useEffect(() => {
     void reload()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,7 +64,7 @@ function Children({ uid, name }: { uid: string; name: string }) {
                   initial={c}
                   onCancel={() => setEditing(null)}
                   onSave={async (child) => {
-                    await saveChild(uid, c.id, child)
+                    await saveChild(uid, c.id, child, false)
                     setEditing(null)
                     await reload()
                   }}
@@ -64,7 +75,13 @@ function Children({ uid, name }: { uid: string; name: string }) {
                 <span className="type-heading" aria-hidden>
                   {c.avatar}
                 </span>
-                <span className="flex-1 type-subheading">{c.nickname}</span>
+                <span className="flex-1 type-subheading">
+                  {c.nickname}
+                  {playing === c.id && <span className="ml-2 rounded border border-ink bg-tosca-tint px-2 py-0.5 type-micro">{t(lang, 'paPlaying')}</span>}
+                </span>
+                <button onClick={() => playAs(c.id)} className={primaryButton}>
+                  {t(lang, 'paPlayAs', { name: c.nickname })}
+                </button>
                 <button onClick={() => setEditing(c)} className={secondaryButton}>
                   {t(lang, 'paEdit')}
                 </button>
@@ -79,7 +96,7 @@ function Children({ uid, name }: { uid: string; name: string }) {
           <ChildForm
             onCancel={() => setEditing(null)}
             onSave={async (child) => {
-              await saveChild(uid, freeId, child)
+              await saveChild(uid, freeId, child, true)
               setEditing(null)
               await reload()
             }}
@@ -94,9 +111,11 @@ function Children({ uid, name }: { uid: string; name: string }) {
       </Card>
       <p className="type-caption text-ink-muted">{t(lang, 'paProgressNote')}</p>
       <div className="flex flex-wrap items-center gap-4">
-        <Link to="/main" className={`${primaryButton} inline-flex items-center`}>
-          {t(lang, 'paPlay')}
-        </Link>
+        {children?.length === 0 && (
+          <Link to="/main" className={`${primaryButton} inline-flex items-center`}>
+            {t(lang, 'paPlay')}
+          </Link>
+        )}
         <Link to="/akun" className="type-label underline hover:text-maroon">
           {t(lang, 'akTitle')}
         </Link>

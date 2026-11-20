@@ -35,3 +35,16 @@ export function firebaseApp() {
   })()
   return ready
 }
+
+let live: Promise<import('firebase/firestore').Firestore> | null = null
+
+/** Firestore with live updates (onSnapshot), for the class page only: it is much larger than the lite SDK. */
+export function liveFirestore() {
+  live ??= (async () => {
+    const [app, mod] = await Promise.all([firebaseApp(), import('firebase/firestore')])
+    const db = mod.getFirestore(app)
+    if (EMULATORS) mod.connectFirestoreEmulator(db, '127.0.0.1', 8080)
+    return db
+  })()
+  return live
+}

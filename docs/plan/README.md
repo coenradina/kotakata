@@ -46,9 +46,7 @@ As of 20 November 2026.
 - Guides for all six sessions, for teachers and parents, with printable unplugged cards (step 7).
 - The phone play screen (05) and Kata's onboarding (06).
 - The feedback survey, the consent card, the impact pipeline for guests and the admin dashboard (03, section 6, step 4).
-- Accounts and class requests (07, phases 1 and 2).
-
-**In review:** classes (07, phase 3): class links, student sign-in with a nickname and pictures, progress on the server, and the educator's live class page. It is PR #14, which needs an IAM change and a functions and rules deploy before it is merged.
+- Accounts, class requests and classes (07, phases 1 to 3): class links, student sign-in with a nickname and pictures, progress on the server, and the educator's live class page.
 
 **Not built yet:**
 

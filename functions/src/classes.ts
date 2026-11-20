@@ -119,22 +119,27 @@ export const reviewClassRequest = onCall(async (req) => {
     if (free < 0) throw new HttpsError('aborted', 'No free class code; try again.')
     const code = candidates[free]
     const request = r.data() as ClassRequestInput & { ownerUid: string }
-    const expireAt = Timestamp.fromMillis(Date.parse(`${request.end}T23:59:59+07:00`) + KEEP_CLASS_MS)
+    // cleanupClasses (functions/src/members.ts) deletes the class and its
+    // students on `deleteAfter`. A TTL policy can't: it would leave the
+    // students' subcollections and sign-ins behind.
+    const deleteAfter = Timestamp.fromMillis(Date.parse(`${request.end}T23:59:59+07:00`) + KEEP_CLASS_MS)
     const cls = db().collection('classes').doc()
     tx.set(cls, {
       ownerUid: request.ownerUid,
       requestId: id,
       code,
+      institution: request.institution,
       sessions: request.sessions,
       start: request.start,
       end: request.end,
       status: 'active',
       research: false,
+      memberCount: 0,
       createdAt: FieldValue.serverTimestamp(),
       closedAt: null,
-      expireAt,
+      deleteAfter,
     })
-    tx.set(db().doc(`codes/${code}`), { classId: cls.id, expireAt })
+    tx.set(db().doc(`codes/${code}`), { classId: cls.id, expireAt: deleteAfter })
     tx.update(ref, { ...reviewed, status: 'approved', classId: cls.id })
     if (user.exists && user.get('access.sessions') !== true) tx.update(owner, { access: { sessions: true, grantedAt: FieldValue.serverTimestamp() } })
     return { status: 'approved' as const, classId: cls.id }

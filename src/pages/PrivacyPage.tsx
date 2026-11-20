@@ -21,6 +21,7 @@ export default function PrivacyPage() {
     ['pvPlayTitle', 'pvPlay'],
     ['pvNeverTitle', 'pvNever'],
     ['pvAccountTitle', 'pvAccount'],
+    ['pvClassTitle', 'pvClass'],
   ]
   return (
     <div className="min-h-full bg-cream">

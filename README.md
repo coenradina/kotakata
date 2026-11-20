@@ -63,7 +63,9 @@ New terms go into **Kata's notebook** (`/buku`), with the moment the player foun
 | `/kotakata/masuk` | Sign in (Google or an email link) and sign up as an educator or a parent |
 | `/kotakata/guru` | An educator's home: access status, first steps and their class requests |
 | `/kotakata/guru/ajukan` | The class request form |
-| `/kotakata/ortu` | A parent's home: up to six child profiles |
+| `/kotakata/guru/kelas/<id>` | A class page for its educator: the link to share, students live, who is stuck |
+| `/kotakata/kelas/<code>` | A student joins a class with a nickname and 2 pictures, or comes back on another device |
+| `/kotakata/ortu` | A parent's home: up to six child profiles, each with its own progress |
 | `/kotakata/akun` | Name, training and newsletter choices, sign out, delete the account |
 | `/kotakata/admin` | Admin dashboard: class requests to approve, then traffic, play, quiz and survey numbers. Google sign-in with the `admin` claim. |
 
