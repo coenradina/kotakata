@@ -859,7 +859,7 @@ const dict = {
   crGrades: { id: 'Kelas berapa siswanya?', en: 'Which grades are the students in?' },
   crSessions: { id: 'Sesi yang dipakai', en: 'Sessions to use' },
   crClassic: { id: 'Klasik {n}', en: 'Classic {n}' },
-  crSessionsNote: { id: 'Level klasik 1 dan 2 terbuka untuk semua orang, jadi tidak perlu diajukan.', en: 'Classic levels 1 and 2 are open to everyone, so they need no request.' },
+  crSessionsNote: { id: 'Level klasik 1 dan 2 terbuka untuk semua orang, jadi tidak perlu diajukan. Sesi 4 sampai 6 serta level klasik 3 dan 4 belum bisa diajukan.', en: 'Classic levels 1 and 2 are open to everyone, so they need no request. Sessions 4 to 6 and classic levels 3 and 4 cannot be requested yet.' },
   crStart: { id: 'Tanggal mulai', en: 'Start date' },
   crEnd: { id: 'Tanggal selesai', en: 'End date' },
   crDatesNote: {

@@ -445,14 +445,14 @@ Existing `localStorage` progress is migrated once, so that notebook cards a play
 
 | Step | Delivers | Depends on |
 | --- | --- | --- |
-| 1 | Refactor: router, store interface, `Session` and `Puzzle` model, notebook instead of pop-ups, prediction card, three-rung hints | None |
-| 2 | Landing page, session map, certificate | 1 |
-| 3 | Session 1 content, model and balance tests | 1 |
+| 1 | Refactor: router, store interface, `Session` and `Puzzle` model, notebook instead of pop-ups, prediction card, three-rung hints. *Built.* | None |
+| 2 | Landing page, session map, certificate. *Built.* | 1 |
+| 3 | Session 1 content, model and balance tests. *Built, see 02, section 3, "As built".* | 1 |
 | 4 | Impact pipeline for guests: queue, `ingestImpact`, aggregates, admin dashboard v1. *Built 12 Nov 2026, see section 6, "As built for guests".* | 1 |
-| 5 | Sessions 3 and 5 | 3 |
-| 6 | Accounts: educator and parent sign-in, groups, join flow, dashboards | 4 |
-| 7 | Guides for Sessions 1, 3 and 5, both roles. Printable unplugged packs. | 3, 5 |
-| 8 | Legal review, privacy notice, parent letter template | 4, 6 |
-| 9 | Persona playtest, fixes, then the pilot | All |
+| 5 | Sessions 3 and 5. *Built, along with Sessions 2, 4 and 6. Since 19 Nov 2026, Sessions 4 to 6 are admin-only (README, "Admin-only sessions").* | 3 |
+| 6 | Accounts: educator and parent sign-in, groups, join flow, dashboards. *Replaced by 07: phases 1 and 2 built, phase 3 in review.* | 4 |
+| 7 | Guides for Sessions 1, 3 and 5, both roles. Printable unplugged packs. *Built for all six sessions, see 02, "As built (step 7)".* | 3, 5 |
+| 8 | Legal review, privacy notice, parent letter template. *The privacy notice (`/privasi`) is built; the legal review and the letter are not.* | 4, 6 |
+| 9 | Persona playtest, fixes, then the pilot. *Not started.* | All |
 
 Steps 1 to 4 already give a public Hour of Code activity with impact data. Accounts can follow.

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { requestClass } from '../account/client'
+import { isVisible, useAccess } from '../access'
 import {
   CITY_MAX,
   CLASS_GRADES,
@@ -54,6 +55,9 @@ const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x
 function RequestForm({ profile }: { profile: Profile }) {
   const { lang } = useLang()
   const { navigate } = useRoute()
+  // Sessions still admin-only (src/access.ts) can't be booked: their students couldn't open them.
+  const access = useAccess()
+  const offered = CLASS_SESSIONS.filter((s) => isVisible(s, access))
   const today = jakartaToday(Date.now())
   const [institution, setInstitution] = useState('')
   const [city, setCity] = useState(profile.survey?.city ?? '')
@@ -159,8 +163,8 @@ function RequestForm({ profile }: { profile: Profile }) {
         <Card>
           <Field label={t(lang, 'crSessions')} required>
             <div className="space-y-2">
-              {CLASS_SESSIONS.map((s) => (
-                <Check key={s} checked={sessions.includes(s)} onChange={() => setSessions(CLASS_SESSIONS.filter((x) => (x === s ? !sessions.includes(s) : sessions.includes(x))))}>
+              {offered.map((s) => (
+                <Check key={s} checked={sessions.includes(s)} onChange={() => setSessions(offered.filter((x) => (x === s ? !sessions.includes(s) : sessions.includes(x))))}>
                   {sessionLabel(lang, s)}
                 </Check>
               ))}
