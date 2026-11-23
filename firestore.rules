@@ -4,7 +4,7 @@ rules_version = '2';
 // parts of their own account, and manage a parent's child profiles
 // (src/account/schema.ts). Accounts are created by `completeSignup`, so
 // `role`, `access` and the consent times never come from a browser. Class
-// requests and classes are read-only here (src/account/classRequest.ts). Impact data
+// requests, classes and class feedback are read-only here (src/account/classRequest.ts). Impact data
 // (`impact_batches`, `impact_daily`) has no rule here, so browsers can't
 // touch it at all: only the functions in functions/src/index.ts read and
 // write it, and the admin dashboard gets totals through `impactReport`.
@@ -60,6 +60,12 @@ service cloud.firestore {
           allow write: if isMember(id, memberId) && validBlocks(request.resource.data);
         }
       }
+    }
+
+    // Feedback after a class, written only by `sendClassFeedback`
+    // (functions/src/feedback.ts). The educator who sent it and admins read it.
+    match /classFeedback/{classId} {
+      allow read: if request.auth != null && (resource.data.ownerUid == request.auth.uid || request.auth.token.get('admin', false) == true);
     }
   }
 

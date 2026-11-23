@@ -1,6 +1,6 @@
 # Kotakata plan
 
-Status: written as a plan on 6 November 2026, and mostly built since. Each file says what was built and where it differs from the plan. "Where things stand" below lists what is left (updated 20 November 2026).
+Status: written as a plan on 6 November 2026, and mostly built since. Each file says what was built and where it differs from the plan. "Where things stand" below lists what is left (updated 23 November 2026).
 
 Kotakata is a set of one-hour activities in the style of Hour of Code. They teach SMP students (ages 12 to 15) how AI works. Each activity is a block-coding game set in the students' own world: school, friends and the internet.
 
@@ -38,7 +38,7 @@ Kotakata is a set of one-hour activities in the style of Hour of Code. They teac
 
 ## Where things stand
 
-As of 20 November 2026.
+As of 23 November 2026.
 
 **Built:**
 
@@ -47,12 +47,12 @@ As of 20 November 2026.
 - The phone play screen (05) and Kata's onboarding (06).
 - The feedback survey, the consent card, the impact pipeline for guests and the admin dashboard (03, section 6, step 4).
 - Accounts, class requests and classes (07, phases 1 to 3): class links, student sign-in with a nickname and pictures, progress on the server, and the educator's live class page.
+- Feedback after a class, which closes it, the feedback section on `/admin` and the mailing list CSV (07, phase 4).
 
 **Not built yet:**
 
 | What | Where it is planned |
 | --- | --- |
-| Feedback after a class, closing a class, the mailing list CSV | 07, phase 4 |
 | The access lock, the locked page, `/privasi` and guide updates; it replaces the admin-only stopgap | 07, phase 5 |
 | *Tantang Teman* (challenge a friend) with challenge codes, in every session | 02, section 2 |
 | The third label, *Info Ekskul*, in Session 1 | 02, section 3, "As built" |

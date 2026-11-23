@@ -24,6 +24,12 @@
       "indexes": []
     },
     {
+      "collectionGroup": "classFeedback",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "codes",
       "fieldPath": "expireAt",
       "ttl": true,

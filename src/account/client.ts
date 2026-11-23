@@ -8,6 +8,7 @@ import { flushProgress } from '../store'
 import type { Child, Profile, SignupInput } from './schema'
 import type { ClassRequest, ClassRequestInput } from './classRequest'
 import type { ClassInfo, Live, Member } from './classes'
+import type { Again, ClassFeedbackInput, HardPart, MailingRow, Training } from './classFeedback'
 
 async function authMod() {
   const [app, mod] = await Promise.all([firebaseApp(), import('firebase/auth')])
@@ -265,12 +266,13 @@ export async function loadClass(id: string): Promise<ClassDoc | null> {
 
 const toMember = (id: string, d: Record<string, unknown>): Member => {
   const live = (d.live ?? null) as Record<string, unknown> | null
-  const progress = (d.progress ?? null) as { passed?: string[] } | null
+  const progress = (d.progress ?? null) as { passed?: string[]; puzzlesDone?: Record<string, string[]> } | null
   return {
     id,
     nickname: String(d.nickname ?? ''),
     joinedAt: ms(d.joinedAt as Stamp),
     passed: progress?.passed ?? [],
+    done: progress?.puzzlesDone ?? {},
     live: {
       session: (live?.session as string | null) ?? null,
       puzzle: (live?.puzzle as string | null) ?? null,
@@ -302,3 +304,61 @@ export function watchMembers(classId: string, cb: (members: Member[]) => void, o
 
 export const renameMember = (classId: string, memberId: string, nickname: string) => call<{ classId: string; memberId: string; nickname: string }, { nickname: string }>('renameMember', { classId, memberId, nickname })
 export const resetMemberPicture = (classId: string, memberId: string) => call<{ classId: string; memberId: string }, { reset: boolean }>('resetMemberPicture', { classId, memberId })
+
+// ---------- after the class ----------
+
+/** Sends the post-class feedback, which closes the class. */
+export const sendClassFeedback = (classId: string, answers: ClassFeedbackInput) =>
+  call<{ classId: string; answers: ClassFeedbackInput }, { status: 'closed' }>('sendClassFeedback', { classId, answers })
+
+/** A classFeedback document as the admin dashboard reads it (createdAt as ms). */
+export interface ClassFeedback {
+  classId: string
+  institution: string
+  city: string
+  mode: string | null
+  sessions: string[]
+  start: string
+  end: string
+  members: number
+  stages: Record<string, number>
+  rating: number
+  hard: HardPart[]
+  confused: string[]
+  confusedText: string
+  moment: string
+  again: Again
+  training: Training
+  createdAt: number | null
+}
+
+/** For admins: the newest feedback first. */
+export async function loadClassFeedback(max = 100): Promise<ClassFeedback[]> {
+  const { db, mod } = await store()
+  const snap = await mod.getDocs(mod.query(mod.collection(db, 'classFeedback'), mod.orderBy('createdAt', 'desc'), mod.limit(max)))
+  return snap.docs.map((doc) => {
+    const d = doc.data()
+    return {
+      classId: doc.id,
+      institution: d.institution ?? '',
+      city: d.city ?? '',
+      mode: d.mode ?? null,
+      sessions: d.sessions ?? [],
+      start: d.start,
+      end: d.end,
+      members: d.members ?? 0,
+      stages: d.stages ?? {},
+      rating: d.rating,
+      hard: d.hard ?? [],
+      confused: d.confused ?? [],
+      confusedText: d.confusedText ?? '',
+      moment: d.moment ?? '',
+      again: d.again,
+      training: d.training,
+      createdAt: ms(d.createdAt),
+    }
+  })
+}
+
+/** For admins: everyone who opted in to the mailing list. */
+export const mailingList = () => call<null, MailingRow[]>('mailingList', null)

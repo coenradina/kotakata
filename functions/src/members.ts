@@ -146,14 +146,18 @@ export const resetMemberPicture = onCall(async (req) => {
   return { reset: true }
 })
 
-/** Deletes one class: its students' sign-ins, every document under it, and its code. */
+/** Deletes one class: its students' sign-ins, every document under it, and its code, and frees its request's slot. */
 export async function deleteClass(ref: DocumentReference) {
   const members = await ref.collection('members').select().get()
   const uids = members.docs.map((m) => `m_${m.id}`)
   for (let i = 0; i < uids.length; i += 1000) await getAuth().deleteUsers(uids.slice(i, i + 1000))
-  const code = (await ref.get()).get('code')
+  const cls = await ref.get()
+  const code = cls.get('code')
+  const requestId = cls.get('requestId')
   await db().recursiveDelete(ref)
   if (typeof code === 'string') await db().doc(`codes/${code}`).delete()
+  // A class deleted without feedback no longer counts toward its educator's limit.
+  if (typeof requestId === 'string') await db().doc(`classRequests/${requestId}`).update({ active: false }).catch(() => {})
 }
 
 export const cleanupClasses = onSchedule({ schedule: 'every day 03:00', timeZone: 'Asia/Jakarta' }, async () => {

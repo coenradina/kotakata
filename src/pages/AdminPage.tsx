@@ -7,7 +7,8 @@ import { ALL } from '../levels'
 import { quizText } from '../quiz/questions'
 import { Bars, Columns, type BarRow } from '../components/AdminCharts'
 import { useAccount } from '../account/AccountProvider'
-import { listAdmins, loadRequestQueue, reviewClassRequest, setAdmin } from '../account/client'
+import { listAdmins, loadClassFeedback, loadRequestQueue, mailingList, reviewClassRequest, setAdmin, type ClassFeedback } from '../account/client'
+import { HARD_PARTS, mailingCsv, type HardPart } from '../account/classFeedback'
 import { daysFrom, jakartaToday, type ClassRequest } from '../account/classRequest'
 import { dayLabel, sessionLabel } from '../account/requestText'
 import { isHidden, jakartaDay, medianMs, type Hidden, type Hist, type PuzzleAgg, type Report, type SessionAgg } from '../impact/report'
@@ -89,6 +90,7 @@ export default function AdminPage() {
           </Panel>
         )}
         {state.status === 'in' && state.admin && <RequestsPanel />}
+        {state.status === 'in' && state.admin && <FeedbackPanel />}
         {state.status === 'in' && state.admin && <Dashboard />}
         {state.status === 'in' && state.admin && <AdminsPanel />}
       </main>
@@ -973,6 +975,144 @@ function PendingRequest({ r, onDone }: { r: ClassRequest; onDone: () => Promise<
           {error}
         </p>
       )}
+    </li>
+  )
+}
+
+// ---------- after the class ----------
+
+const HARD_ID: Record<HardPart, string> = {
+  intro: 'Pembukaan',
+  mission: 'Misi tiap tahap',
+  blocks: 'Menyusun blok',
+  run: 'Menjalankan program',
+  result: 'Membaca hasil',
+  words: 'Istilah AI',
+  time: 'Waktu',
+  devices: 'Perangkat atau internet',
+  other: 'Lainnya',
+}
+const AGAIN_ID: Record<string, string> = { yes: 'Ya', maybe: 'Mungkin', no: 'Tidak' }
+
+/** Educators' feedback after their classes, and the mailing list export (docs/plan/07-accounts-and-classes.md, section 7). */
+function FeedbackPanel() {
+  const [list, setList] = useState<ClassFeedback[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [csvMsg, setCsvMsg] = useState<string | null>(null)
+  useEffect(() => {
+    loadClassFeedback()
+      .then(setList)
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+  }, [])
+
+  const download = async () => {
+    setCsvMsg('Memuat…')
+    try {
+      const rows = await mailingList()
+      const url = URL.createObjectURL(new Blob([mailingCsv(rows)], { type: 'text/csv;charset=utf-8' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `kotakata-mailing-${jakartaToday(Date.now())}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      setCsvMsg(`${num(rows.length)} orang.`)
+    } catch (e) {
+      setCsvMsg(`Gagal: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  const n = list?.length ?? 0
+  const mean = n > 0 ? (list!.reduce((sum, f) => sum + f.rating, 0) / n).toFixed(1) : '–'
+  const hardCounts = HARD_PARTS.map((h) => ({ h, count: list?.filter((f) => f.hard.includes(h)).length ?? 0 })).filter((x) => x.count > 0)
+
+  return (
+    <Panel title={`Feedback kelas${list ? ` (${n})` : ''}`}>
+      {!list && !error && <p className="type-body">Memuat…</p>}
+      {error && (
+        <p role="alert" className="rounded border-2 border-maroon bg-maroon-tint p-3 type-body">
+          Gagal memuat: {error}
+        </p>
+      )}
+      {list?.length === 0 && <p className="type-body">Belum ada kelas yang ditutup dengan feedback.</p>}
+      {list && n > 0 && (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Stat label="Rata-rata kelancaran" value={`${mean} / 5`} />
+            <Stat label="Mau mengadakan lagi" value={pct(list.filter((f) => f.again === 'yes').length, n)} note={`Mungkin: ${pct(list.filter((f) => f.again === 'maybe').length, n)}`} />
+            <Stat label="Mau pelatihan lanjutan" value={pct(list.filter((f) => f.training === 'yes').length, n)} />
+          </div>
+          {hardCounts.length > 0 && (
+            <p className="type-body">
+              <span className="type-label">Sulit disampaikan: </span>
+              {hardCounts
+                .sort((a, b) => b.count - a.count)
+                .map((x) => `${HARD_ID[x.h]} (${x.count})`)
+                .join(', ')}
+            </p>
+          )}
+          <ul className="space-y-3">
+            {list.map((f) => (
+              <FeedbackItem key={f.classId} f={f} />
+            ))}
+          </ul>
+        </div>
+      )}
+      <h3 className="mt-6 mb-2 type-subheading">Mailing list</h3>
+      <p className="type-body">Pendidik dan orang tua yang setuju dikirimi email tentang kelas dan pelatihan berikutnya. Setiap email yang dikirim ke mereka harus punya cara berhenti berlangganan.</p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button onClick={() => void download()} className="pixel-btn min-h-11 rounded border-2 border-ink bg-white px-4 py-2 type-button hover:bg-parchment">
+          Unduh CSV
+        </button>
+        {csvMsg && (
+          <span role="status" className="type-body">
+            {csvMsg}
+          </span>
+        )}
+      </div>
+    </Panel>
+  )
+}
+
+function FeedbackItem({ f }: { f: ClassFeedback }) {
+  const confused = f.confused.map((key) => {
+    const [session, puzzle] = key.split(':')
+    return `${puzzleTitle(session, puzzle)} (${sessionLabel('id', session).split(' · ')[0]}, ${f.stages[key] ?? 0}/${f.members} selesai)`
+  })
+  return (
+    <li className="space-y-2 rounded border-2 border-ink bg-cream p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex-1 type-subheading">
+          {f.institution}
+          {f.city && `, ${f.city}`}
+        </span>
+        <span className="rounded border border-ink bg-white px-2 py-0.5 type-micro">{f.rating} / 5</span>
+      </div>
+      <p className="type-caption text-ink-muted">
+        {dayLabel('id', f.start)} – {dayLabel('id', f.end)} · {f.members} siswa · {f.sessions.map((s) => sessionLabel('id', s).split(' · ')[0]).join(', ')}
+        {f.createdAt && ` · dikirim ${new Date(f.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium', timeZone: 'Asia/Jakarta' })}`}
+      </p>
+      <dl className="grid gap-1 type-body sm:grid-cols-[max-content_1fr]">
+        <dt className="type-label">Sulit disampaikan</dt>
+        <dd>{f.hard.length ? f.hard.map((h) => HARD_ID[h] ?? h).join(', ') : '–'}</dd>
+        <dt className="type-label">Siswa bingung di</dt>
+        <dd>{confused.length ? confused.join('; ') : '–'}</dd>
+        {f.confusedText && (
+          <>
+            <dt className="type-label">Bingungnya</dt>
+            <dd className="whitespace-pre-wrap">{f.confusedText}</dd>
+          </>
+        )}
+        {f.moment && (
+          <>
+            <dt className="type-label">Momen berkesan</dt>
+            <dd className="whitespace-pre-wrap">{f.moment}</dd>
+          </>
+        )}
+        <dt className="type-label">Mengadakan lagi</dt>
+        <dd>{AGAIN_ID[f.again] ?? f.again}</dd>
+        <dt className="type-label">Pelatihan lanjutan</dt>
+        <dd>{f.training === 'yes' ? 'Mau' : 'Nanti dulu'}</dd>
+      </dl>
     </li>
   )
 }
