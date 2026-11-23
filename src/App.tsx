@@ -11,9 +11,12 @@ import PrivacyPage from './pages/PrivacyPage'
 import SignInPage from './pages/SignInPage'
 import EducatorPage from './pages/EducatorPage'
 import ClassRequestPage from './pages/ClassRequestPage'
+import ClassPage from './pages/ClassPage'
+import ClassJoinPage from './pages/ClassJoinPage'
+import WhoPlaysPage from './pages/WhoPlaysPage'
 import ParentPage from './pages/ParentPage'
 import AccountPage from './pages/AccountPage'
-import { AccountProvider } from './account/AccountProvider'
+import { AccountProvider, useAccount } from './account/AccountProvider'
 import SurveyPage from './pages/SurveyPage'
 import { RouterProvider, matchRoute, pagePath, useRoute, type Page } from './router'
 import { ALL, isUnlocked } from './levels'
@@ -39,11 +42,26 @@ function usePageViews(page: Page, access: Access) {
   }, [path])
 }
 
+/** Pages that show the player's progress: they wait for a profile's progress, and a parent with several children picks one first. */
+const PLAYER_PAGES = new Set<Page['name']>(['landing', 'map', 'play', 'notebook', 'certificate'])
+
 function Routes() {
   const { route } = useRoute()
   const page = matchRoute(route)
+  const { ready, player, storeKey } = useAccount()
   const access = useAccess()
   usePageViews(page, access)
+  if (PLAYER_PAGES.has(page.name)) {
+    if (!ready) return <div className="min-h-full bg-cream" aria-busy="true" />
+    if (player.kind === 'choose' && page.name !== 'landing') return <WhoPlaysPage />
+    // A different player (a student, another child) remounts the page, so nothing from the last one lingers.
+    return <PlayerPage key={storeKey} page={page} />
+  }
+  return <OtherPage page={page} />
+}
+
+function PlayerPage({ page }: { page: Page }) {
+  const access = useAccess()
   switch (page.name) {
     case 'landing':
       return <LandingPage />
@@ -53,6 +71,18 @@ function Routes() {
       return <NotebookPage />
     case 'certificate':
       return <CertificatePage id={page.id} />
+    case 'play':
+      // An admin-only session waits for the admin check rather than flashing the map.
+      if (access === 'checking' && ADMIN_ONLY.has(page.id)) return null
+      // A session that doesn't exist yet, is still locked, or is admin-only shows the map instead.
+      return playable(page.id, access) ? <PlayPage sessionId={page.id} /> : <MapPage />
+    default:
+      return null
+  }
+}
+
+function OtherPage({ page }: { page: Page }) {
+  switch (page.name) {
     case 'guides':
       return <GuidesPage />
     case 'guide':
@@ -67,6 +97,10 @@ function Routes() {
       return <EducatorPage />
     case 'classRequest':
       return <ClassRequestPage />
+    case 'classPage':
+      return <ClassPage id={page.id} />
+    case 'classJoin':
+      return <ClassJoinPage code={page.code} />
     case 'parent':
       return <ParentPage />
     case 'account':
@@ -77,11 +111,8 @@ function Routes() {
           <AdminPage />
         </Suspense>
       )
-    case 'play':
-      // An admin-only session waits for the admin check rather than flashing the map.
-      if (access === 'checking' && ADMIN_ONLY.has(page.id)) return null
-      // A session that doesn't exist yet, is still locked, or is admin-only shows the map instead.
-      return playable(page.id, access) ? <PlayPage sessionId={page.id} /> : <MapPage />
+    default:
+      return null
   }
 }
 

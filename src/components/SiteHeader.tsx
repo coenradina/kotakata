@@ -63,9 +63,10 @@ function AccountLink() {
   const { account } = useAccount()
   const { route } = useRoute()
   if (account.status === 'loading') return null
-  const signedUp = account.status === 'in' && (account.profile || account.admin)
+  const signedUp = account.status === 'in' && (account.profile || account.admin || account.student)
   const to = signedUp ? homeOf(account) : '/masuk'
-  const label = account.status === 'in' && account.profile ? t(lang, 'navAccount', { name: account.profile.displayName }) : account.status === 'in' && account.admin ? 'Admin' : t(lang, 'navSignIn')
+  const name = account.status === 'in' ? (account.profile?.displayName ?? account.student?.nickname) : undefined
+  const label = name ? t(lang, 'navAccount', { name }) : account.status === 'in' && account.admin ? 'Admin' : t(lang, 'navSignIn')
   const current = route === to
   return (
     <Link to={to} aria-current={current ? 'page' : undefined} className={`max-w-48 truncate rounded border-2 border-ink px-3 py-1.5 type-button ${current ? 'bg-ink text-cream' : 'bg-amber-tint hover:bg-parchment'}`}>

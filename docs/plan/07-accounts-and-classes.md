@@ -1,6 +1,6 @@
 # Accounts, classes and access
 
-Status: plan, 13 November 2026. Phases 1 (accounts) and 2 (class requests) are built; see section 12.
+Status: plan, 13 November 2026. Phases 1 (accounts), 2 (class requests) and 3 (classes) are built; see section 12.
 
 Where this file and `03-technical.md` differ (sections 3, 4, 5 and 7, and the family groups in `01-learning-path.md`), this file wins. The impact pipeline in 03, section 6, stays as built.
 
@@ -140,7 +140,7 @@ classFeedback/{classId}          ownerUid, answers, createdAt
 
 **Rules**: a user reads and edits their own `users` document except `access`; parents own their `children`. Requests are read by their owner and admins and written only by functions. A class and its members are read by its owner; a member reads and writes only their own document. `codes` and claims are functions only.
 
-**Retention**: a class and its members are deleted 30 days after its end date (TTL on `expireAt`). Requests and feedback, which hold no child data, are kept 24 months. Accounts and child profiles stay until the person deletes them, which they can do from their settings.
+**Retention**: a class and its members are deleted 30 days after its end date (`cleanupClasses`, every night; see section 12, phase 3). Requests and feedback, which hold no child data, are kept 24 months. Accounts and child profiles stay until the person deletes them, which they can do from their settings.
 
 ## 9. Privacy and legal
 
@@ -216,3 +216,36 @@ Differences from the plan, and choices it left open:
 
 
 **Testing locally.** As in phase 1. The Firestore emulator needs Java 21 or newer. Class request mail is written to the functions log instead of being sent. The emulator also logs a Secret Manager 403 for `SMTP_PASSWORD`, because the demo project has no secrets; it is harmless.
+
+### Phase 3: classes (13 Nov 2026)
+
+| Part | Where |
+| --- | --- |
+| Nicknames, picture passwords, when a class is open, when a student is stuck | `src/account/classes.ts` |
+| Functions | `classInfo`, `joinClass`, `renameMember`, `resetMemberPicture`, and the nightly `cleanupClasses` in `functions/src/members.ts` |
+| Pages | `/kelas/<code>` (join, or come back on another device), `/guru/kelas/<id>` (the link, students live, stuck students, a summary per stage, rename and reset pictures), the class link on `/guru`, "Siapa yang main?" for parents with more than one child |
+| Progress on the server | `src/store/sync.ts` and `src/store/index.ts` (`switchProfile`), `src/account/progressRemote.ts` |
+| Rules | `classes/{id}/members/{m}`: the educator reads, the student reads and updates only `progress` and `live`; blocks per session under it; `names` and `keys` have no rule. Child profiles gain `progress` and a `blocks` subcollection. |
+
+**Joining.** The join page asks first: *first time in this class* or *joined before*. A first-timer types a nickname, which must be new in the class (case doesn't matter), and picks 2 of the 12 pictures in order. Someone coming back types the same nickname and pictures, on any device, and gets the same progress. Students never see each other's nicknames. A wrong nickname or picture counts toward the lock: 20 in 10 minutes locks the class for 10 minutes. The token's uid is `m_<memberId>`, with claims `student`, `classId`, `memberId` and `code`. The pictures are stored as a salted SHA-256 hash in `keys/{memberId}`; with 144 combinations the hash only keeps them out of plain sight, and the lock is what stops guessing.
+
+**Progress.** The game still reads and writes a local store synchronously. For a student or a child profile, the local copy sits under its own prefix (`kotakata.p.<key>.`), and every change is copied to the server about 2 seconds later: progress to the `progress` field, blocks as JSON text in `blocks/{session}`. Opening a profile on a device first pulls the server copy and merges it: progress only grows, so the merge keeps everything either copy has; blocks from the server fill sessions this device has none of. A device that last played as a profile waits for it on reload instead of flashing a guest's progress.
+
+**Monitoring.** The game's impact events (`session_start`, `puzzle_start`, `run`, `session_complete`) also drive `live` on the student's document: session, stage, since when (server time), runs and the strongest hint. The class page listens with the full Firestore SDK, loaded only there. Students' play events are never sent for research (`impact.pausePlay`), as no class has research on yet; the consent card isn't shown to them.
+
+**Admin-only sessions.** Students and child profiles aren't admins, so the stopgap in section 2 hides Sessions 4 to 6 and classic levels 3 and 4 from them too. The request form no longer offers those, so a class can't be booked with sessions its students can't open.
+
+**Parents.** One child profile plays automatically. With more, the map and sessions ask "Siapa yang main?" once per tab, and `/ortu` has "Main sebagai …" for each child.
+
+**Retention.** `reviewClassRequest` now stamps a class with `deleteAfter` (end date + 30 days) instead of a TTL field, because a TTL policy deletes one document and would leave the students' subcollections and sign-ins behind. `cleanupClasses` runs every night at 03:00 WIB: it deletes the students' Auth users, the class with everything under it, and its code. Codes keep their TTL as a backstop.
+
+Not done here: the class's research switch (03, section 6) and closing a class come with feedback in phase 4. Deleting an educator's account leaves their classes to the nightly cleanup.
+
+**Deploy, in this order:**
+
+1. Let functions sign the students' sign-in tokens: give the functions' service account the Service Account Token Creator role on itself, and turn on the IAM Service Account Credentials API.
+   `gcloud services enable iamcredentials.googleapis.com --project kotakata-prod`
+   `gcloud iam service-accounts add-iam-policy-binding 481742197917-compute@developer.gserviceaccount.com --member=serviceAccount:481742197917-compute@developer.gserviceaccount.com --role=roles/iam.serviceAccountTokenCreator --project kotakata-prod`
+2. `firebase deploy --only functions,firestore --project kotakata-prod`. The first deploy of `cleanupClasses` turns on Cloud Scheduler.
+3. Merge the PR.
+

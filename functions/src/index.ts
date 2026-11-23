@@ -106,3 +106,4 @@ async function loadDay(day: string, final: boolean): Promise<{ day: string; agg:
 
 export { completeSignup, deleteAccount, listAdmins, setAdmin } from './accounts'
 export { cancelClassRequest, mailClassRequest, requestClass, reviewClassRequest } from './classes'
+export { classInfo, cleanupClasses, joinClass, renameMember, resetMemberPicture } from './members'

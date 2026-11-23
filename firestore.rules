@@ -21,13 +21,19 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'lang', 'survey', 'training', 'mailing'])
         && validEdit(request.resource.data, resource.data);
 
-      // Child profiles, c1 to c6, so there are never more than six.
+      // Child profiles, c1 to c6, so there are never more than six. Each keeps
+      // its progress and its blocks per session.
       match /children/{childId} {
         allow read, delete: if isSelf(uid);
         allow create, update: if isSelf(uid)
           && childId in ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']
           && get(/databases/$(database)/documents/users/$(uid)).data.role == 'parent'
           && validChild(request.resource.data);
+
+        match /blocks/{sessionId} {
+          allow read, delete: if isSelf(uid);
+          allow write: if isSelf(uid) && childId in ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'] && validBlocks(request.resource.data);
+        }
       }
     }
 
@@ -41,6 +47,19 @@ service cloud.firestore {
     // class, has no rule: only functions read it.
     match /classes/{id} {
       allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+
+      // Students (functions/src/members.ts). The educator reads them all, for
+      // the class page; a student reads and updates only their own progress
+      // and where they are now. `names` and `keys` have no rule.
+      match /members/{memberId} {
+        allow read: if isClassOwner(id) || isMember(id, memberId);
+        allow update: if isMember(id, memberId) && validMemberUpdate(request.resource.data, resource.data);
+
+        match /blocks/{sessionId} {
+          allow read: if isMember(id, memberId);
+          allow write: if isMember(id, memberId) && validBlocks(request.resource.data);
+        }
+      }
     }
   }
 
@@ -70,8 +89,50 @@ service cloud.firestore {
       && s.source in ['colleague', 'social', 'search', 'event', 'school', 'other'];
   }
 
+  function isMember(classId, memberId) {
+    // token.get(): adults' tokens have no student claims, and a missing key would be an error.
+    return request.auth != null && request.auth.token.get('student', false) == true
+      && request.auth.token.get('classId', '') == classId && request.auth.token.get('memberId', '') == memberId;
+  }
+
+  function isClassOwner(classId) {
+    // Functions sit outside `match /databases/{database}`, so the database is named here.
+    return request.auth != null && get(/databases/(default)/documents/classes/$(classId)).data.ownerUid == request.auth.uid;
+  }
+
+  // Only `progress` and `live` change, and each is checked only when it does:
+  // a progress save leaves `live.at` as it was.
+  function validMemberUpdate(after, before) {
+    let changed = after.diff(before).affectedKeys();
+    return changed.hasOnly(['progress', 'live'])
+      && (!('progress' in changed) || validProgress(after.progress))
+      && (!('live' in changed) || validLive(after.live));
+  }
+
+  // Progress is the player's own record (src/store/progress.ts); its size is
+  // capped by the document limit.
+  function validProgress(p) {
+    return p == null || p is map;
+  }
+
+  function validLive(l) {
+    return l == null
+      || (l.keys().hasOnly(['session', 'puzzle', 'since', 'runs', 'hint', 'at'])
+        && (l.session == null || (l.session is string && l.session.size() <= 12))
+        && (l.puzzle == null || (l.puzzle is string && l.puzzle.size() <= 24))
+        && (l.since == null || l.since is timestamp)
+        && l.runs is int && l.runs >= 0
+        && l.hint is int && l.hint >= 0 && l.hint <= 3
+        && l.at == request.time);
+  }
+
+  function validBlocks(b) {
+    return b.keys().hasOnly(['json', 'at']) && b.json is string && b.json.size() <= 200000 && b.at == request.time;
+  }
+
   function validChild(c) {
-    return c.keys().hasOnly(['nickname', 'avatar', 'createdAt'])
+    return c.keys().hasOnly(['nickname', 'avatar', 'createdAt', 'progress'])
+      && validProgress(c.get('progress', null))
       && text(c.nickname, 20)
       && c.avatar in ['🐝', '🐦', '🐸', '🦅', '🤖', '🌈', '🌙', '🌳', '🍎', '🏀', '🎲', '⭐']
       && c.createdAt is timestamp;

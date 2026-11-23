@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+// The account provider pulls in the game's store and levels, which need the browser's CSS.
+vi.mock('./account/AccountProvider', () => ({ useAccount: () => ({ account: { status: 'out' } }) }))
+
 import { ADMIN_ONLY, isVisible } from './access'
 import { PLAY_IDS } from './staticRoutes'
 

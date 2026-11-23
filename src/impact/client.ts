@@ -57,6 +57,8 @@ export function createImpact(deps: ImpactDeps) {
   type Queued = { anon: boolean; e: ImpactEvent }
   let queue: Queued[] = read(KEYS.queue, [])
   let sending = false
+  /** A student in a class: their play is never sent while their class has research off. */
+  let paused = false
 
   const consent = (): Consent => {
     const c = read<string | null>(KEYS.consent, null)
@@ -102,9 +104,18 @@ export function createImpact(deps: ImpactDeps) {
       write(KEYS.queue, queue)
     },
 
+    /**
+     * Stops (or resumes) play events for whoever plays now, whatever this
+     * browser's answer on the consent card. Students in a class are paused.
+     */
+    pausePlay(on: boolean) {
+      paused = on
+    },
+    playPaused: () => paused,
+
     /** Queues an event. Events about play are dropped unless the player said yes. */
     track(e: ImpactEvent) {
-      if (!ANONYMOUS.has(e.t) && consent() !== 'yes') return
+      if (!ANONYMOUS.has(e.t) && (paused || consent() !== 'yes')) return
       enqueue(e)
     },
 

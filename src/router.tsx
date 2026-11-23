@@ -64,6 +64,8 @@ export type Page =
   | { name: 'signin' }
   | { name: 'educator' }
   | { name: 'classRequest' }
+  | { name: 'classPage'; id: string }
+  | { name: 'classJoin'; code: string }
   | { name: 'parent' }
   | { name: 'account' }
 
@@ -78,6 +80,8 @@ export function matchRoute(route: string): Page {
   if (parts[0] === 'privasi' && parts.length === 1) return { name: 'privacy' }
   if (parts[0] === 'admin' && parts.length === 1) return { name: 'admin' }
   if (parts[0] === 'guru' && parts[1] === 'ajukan' && parts.length === 2) return { name: 'classRequest' }
+  if (parts[0] === 'guru' && parts[1] === 'kelas' && parts[2] && parts.length === 3) return { name: 'classPage', id: parts[2] }
+  if (parts[0] === 'kelas' && parts[1] && parts.length === 2) return { name: 'classJoin', code: parts[1].toUpperCase() }
   if (parts.length === 1) {
     const account = ({ masuk: 'signin', guru: 'educator', ortu: 'parent', akun: 'account' } as const)[parts[0] as 'masuk' | 'guru' | 'ortu' | 'akun']
     if (account) return { name: account }
@@ -119,6 +123,11 @@ export function pagePath(page: Page): string | null {
       return '/guru'
     case 'classRequest':
       return '/guru/ajukan'
+    // Class ids and codes are left out: a code is how a student gets in.
+    case 'classPage':
+      return '/guru/kelas'
+    case 'classJoin':
+      return '/kelas'
     case 'parent':
       return '/ortu'
     case 'account':
