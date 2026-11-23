@@ -11,6 +11,8 @@ import { Link } from '../router'
 import { GUIDE_IDS } from '../staticRoutes'
 import { dayLabel, justSent, sessionLabel } from '../account/requestText'
 import { classLink } from './ClassPage'
+import { classState } from '../account/classes'
+import { jakartaToday } from '../account/classRequest'
 
 /**
  * /guru: an educator's home: the onboarding checklist and their class
@@ -121,8 +123,15 @@ function Home({ uid, profile }: { uid: string; profile: Profile }) {
               {r.note && <p className="type-body">{t(lang, 'edNote', { note: r.note })}</p>}
               {r.status === 'approved' && r.classId && classes[r.classId] && (
                 <div className="space-y-2">
-                  <p className="type-label">{t(lang, 'edClassLink')}</p>
-                  <code className="block break-all rounded border-2 border-ink bg-white px-3 py-2 type-body">{classLink(classes[r.classId].code)}</code>
+                  {classState(classes[r.classId], jakartaToday(Date.now())) === 'closed' ? (
+                    <p className="type-body">{t(lang, 'clClosed')}</p>
+                  ) : (
+                    <>
+                      {classState(classes[r.classId], jakartaToday(Date.now())) === 'ended' && <p className="rounded border-2 border-ink bg-amber-tint p-3 type-body">{t(lang, 'edFeedbackDue')}</p>}
+                      <p className="type-label">{t(lang, 'edClassLink')}</p>
+                      <code className="block break-all rounded border-2 border-ink bg-white px-3 py-2 type-body">{classLink(classes[r.classId].code)}</code>
+                    </>
+                  )}
                   <Link to={`/guru/kelas/${r.classId}`} className={`inline-block ${primaryButton}`}>
                     {t(lang, 'edOpenClass')}
                   </Link>

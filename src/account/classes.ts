@@ -68,6 +68,8 @@ export interface Member {
   live: Live
   /** Sessions whose main puzzles are all done. */
   passed: string[]
+  /** Stages done, per session. */
+  done: Record<string, string[]>
 }
 
 /** What `classInfo` tells the join page. */

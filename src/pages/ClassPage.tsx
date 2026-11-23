@@ -2,18 +2,21 @@ import { useEffect, useState } from 'react'
 import { loadClass, renameMember, resetMemberPicture, watchMembers, type ClassDoc } from '../account/client'
 import { classState, cleanNickname, isStuck, MAX_MEMBERS, type ClassState, type Member } from '../account/classes'
 import { jakartaToday } from '../account/classRequest'
+import { canSendFeedback } from '../account/classFeedback'
 import { dayLabel, sessionLabel } from '../account/requestText'
 import { Card, Page, RequireRole, errorText, secondaryButton } from '../account/ui'
 import { t, type Key, type Lang } from '../i18n'
 import { useLang } from '../lang'
 import { ALL } from '../levels'
 import { href, Link } from '../router'
+import ClassFeedbackForm from './ClassFeedbackForm'
 
 /**
  * /guru/kelas/<id>: the class page for its educator
  * (docs/plan/07-accounts-and-classes.md, section 6). The link to share, and
  * every student live: where they are, for how long, runs and hints, and who
- * is stuck. Only the class's educator can read it (firestore.rules).
+ * is stuck. Only the class's educator can read it (firestore.rules). From the
+ * start date, the post-class feedback, which closes the class (section 7).
  */
 export default function ClassPage({ id }: { id: string }) {
   return <RequireRole role="educator">{() => <ClassView id={id} />}</RequireRole>
@@ -36,6 +39,7 @@ function ClassView({ id }: { id: string }) {
   const [msg, setMsg] = useState<string | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const [copied, setCopied] = useState(false)
+  const [justClosed, setJustClosed] = useState(false)
 
   useEffect(() => {
     loadClass(id)
@@ -198,6 +202,22 @@ function ClassView({ id }: { id: string }) {
         )}
         {(members?.length ?? 0) >= MAX_MEMBERS && <p className="type-body">{t(lang, 'kjFull')}</p>}
       </Card>
+
+      {justClosed && (
+        <p role="status" className="rounded-lg border-2 border-tosca-dark bg-tosca-tint p-4 type-body">
+          {t(lang, 'fbDone')}
+        </p>
+      )}
+      {members !== null && canSendFeedback(cls, jakartaToday(now)) && (
+        <ClassFeedbackForm
+          cls={cls}
+          members={members}
+          onClosed={() => {
+            setCls({ ...cls, status: 'closed' })
+            setJustClosed(true)
+          }}
+        />
+      )}
     </Page>
   )
 }

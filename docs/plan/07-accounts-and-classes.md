@@ -135,7 +135,8 @@ classes/{id}                     ownerUid, requestId, code, sessions, start, end
 classes/{id}/members/{m}         nickname, avatar, pictureHash, joinedAt, progress,
                                  live: { session, puzzle, since, runs, hint }
 codes/{code}                     classId                                         (functions only)
-classFeedback/{classId}          ownerUid, answers, createdAt
+classFeedback/{classId}          ownerUid, institution, city, sessions, start, end, members, stages,
+                                 answers, createdAt, expireAt                      (functions only)
 ```
 
 **Rules**: a user reads and edits their own `users` document except `access`; parents own their `children`. Requests are read by their owner and admins and written only by functions. A class and its members are read by its owner; a member reads and writes only their own document. `codes` and claims are functions only.
@@ -239,7 +240,7 @@ Differences from the plan, and choices it left open:
 
 **Retention.** `reviewClassRequest` now stamps a class with `deleteAfter` (end date + 30 days) instead of a TTL field, because a TTL policy deletes one document and would leave the students' subcollections and sign-ins behind. `cleanupClasses` runs every night at 03:00 WIB: it deletes the students' Auth users, the class with everything under it, and its code. Codes keep their TTL as a backstop.
 
-Not done here: the class's research switch (03, section 6) and closing a class come with feedback in phase 4. Deleting an educator's account leaves their classes to the nightly cleanup.
+Not done here: the class's research switch (03, section 6). Deleting an educator's account leaves their classes to the nightly cleanup.
 
 **Deploy, in this order:**
 
@@ -249,3 +250,31 @@ Not done here: the class's research switch (03, section 6) and closing a class c
 2. `firebase deploy --only functions,firestore --project kotakata-prod`. The first deploy of `cleanupClasses` turns on Cloud Scheduler.
 3. Merge the PR.
 
+### Phase 4: feedback after the class (23 Nov 2026)
+
+| Part | Where |
+| --- | --- |
+| The form's rules, when it opens, stage numbers, the mailing list CSV, shared by browser and functions | `src/account/classFeedback.ts` |
+| Functions | `sendClassFeedback` and `mailingList` in `functions/src/feedback.ts` |
+| Pages | The form on `/guru/kelas/<id>` (`src/pages/ClassFeedbackForm.tsx`); on `/guru`, a reminder once a class has ended and "Closed" once it is; on `/admin`, "Feedback kelas" with a summary, each class's answers, and the mailing list download |
+| Rules | `classFeedback/{classId}` is read by the educator who sent it and by admins; only functions write it |
+| Retention | TTL on `expireAt`: feedback 24 months after it is sent |
+
+**The form.** It shows on the class page from the start date until the class is closed, so an educator can close a class early. The questions are the ones in section 7. "Where did students get confused" lists each main stage of the class's sessions with how many students finished it, from the students' progress; the educator answers with those numbers in view. Free text asks for no student names. The training question is prefilled from sign-up, and the mailing list box shows only to someone who hasn't opted in yet.
+
+**Sending closes the class**, in one transaction in `sendClassFeedback`:
+
+- `classFeedback/{classId}` gets the answers, the class's institution, city, sessions and dates, the number of students, and how many finished each stage. No nicknames, so it can outlive the class.
+- The class gets `status: 'closed'` and `closedAt`. The join page already refuses a closed class. Students who are signed in on a device can keep playing until the class is deleted.
+- `deleteAfter` moves to 30 days after closing when that is sooner than 30 days after the end date, and the code's `expireAt` follows it.
+- The request gets `active: false`, which frees one of the educator's three slots and takes it off the admin's "Disetujui, kelas belum ditutup" list.
+- The account gets the training answer, and `mailing` if the educator opted in here.
+
+Feedback can be sent once per class. A class that ends without feedback keeps its request's slot until the nightly cleanup deletes it, 30 days after the end date; the cleanup now sets the request's `active` to false too, which phase 3 didn't, so an old class no longer holds a slot for good. `/guru` reminds the educator to fill the form in.
+
+**Mailing list.** `mailingList` returns everyone with `mailing.optIn == true`: name, email, role, institution, city, training, language and when they opted in. The admin page turns it into CSV in the browser; cells that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet doesn't run them. Sending the mailings, and the unsubscribe link each one needs, stays outside this plan (section 11).
+
+**Deploy, in this order:**
+
+1. `firebase deploy --only functions,firestore --project kotakata-prod`. This adds the two functions, the `classFeedback` rule, and the TTL policy on `classFeedback.expireAt`.
+2. Merge the PR.
